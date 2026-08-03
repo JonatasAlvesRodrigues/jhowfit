@@ -4,6 +4,8 @@ import { VitaHeader } from './components/VitaHeader'
 import { MobileNavigation, VitaSidebar } from './components/VitaNavigation'
 import { useAuth } from './contexts/AuthContext'
 import { AuthPage } from './pages/AuthPages'
+import { useOnboardingStatus } from './hooks/useOnboardingStatus'
+import { OnboardingPage } from './pages/OnboardingPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './pages/SystemPages'
 import { useVitaRoute } from './hooks/useVitaRoute'
@@ -12,10 +14,12 @@ import { isPrivateRoute } from './utils/navigation'
 export default function App() {
   const { route, status, navigate, retry } = useVitaRoute()
   const { user, loading: authLoading, recoveryMode, logout } = useAuth()
+  const onboarding = useOnboardingStatus(user?.id)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
-    if (authLoading || status === 'booting' || status === 'transitioning') return
+    if (authLoading || onboarding.loading || status === 'booting' || status === 'transitioning') return
+    if (import.meta.env.DEV && !user && route?.id === 'configuracao-inicial') return
     if (recoveryMode && route?.id !== 'redefinir-senha') {
       navigate('/redefinir-senha')
       return
@@ -24,22 +28,40 @@ export default function App() {
       navigate('/entrar')
       return
     }
-    if (user && route?.public && route.id !== 'redefinir-senha' && route.id !== 'confirmar-email') {
+    if (user && !onboarding.completed && route?.id !== 'configuracao-inicial' && route?.id !== 'redefinir-senha' && route?.id !== 'confirmar-email') {
+      navigate('/configuracao-inicial')
+      return
+    }
+    if (user && onboarding.completed && route?.id === 'configuracao-inicial') {
       navigate('/inicio')
       return
     }
+    if (user && route?.public && route.id !== 'redefinir-senha' && route.id !== 'confirmar-email') navigate('/inicio')
     if (user && route?.id === 'sair') handleLogout()
-  }, [authLoading, status, recoveryMode, route, user, navigate])
+  }, [authLoading, onboarding.loading, onboarding.completed, status, recoveryMode, route, user, navigate])
 
   async function handleLogout() {
     await logout()
     navigate('/entrar')
   }
 
-  if (status === 'booting' || authLoading) return <LoadingScreen />
+  if (status === 'booting' || authLoading || (Boolean(user) && onboarding.loading)) return <LoadingScreen />
   if (status === 'error') return <ErrorPage onRetry={retry} />
+  if (import.meta.env.DEV && !user && route?.id === 'configuracao-inicial') {
+    return <OnboardingPage userId="development-preview" initialName="João Silva" onComplete={() => undefined} />
+  }
   if ((!user && isPrivateRoute(route)) || (recoveryMode && route?.id !== 'redefinir-senha')) return <LoadingScreen />
   if (route?.public) return <AuthPage routeId={route.id} navigate={navigate} />
+  if (user && route?.id === 'configuracao-inicial') {
+    return <OnboardingPage
+      userId={user.id}
+      initialName={String(user.user_metadata?.full_name ?? '')}
+      onComplete={() => {
+        onboarding.markCompleted()
+        navigate('/inicio')
+      }}
+    />
+  }
 
   return (
     <AppErrorBoundary>

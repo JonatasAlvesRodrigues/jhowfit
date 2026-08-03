@@ -36,13 +36,22 @@ export const authRoutes: VitaRoute[] = [
   { id: 'confirmar-email', path: '/confirmar-email', label: 'Confirmar e-mail', eyebrow: 'CONFIRMAÇÃO', description: 'Confirme seu endereço de e-mail.', icon: MailCheck, public: true },
 ]
 
+export const onboardingRoute: VitaRoute = {
+  id: 'configuracao-inicial',
+  path: '/configuracao-inicial',
+  label: 'Configuração inicial',
+  eyebrow: 'PERSONALIZAÇÃO',
+  description: 'Conte-nos um pouco sobre você.',
+  icon: UserRound,
+}
+
 export const mobileRouteIds: RouteId[] = ['inicio', 'treinos', 'dieta', 'atividades', 'perfil']
 
 export const mobileRoutes = mobileRouteIds.map((id) => vitaRoutes.find((route) => route.id === id)!)
 
 export function findRoute(pathname: string) {
   const normalized = pathname === '/' ? '/inicio' : pathname.replace(/\/+$/, '').toLowerCase()
-  return [...vitaRoutes, ...authRoutes].find((route) => route.path === normalized) ?? null
+  return [...vitaRoutes, ...authRoutes, onboardingRoute].find((route) => route.path === normalized) ?? null
 }
 
 export function isPrivateRoute(route: VitaRoute | null) {

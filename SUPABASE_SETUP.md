@@ -54,7 +54,11 @@ supabase db push
 ```
 
 O `db push` cria `public.profiles`, o gatilho de criação automática do perfil,
-as tabelas fitness e todas as políticas RLS versionadas em `supabase/migrations`.
+as tabelas fitness, os campos do questionário inicial e todas as políticas RLS
+versionadas em `supabase/migrations`.
+
+Depois de aplicar as migrações, novos usuários serão direcionados ao questionário
+no primeiro acesso. A conclusão fica registrada em `profiles.onboarding_completed`.
 
 ## 5. Produção
 

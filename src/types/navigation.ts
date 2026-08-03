@@ -16,6 +16,7 @@ export type RouteId =
   | 'esqueci-senha'
   | 'redefinir-senha'
   | 'confirmar-email'
+  | 'configuracao-inicial'
 
 export interface VitaRoute {
   id: RouteId
