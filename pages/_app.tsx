@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import { AppProvider } from '../src/contexts/AppContext'
+import { AuthProvider } from '../src/contexts/AuthContext'
 import '../src/styles.css'
 
 interface AppProps {
@@ -8,5 +9,5 @@ interface AppProps {
 }
 
 export default function JhowFitApp({ Component, pageProps }: AppProps) {
-  return <AppProvider><Component {...pageProps} /></AppProvider>
+  return <AuthProvider><AppProvider><Component {...pageProps} /></AppProvider></AuthProvider>
 }

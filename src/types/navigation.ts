@@ -11,6 +11,11 @@ export type RouteId =
   | 'perfil'
   | 'configuracoes'
   | 'sair'
+  | 'entrar'
+  | 'criar-conta'
+  | 'esqueci-senha'
+  | 'redefinir-senha'
+  | 'confirmar-email'
 
 export interface VitaRoute {
   id: RouteId
@@ -20,4 +25,5 @@ export interface VitaRoute {
   eyebrow: string
   description: string
   icon: LucideIcon
+  public?: boolean
 }

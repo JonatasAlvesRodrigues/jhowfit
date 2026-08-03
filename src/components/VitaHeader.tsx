@@ -1,8 +1,12 @@
 import { Bell, Menu, Moon } from 'lucide-react'
 import type { VitaRoute } from '../types/navigation'
+import { useAuth } from '../contexts/AuthContext'
 import { VitaLogo } from './VitaNavigation'
 
 export function VitaHeader({ route, onOpenMenu }: { route: VitaRoute | null; onOpenMenu: () => void }) {
+  const { user } = useAuth()
+  const name = String(user?.user_metadata?.full_name || 'Usuário VitaFit')
+  const initials = name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   return (
     <header className="vita-header">
       <div className="vita-header__mobile">
@@ -18,8 +22,8 @@ export function VitaHeader({ route, onOpenMenu }: { route: VitaRoute | null; onO
         <span className="theme-status" title="Tema escuro ativo"><Moon size={16} /><span>Escuro</span></span>
         <button className="vita-icon-button" aria-label="Notificações"><Bell size={19} /><i /></button>
         <button className="vita-profile" aria-label="Abrir perfil">
-          <span className="profile-avatar">VF</span>
-          <span className="profile-copy"><strong>Visitante</strong><small>Perfil VitaFit</small></span>
+          <span className="profile-avatar">{initials}</span>
+          <span className="profile-copy"><strong>{name}</strong><small>{user?.email}</small></span>
         </button>
       </div>
     </header>

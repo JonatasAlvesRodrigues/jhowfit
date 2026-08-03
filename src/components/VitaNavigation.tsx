@@ -5,6 +5,7 @@ import { mobileRoutes, vitaRoutes } from '../utils/navigation'
 interface NavigationProps {
   activeRoute?: RouteId
   onNavigate: (path: string) => void
+  onLogout?: () => void
 }
 
 export function VitaLogo({ compact = false }: { compact?: boolean }) {
@@ -19,6 +20,7 @@ export function VitaLogo({ compact = false }: { compact?: boolean }) {
 export function VitaSidebar({
   activeRoute,
   onNavigate,
+  onLogout,
   isOpen,
   onClose,
 }: NavigationProps & { isOpen: boolean; onClose: () => void }) {
@@ -41,7 +43,7 @@ export function VitaSidebar({
             <button
               key={id}
               className={activeRoute === id ? 'is-active' : ''}
-              onClick={() => onNavigate(path)}
+              onClick={() => id === 'sair' && onLogout ? onLogout() : onNavigate(path)}
               aria-current={activeRoute === id ? 'page' : undefined}
             >
               <span className="nav-icon"><Icon size={19} /></span>

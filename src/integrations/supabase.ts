@@ -4,6 +4,13 @@ const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase: SupabaseClient | null =
-  url && key ? createClient(url, key) : null
+  url && key ? createClient(url, key, {
+    auth: {
+      flowType: 'pkce',
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  }) : null
 
 export const isSupabaseConfigured = Boolean(supabase)

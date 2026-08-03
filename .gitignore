@@ -2,6 +2,7 @@ node_modules/
 dist/
 dist-github/
 .env
+.env.local
 *.png
 *.log
 *.tsbuildinfo

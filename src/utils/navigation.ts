@@ -8,6 +8,9 @@ import {
   House,
   LogOut,
   Settings,
+  KeyRound,
+  MailCheck,
+  UserPlus,
   UserRound,
 } from 'lucide-react'
 import type { RouteId, VitaRoute } from '../types/navigation'
@@ -25,11 +28,23 @@ export const vitaRoutes: VitaRoute[] = [
   { id: 'sair', path: '/sair', label: 'Sair', eyebrow: 'SESSÃO', description: 'Encerre sua sessão com segurança.', icon: LogOut },
 ]
 
+export const authRoutes: VitaRoute[] = [
+  { id: 'entrar', path: '/entrar', label: 'Entrar', eyebrow: 'BEM-VINDO', description: 'Acesse sua conta VitaFit.', icon: KeyRound, public: true },
+  { id: 'criar-conta', path: '/criar-conta', label: 'Criar conta', eyebrow: 'COMECE AGORA', description: 'Crie sua conta VitaFit.', icon: UserPlus, public: true },
+  { id: 'esqueci-senha', path: '/esqueci-senha', label: 'Recuperar senha', eyebrow: 'RECUPERAÇÃO', description: 'Receba um link para redefinir sua senha.', icon: KeyRound, public: true },
+  { id: 'redefinir-senha', path: '/redefinir-senha', label: 'Redefinir senha', eyebrow: 'NOVA SENHA', description: 'Escolha uma nova senha para sua conta.', icon: KeyRound, public: true },
+  { id: 'confirmar-email', path: '/confirmar-email', label: 'Confirmar e-mail', eyebrow: 'CONFIRMAÇÃO', description: 'Confirme seu endereço de e-mail.', icon: MailCheck, public: true },
+]
+
 export const mobileRouteIds: RouteId[] = ['inicio', 'treinos', 'dieta', 'atividades', 'perfil']
 
 export const mobileRoutes = mobileRouteIds.map((id) => vitaRoutes.find((route) => route.id === id)!)
 
 export function findRoute(pathname: string) {
   const normalized = pathname === '/' ? '/inicio' : pathname.replace(/\/+$/, '').toLowerCase()
-  return vitaRoutes.find((route) => route.path === normalized) ?? null
+  return [...vitaRoutes, ...authRoutes].find((route) => route.path === normalized) ?? null
+}
+
+export function isPrivateRoute(route: VitaRoute | null) {
+  return Boolean(route && !route.public)
 }
