@@ -23,25 +23,46 @@ export function useVitaRoute() {
   }, [])
 
   useEffect(() => {
-    resolvePath(window.location.pathname)
-    const onPopState = () => resolvePath(window.location.pathname, true)
+    resolvePath(getCurrentPath())
+    const onPopState = () => resolvePath(getCurrentPath(), true)
     window.addEventListener('popstate', onPopState)
+    window.addEventListener('hashchange', onPopState)
     return () => {
       window.removeEventListener('popstate', onPopState)
+      window.removeEventListener('hashchange', onPopState)
       if (timer.current) clearTimeout(timer.current)
     }
   }, [resolvePath])
 
   const navigate = useCallback((path: string) => {
-    if (window.location.pathname === path && status !== 'error') return
-    window.history.pushState({}, '', path)
+    if (getCurrentPath() === path && status !== 'error') return
+    const destination = isGitHubPages()
+      ? `${getGitHubBase()}#${path}`
+      : path
+    window.history.pushState({}, '', destination)
     resolvePath(path, true)
   }, [resolvePath, status])
 
   const retry = useCallback(() => {
     setStatus('booting')
-    resolvePath(window.location.pathname)
+    resolvePath(getCurrentPath())
   }, [resolvePath])
 
   return { route, status, navigate, retry }
+}
+
+function isGitHubPages() {
+  return window.location.hostname.endsWith('.github.io')
+}
+
+function getGitHubBase() {
+  const segment = window.location.pathname.split('/').filter(Boolean)[0]
+  return segment ? `/${segment}/` : '/'
+}
+
+function getCurrentPath() {
+  if (isGitHubPages()) {
+    return window.location.hash.slice(1) || '/inicio'
+  }
+  return window.location.pathname
 }
