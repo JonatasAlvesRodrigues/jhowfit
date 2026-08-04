@@ -87,10 +87,17 @@ alter table public.meals enable row level security;
 alter table public.body_measurements enable row level security;
 alter table public.goals enable row level security;
 
+drop policy if exists "Users manage own daily stats" on public.daily_stats;
 create policy "Users manage own daily stats" on public.daily_stats for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users manage own workouts" on public.workouts;
 create policy "Users manage own workouts" on public.workouts for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users manage own exercises" on public.exercises;
 create policy "Users manage own exercises" on public.exercises for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users manage own sets" on public.exercise_sets;
 create policy "Users manage own sets" on public.exercise_sets for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users manage own meals" on public.meals;
 create policy "Users manage own meals" on public.meals for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users manage own measurements" on public.body_measurements;
 create policy "Users manage own measurements" on public.body_measurements for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users manage own goals" on public.goals;
 create policy "Users manage own goals" on public.goals for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

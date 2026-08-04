@@ -8,10 +8,12 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+drop policy if exists "Profiles are visible to their owners" on public.profiles;
 create policy "Profiles are visible to their owners"
 on public.profiles for select
 using (auth.uid() = id);
 
+drop policy if exists "Users update their own profile" on public.profiles;
 create policy "Users update their own profile"
 on public.profiles for update
 using (auth.uid() = id)
