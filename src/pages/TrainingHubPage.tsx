@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Bot,
+  ChartNoAxesCombined,
   CalendarDays,
   Check,
   ChevronRight,
@@ -25,9 +26,10 @@ import type { WorkoutDraft, WorkoutSummary, WorkoutTemplate } from '../types/tra
 import { weekDays } from '../types/trainingPlan'
 import { ExerciseLibraryPage } from './ExerciseLibraryPage'
 import { WorkoutExecutionPage } from './WorkoutExecutionPage'
+import { WorkoutHistoryPage } from './WorkoutHistoryPage'
 import { workoutExecutionService } from '../services/workoutExecutionService'
 
-type TrainingTab = 'plans' | 'library' | 'ai'
+type TrainingTab = 'plans' | 'library' | 'history' | 'ai'
 
 export function TrainingHubPage({ userId }: { userId: string }) {
   const hub = useTrainingHub(userId)
@@ -170,6 +172,7 @@ export function TrainingHubPage({ userId }: { userId: string }) {
       <nav className="training-tabs" aria-label="Áreas de treino">
         <button className={tab === 'plans' ? 'is-active' : ''} onClick={() => setTab('plans')}><Dumbbell size={17} /> Meus treinos</button>
         <button className={tab === 'library' ? 'is-active' : ''} onClick={() => setTab('library')}><Library size={17} /> Biblioteca</button>
+        <button className={tab === 'history' ? 'is-active' : ''} onClick={() => setTab('history')}><ChartNoAxesCombined size={17} /> Histórico</button>
         <button className={tab === 'ai' ? 'is-active' : ''} onClick={() => setTab('ai')}><Bot size={17} /> Gerar com IA <span>NOVO</span></button>
       </nav>
 
@@ -177,6 +180,7 @@ export function TrainingHubPage({ userId }: { userId: string }) {
       {recoverySessionId && <button className="recover-workout-banner" onClick={() => setRecoverySessionId(recoverySessionId)}><Play size={17} /><span><strong>Treino em andamento</strong><small>Toque para continuar de onde parou.</small></span><ChevronRight /></button>}
 
       {tab === 'library' && <ExerciseLibraryPage userId={userId} />}
+      {tab === 'history' && <WorkoutHistoryPage userId={userId} />}
       {tab === 'ai' && <AIWorkoutGenerator userId={userId} profile={hub.data.profile} library={hub.data.library} onSave={hub.saveGenerated} />}
       {tab === 'plans' && (
         <>
