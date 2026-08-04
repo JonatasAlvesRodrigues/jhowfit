@@ -53,6 +53,7 @@ export function useVitaRoute() {
 
 function isGitHubPages() {
   return window.location.hostname.endsWith('.github.io')
+    || (import.meta.env.DEV && window.location.hash.startsWith('#/'))
 }
 
 function getGitHubBase() {

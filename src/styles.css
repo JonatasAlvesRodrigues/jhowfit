@@ -655,3 +655,170 @@ body { overflow-x: hidden; }
   .onboarding-back, .onboarding-next { min-height: 47px; }
   .onboarding-next { flex: 1; }
 }
+
+/* Daily dashboard */
+.daily-dashboard { display: flex; flex-direction: column; gap: 14px; animation: vita-page-in .3s ease; }
+.daily-welcome { min-height: 67px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.daily-user { display: flex; align-items: center; gap: 13px; }
+.daily-avatar { flex: 0 0 48px; height: 48px; overflow: hidden; display: grid; place-items: center; border: 1px solid #28513d; border-radius: 15px; color: var(--vita-green); background: linear-gradient(145deg, #173725, #0e2017); font: 800 12px "Manrope", sans-serif; }
+.daily-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.daily-user small { display: block; color: var(--vita-green); font-size: 8px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
+.daily-user h1 { margin-top: 2px; font-size: 25px; line-height: 1; letter-spacing: -.9px; }
+.daily-user p { margin-top: 5px; color: var(--vita-muted); font-size: 10px; }
+.daily-notification { position: relative; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--vita-border); border-radius: 12px; color: #b5c0b9; background: var(--vita-surface); cursor: pointer; }
+.daily-notification i { position: absolute; top: 8px; right: 8px; width: 6px; height: 6px; border: 2px solid var(--vita-surface); border-radius: 50%; background: var(--vita-green); box-sizing: content-box; }
+.dashboard-empty-banner, .dashboard-complete-banner { min-height: 66px; padding: 13px 16px; display: flex; align-items: center; gap: 12px; border-radius: 15px; }
+.dashboard-empty-banner { border: 1px dashed #334239; color: #8d9a92; background: rgba(17,22,19,.72); }
+.dashboard-complete-banner { border: 1px solid rgba(39,214,143,.2); color: var(--vita-green); background: rgba(39,214,143,.07); }
+.dashboard-empty-banner > span { flex: 0 0 39px; height: 39px; display: grid; place-items: center; border-radius: 11px; color: var(--vita-green); background: var(--vita-green-soft); }
+.dashboard-empty-banner div, .dashboard-complete-banner div { flex: 1; }
+.dashboard-empty-banner strong, .dashboard-complete-banner strong { display: block; color: #dce5df; font-size: 11px; }
+.dashboard-empty-banner p, .dashboard-complete-banner p { margin-top: 3px; color: var(--vita-muted); font-size: 9px; }
+.dashboard-empty-banner button { border: 0; display: inline-flex; align-items: center; gap: 5px; color: var(--vita-green); background: transparent; font-size: 9px; font-weight: 700; cursor: pointer; }
+.dashboard-inline-error { padding: 11px 13px; border: 1px solid rgba(255,116,109,.2); border-radius: 11px; color: #efaaa6; background: rgba(255,116,109,.07); font-size: 9px; }
+
+.today-summary { min-height: 216px; padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 28px; overflow: hidden; border: 1px solid #284536; border-radius: 22px; background:
+  radial-gradient(circle at 87% 45%, rgba(39,214,143,.15), transparent 26%),
+  linear-gradient(135deg, #12271c, #101713 58%, #0d120f);
+  box-shadow: inset 0 1px rgba(255,255,255,.035), 0 20px 50px rgba(0,0,0,.12);
+}
+.today-summary__copy { max-width: 620px; }
+.today-summary__copy > small, .daily-panel__heading small, .daily-insight small { display: block; color: var(--vita-green); font-size: 8px; font-weight: 800; letter-spacing: 1.6px; }
+.today-summary__copy h2 { margin-top: 7px; font-size: clamp(21px, 2.6vw, 31px); letter-spacing: -1.1px; }
+.today-summary__copy > p { max-width: 560px; margin-top: 8px; color: #9aa8a0; font-size: 10px; line-height: 1.6; }
+.today-summary__legend { margin-top: 23px; display: flex; align-items: center; gap: 18px; color: #738179; font-size: 9px; }
+.today-summary__legend span { display: flex; align-items: center; gap: 7px; }
+.today-summary__legend span i { width: 7px; height: 7px; border-radius: 50%; background: var(--vita-green); box-shadow: 0 0 9px rgba(39,214,143,.45); }
+.today-summary__legend b { color: #c7d1cb; }
+.daily-ring { position: relative; flex: 0 0 142px; height: 142px; display: grid; place-items: center; }
+.daily-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.daily-ring circle { fill: none; stroke-width: 8; }
+.daily-ring__track { stroke: rgba(255,255,255,.08); }
+.daily-ring__value { stroke: var(--vita-green); stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(39,214,143,.34)); transition: stroke-dashoffset .5s ease; }
+.daily-ring div { position: relative; text-align: center; }
+.daily-ring strong, .daily-ring span { display: block; }
+.daily-ring strong { font: 800 27px "Manrope", sans-serif; letter-spacing: -1.2px; }
+.daily-ring span { margin-top: 1px; color: #789087; font-size: 8px; text-transform: uppercase; letter-spacing: .7px; }
+
+.daily-metrics-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
+.daily-metric { min-width: 0; min-height: 134px; padding: 17px; display: flex; align-items: flex-start; gap: 12px; border: 1px solid var(--vita-border); border-radius: 17px; color: var(--vita-text); background: linear-gradient(145deg, rgba(17,23,19,.98), rgba(12,17,14,.98)); text-align: left; cursor: pointer; transition: transform .18s, border-color .18s, background .18s; }
+.daily-metric:hover { transform: translateY(-2px); border-color: #36463d; background: #141b17; }
+.daily-metric:active { transform: scale(.985); }
+.daily-metric__icon { flex: 0 0 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; color: var(--vita-green); background: var(--vita-green-soft); }
+.daily-metric--orange .daily-metric__icon { color: #ff9d46; background: rgba(255,157,70,.1); }
+.daily-metric--blue .daily-metric__icon { color: #4ca8ff; background: rgba(76,168,255,.1); }
+.daily-metric--purple .daily-metric__icon { color: #af8cff; background: rgba(175,140,255,.1); }
+.daily-metric__copy { flex: 1; min-width: 0; }
+.daily-metric__top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.daily-metric__top small { overflow: hidden; color: #7d8a82; font-size: 8px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; }
+.daily-metric__top i { color: var(--vita-green); font-size: 8px; font-style: normal; font-weight: 700; }
+.daily-metric--orange .daily-metric__top i { color: #ff9d46; }
+.daily-metric--blue .daily-metric__top i { color: #4ca8ff; }
+.daily-metric--purple .daily-metric__top i { color: #af8cff; }
+.daily-metric__copy > strong { display: block; overflow: hidden; margin-top: 12px; font: 700 19px "Manrope", sans-serif; letter-spacing: -.6px; text-overflow: ellipsis; white-space: nowrap; }
+.daily-metric__goal { display: block; overflow: hidden; margin-top: 2px; color: #647269; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.daily-progress { height: 4px; margin-top: 12px; display: block; overflow: hidden; border-radius: 6px; background: #222c26; }
+.daily-progress i { height: 100%; display: block; border-radius: inherit; background: var(--vita-green); }
+.daily-metric--orange .daily-progress i { background: #ff9d46; }
+.daily-metric--blue .daily-progress i { background: #4ca8ff; }
+.daily-metric--purple .daily-progress i { background: #af8cff; }
+
+.daily-details-grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: 11px; }
+.daily-panel { min-height: 268px; padding: 23px; border: 1px solid var(--vita-border); border-radius: 19px; background: linear-gradient(145deg, rgba(17,23,19,.98), rgba(12,17,14,.98)); }
+.daily-panel__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.daily-panel__heading h2 { margin-top: 5px; font-size: 17px; letter-spacing: -.5px; }
+.daily-panel__heading > span { padding: 5px 8px; border: 1px solid rgba(255,157,70,.18); border-radius: 7px; color: #ff9d46; background: rgba(255,157,70,.07); font-size: 7px; font-weight: 800; letter-spacing: .8px; }
+.daily-panel__heading > span.is-complete { color: var(--vita-green); border-color: rgba(39,214,143,.18); background: var(--vita-green-soft); }
+.daily-panel__heading > button { padding: 0; border: 0; display: inline-flex; align-items: center; gap: 5px; color: var(--vita-green); background: transparent; font-size: 8px; font-weight: 700; cursor: pointer; }
+.workout-muscles { margin-top: 6px; color: var(--vita-muted); font-size: 9px; }
+.workout-facts { margin: 22px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.workout-facts > span { min-width: 0; padding: 13px 10px; border: 1px solid #202b25; border-radius: 12px; color: var(--vita-green); background: #0c110e; }
+.workout-facts b, .workout-facts small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workout-facts b { margin-top: 7px; color: #dfe7e2; font: 700 10px "Manrope"; }
+.workout-facts small { margin-top: 2px; color: #5f6c64; font-size: 7px; }
+.start-workout-button { width: 100%; min-height: 44px; border: 0; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 11px; color: #052719; background: var(--vita-green); font-size: 10px; font-weight: 800; cursor: pointer; }
+.start-workout-button:disabled { color: #839088; background: #222b26; cursor: default; }
+.no-workout { min-height: 185px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.no-workout > span { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 15px; color: #647269; background: #121914; }
+.no-workout p { max-width: 350px; margin-top: 12px; color: var(--vita-muted); font-size: 9px; line-height: 1.55; }
+.no-workout button { margin-top: 12px; border: 0; display: inline-flex; align-items: center; gap: 5px; color: var(--vita-green); background: transparent; font-size: 9px; font-weight: 700; cursor: pointer; }
+.weight-current { min-height: 160px; margin-top: 17px; display: grid; grid-template-columns: .8fr 1.2fr; align-items: center; gap: 17px; }
+.weight-current > div > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; color: var(--vita-green); background: var(--vita-green-soft); }
+.weight-current strong { display: block; margin-top: 12px; font: 700 24px "Manrope"; letter-spacing: -.9px; }
+.weight-current small { margin-top: 5px; display: flex; align-items: center; gap: 4px; font-size: 8px; }
+.weight-current small.is-positive { color: var(--vita-green); }
+.weight-current small.is-warning { color: #ff9d46; }
+.weight-mini-chart { width: 100%; height: 115px; overflow: visible; }
+.weight-chart-empty { position: relative; height: 110px; display: flex; align-items: flex-end; justify-content: space-around; border-bottom: 1px solid #263029; }
+.weight-chart-empty span { width: 1px; height: 100%; background: linear-gradient(transparent, rgba(255,255,255,.04)); }
+.weight-chart-empty i { position: absolute; inset: auto 0 20px; border-top: 2px dashed #26342d; transform: rotate(-6deg); }
+.weight-hint { color: #647169; font-size: 8px; }
+
+.daily-insight { min-height: 95px; padding: 18px 21px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(39,214,143,.18); border-radius: 18px; background: radial-gradient(circle at 7% 50%, rgba(39,214,143,.12), transparent 25%), #101713; }
+.daily-insight__icon { flex: 0 0 45px; height: 45px; display: grid; place-items: center; border-radius: 14px; color: #052719; background: var(--vita-green); box-shadow: 0 0 26px rgba(39,214,143,.13); }
+.daily-insight > div { flex: 1; }
+.daily-insight h2 { margin-top: 5px; font-size: 13px; line-height: 1.4; }
+.daily-insight p { margin-top: 3px; color: #657269; font-size: 8px; }
+.daily-insight > button { border: 0; display: inline-flex; align-items: center; gap: 5px; color: var(--vita-green); background: transparent; font-size: 8px; font-weight: 700; cursor: pointer; }
+
+.dashboard-state { min-height: 520px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.dashboard-state > span { width: 54px; height: 54px; margin-bottom: 17px; display: grid; place-items: center; border-radius: 16px; }
+.dashboard-state--error > span { color: var(--vita-danger); background: rgba(255,116,109,.08); }
+.dashboard-state small { color: var(--vita-danger); font-size: 8px; font-weight: 800; letter-spacing: 1.4px; }
+.dashboard-state h1 { margin-top: 7px; font-size: 23px; }
+.dashboard-state p { margin-top: 7px; color: var(--vita-muted); font-size: 10px; }
+.daily-loading { min-height: 132px; border: 1px solid var(--vita-border); border-radius: 17px; background: linear-gradient(90deg, #101512 25%, #18201b 50%, #101512 75%); background-size: 220% 100%; animation: daily-shimmer 1.35s infinite linear; }
+.daily-loading--header { min-height: 67px; }
+.daily-loading--summary { min-height: 216px; }
+.daily-loading-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; }
+.daily-loading-grid--wide { grid-template-columns: 1.08fr .92fr; }
+.daily-loading-grid--wide .daily-loading { min-height: 268px; }
+@keyframes daily-shimmer { to { background-position: -220% 0; } }
+
+@media (max-width: 1050px) {
+  .daily-metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .daily-details-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+  .daily-dashboard { gap: 10px; }
+  .daily-welcome { min-height: 59px; }
+  .daily-avatar { flex-basis: 43px; height: 43px; border-radius: 13px; }
+  .daily-user h1 { font-size: 22px; }
+  .daily-user p { font-size: 9px; }
+  .daily-notification { width: 39px; height: 39px; }
+  .dashboard-empty-banner { align-items: flex-start; }
+  .dashboard-empty-banner button { display: none; }
+  .today-summary { min-height: 194px; padding: 22px 20px; gap: 10px; border-radius: 19px; }
+  .today-summary__copy h2 { max-width: 230px; font-size: 19px; line-height: 1.2; }
+  .today-summary__copy > p { max-width: 235px; font-size: 9px; }
+  .today-summary__legend { margin-top: 17px; }
+  .today-summary__legend b { display: none; }
+  .daily-ring { flex-basis: 105px; height: 105px; }
+  .daily-ring strong { font-size: 22px; }
+  .daily-metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .daily-metric { min-height: 155px; padding: 14px; flex-direction: column; gap: 8px; border-radius: 15px; }
+  .daily-metric__icon { flex-basis: 34px; width: 34px; height: 34px; }
+  .daily-metric__copy { width: 100%; }
+  .daily-metric__copy > strong { margin-top: 9px; font-size: 17px; }
+  .daily-progress { margin-top: 10px; }
+  .daily-panel { min-height: 255px; padding: 18px; border-radius: 17px; }
+  .workout-facts { gap: 6px; }
+  .workout-facts > span { padding: 11px 8px; }
+  .weight-current { grid-template-columns: .95fr 1.05fr; }
+  .weight-current strong { font-size: 20px; }
+  .daily-insight { align-items: flex-start; padding: 16px; }
+  .daily-insight__icon { flex-basis: 40px; height: 40px; }
+  .daily-insight > button { display: none; }
+  .daily-loading-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .daily-loading-grid--wide { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 390px) {
+  .today-summary { padding: 19px 16px; }
+  .daily-ring { flex-basis: 90px; height: 90px; }
+  .daily-ring strong { font-size: 19px; }
+  .daily-ring span { display: none; }
+  .today-summary__copy h2 { font-size: 17px; }
+  .daily-metric { min-height: 149px; }
+}

@@ -4,6 +4,7 @@ import { VitaHeader } from './components/VitaHeader'
 import { MobileNavigation, VitaSidebar } from './components/VitaNavigation'
 import { useAuth } from './contexts/AuthContext'
 import { AuthPage } from './pages/AuthPages'
+import { DailyDashboardPage } from './pages/DailyDashboardPage'
 import { useOnboardingStatus } from './hooks/useOnboardingStatus'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { ProfilePage } from './pages/ProfilePage'
@@ -20,6 +21,7 @@ export default function App() {
   useEffect(() => {
     if (authLoading || onboarding.loading || status === 'booting' || status === 'transitioning') return
     if (import.meta.env.DEV && !user && route?.id === 'configuracao-inicial') return
+    if (import.meta.env.DEV && !user && route?.id === 'inicio') return
     if (recoveryMode && route?.id !== 'redefinir-senha') {
       navigate('/redefinir-senha')
       return
@@ -50,7 +52,7 @@ export default function App() {
   if (import.meta.env.DEV && !user && route?.id === 'configuracao-inicial') {
     return <OnboardingPage userId="development-preview" initialName="João Silva" onComplete={() => undefined} />
   }
-  if ((!user && isPrivateRoute(route)) || (recoveryMode && route?.id !== 'redefinir-senha')) return <LoadingScreen />
+  if ((!user && isPrivateRoute(route) && !(import.meta.env.DEV && route?.id === 'inicio')) || (recoveryMode && route?.id !== 'redefinir-senha')) return <LoadingScreen />
   if (route?.public) return <AuthPage routeId={route.id} navigate={navigate} />
   if (user && route?.id === 'configuracao-inicial') {
     return <OnboardingPage
@@ -88,7 +90,9 @@ export default function App() {
               {status === 'transitioning' && <span />}
             </div>
             <div className="vita-content" aria-live="polite">
-              {route?.id === 'perfil' ? (
+              {route?.id === 'inicio' && (user || import.meta.env.DEV) ? (
+                <DailyDashboardPage userId={user?.id ?? '00000000-0000-0000-0000-000000000000'} onNavigate={navigate} />
+              ) : route?.id === 'perfil' ? (
                 <ProfilePage onLogout={handleLogout} />
               ) : route ? (
                 <RoutePlaceholder route={route} onNavigate={navigate} />
