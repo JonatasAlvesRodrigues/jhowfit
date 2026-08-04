@@ -75,7 +75,7 @@
 .workout-editor-settings { position: sticky; top: calc(var(--vita-header) + 12px); padding: 18px; border: 1px solid var(--vita-border); border-radius: 17px; background: #101612; }
 .training-field { display: block; margin-bottom: 15px; }
 .training-field > span, .exercise-config-grid label > span, .ai-review-meta label > span, .ai-workout-fields label > span, .ai-exercise-review label > span { display: block; margin-bottom: 7px; color: #75827a; font-size: 8px; font-weight: 700; }
-.training-field input, .training-field select, .training-field textarea, .exercise-config-grid input, .exercise-config-grid select, .ai-review-meta input, .ai-review-meta textarea, .ai-workout-fields input, .ai-workout-fields textarea, .ai-exercise-review input, .ai-exercise-review select { width: 100%; border: 1px solid #29362e; outline: 0; border-radius: 9px; color: var(--vita-text); background: #0a0f0c; font-size: 9px; }
+.training-field input, .training-field select, .training-field textarea, .exercise-config-grid input, .exercise-config-grid select, .ai-review-meta input, .ai-review-meta textarea, .ai-workout-fields input, .ai-workout-fields textarea, .ai-exercise-review input, .ai-exercise-review select, .ai-exercise-review textarea { width: 100%; border: 1px solid #29362e; outline: 0; border-radius: 9px; color: var(--vita-text); background: #0a0f0c; font-size: 9px; }
 .training-field input, .training-field select, .exercise-config-grid input, .exercise-config-grid select, .ai-review-meta input, .ai-workout-fields input, .ai-exercise-review input, .ai-exercise-review select { height: 40px; padding: 0 10px; }
 .training-field textarea, .ai-review-meta textarea, .ai-workout-fields textarea { min-height: 80px; padding: 10px; resize: vertical; }
 .training-field input:focus, .training-field select:focus, .training-field textarea:focus, .exercise-config-grid input:focus, .exercise-config-grid select:focus { border-color: rgba(39,214,143,.45); }
@@ -198,6 +198,9 @@
 .ai-workout-fields textarea { min-height: 58px; }
 .ai-exercise-review-list { margin-top: 10px; display: grid; gap: 6px; }
 .ai-exercise-review { padding: 9px; display: grid; grid-template-columns: 28px minmax(180px, 1fr) 72px 100px 80px; align-items: end; gap: 7px; border: 1px solid #253129; border-radius: 10px; background: #090d0b; }
+.ai-exercise-review textarea { min-height: 58px; padding: 10px; resize: vertical; }
+.ai-exercise-review label:nth-of-type(5) { grid-column: 2 / span 2; }
+.ai-exercise-review label:nth-of-type(6) { grid-column: 4 / -1; }
 .ai-exercise-index { align-self: center; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px; color: var(--vita-green); background: var(--vita-green-soft); font-size: 8px; font-weight: 800; }
 .ai-safety-result strong { display: block; font-size: 9px; }
 .ai-safety-result p { margin-top: 4px; }
@@ -274,6 +277,7 @@
   .ai-exercise-review { grid-template-columns: 27px 1fr 65px; }
   .ai-exercise-name { grid-column: 2 / -1; }
   .ai-exercise-review label:nth-of-type(4) { grid-column: 2 / -1; }
+  .ai-exercise-review label:nth-of-type(5), .ai-exercise-review label:nth-of-type(6) { grid-column: 2 / -1; }
   .ai-review-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .ai-review-actions .ai-save-plan { grid-column: 1 / -1; }
   .training-loading-grid { grid-template-columns: 1fr; }

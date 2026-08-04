@@ -144,6 +144,8 @@ export function AIWorkoutGenerator({
                         <label><span>Séries</span><input type="number" min="1" max="10" value={exercise.sets} onChange={(event) => updateGeneratedExercise(plan, setPlan, workoutIndex, exerciseIndex, { sets: Number(event.target.value) })} /></label>
                         <label><span>Repetições</span><input value={exercise.repetitions} onChange={(event) => updateGeneratedExercise(plan, setPlan, workoutIndex, exerciseIndex, { repetitions: event.target.value })} /></label>
                         <label><span>Descanso</span><input type="number" min="0" max="300" value={exercise.restSeconds} onChange={(event) => updateGeneratedExercise(plan, setPlan, workoutIndex, exerciseIndex, { restSeconds: Number(event.target.value) })} /></label>
+                        <label className="ai-exercise-detail"><span>Observações</span><textarea value={exercise.notes} onChange={(event) => updateGeneratedExercise(plan, setPlan, workoutIndex, exerciseIndex, { notes: event.target.value })} /></label>
+                        <label className="ai-exercise-detail"><span>Substituições</span><input value={exercise.substitutions.join(', ')} onChange={(event) => updateGeneratedExercise(plan, setPlan, workoutIndex, exerciseIndex, { substitutions: parseList(event.target.value, 3) })} placeholder="Separe por vírgulas" /></label>
                       </div>
                     ))}
                   </div>
@@ -246,4 +248,8 @@ function validateGeneratedPlan(plan: GeneratedPlan) {
 
 function labelValue(value: string) {
   return value.replace(/_/g, ' ').replace(/\b\w/g, (letter: string) => letter.toUpperCase())
+}
+
+function parseList(value: string, limit: number) {
+  return value.split(',').map((item) => item.trim()).filter(Boolean).slice(0, limit)
 }
