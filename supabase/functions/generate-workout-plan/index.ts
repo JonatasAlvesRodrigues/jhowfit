@@ -97,45 +97,90 @@ Deno.serve(async (request) => {
 
     const profileSummary = buildProfileSummary(profile, input)
     const prompt = buildPrompt(profileSummary, library)
-    const geminiResponse = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': geminiKey,
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{
-              text: 'Você é um assistente de planejamento fitness responsável. Não diagnostique, não trate lesões, não garanta resultados e não substitua profissionais de saúde ou educação física. Quando houver risco, seja conservador, evite exercícios incompatíveis e sinalize avaliação profissional.',
-            }],
-          },
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-          },
-        }),
-      },
-    )
+    const generation = await generateWithGemini(geminiKey, prompt)
+    if (!generation.ok) return json(geminiError(generation.status), 502)
 
-    if (!geminiResponse.ok) {
-      const details = await geminiResponse.text()
-      console.error('Gemini error', geminiResponse.status, details.slice(0, 500))
-      return json(geminiError(geminiResponse.status), 502)
-    }
-
-    const geminiData = await geminiResponse.json()
-    const text = geminiData?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text ?? '').join('')
-    if (!text) return json({ error: 'A IA retornou uma resposta vazia.' }, 502)
-
-    const plan = validatePlan(JSON.parse(text))
-    return json({ profileSummary, plan })
+    return json({ profileSummary, plan: generation.plan })
   } catch (error) {
     console.error(error)
     return json({ error: 'Não foi possível gerar o plano. Revise os dados e tente novamente.' }, 500)
   }
 })
+
+async function generateWithGemini(geminiKey: string, prompt: string): Promise<
+  { ok: true; plan: ReturnType<typeof validatePlan> }
+  | { ok: false; status: number }
+> {
+  const attempts = [
+    'gemini-3.6-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
+    'gemini-2.5-flash',
+  ]
+  let lastStatus = 502
+
+  for (let attempt = 0; attempt < attempts.length; attempt += 1) {
+    if (attempt > 0) {
+      const delay = 750 * (2 ** (attempt - 1)) + Math.floor(Math.random() * 250)
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+
+    const model = attempts[attempt]
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': geminiKey,
+          },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{
+                text: 'Você é um assistente de planejamento fitness responsável. Não diagnostique, não trate lesões, não garanta resultados e não substitua profissionais de saúde ou educação física. Quando houver risco, seja conservador, evite exercícios incompatíveis e sinalize avaliação profissional.',
+              }],
+            },
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0.35,
+              maxOutputTokens: 8192,
+            },
+          }),
+        },
+      )
+
+      if (!response.ok) {
+        const details = await response.text()
+        lastStatus = response.status
+        console.error('Gemini error', model, response.status, details.slice(0, 500))
+        if ([400, 401, 403].includes(response.status)) break
+        continue
+      }
+
+      const data = await response.json()
+      const text = data?.candidates?.[0]?.content?.parts
+        ?.map((part: { text?: string }) => part.text ?? '')
+        .join('')
+      if (!text) {
+        console.error('Gemini empty response', model)
+        continue
+      }
+
+      try {
+        return { ok: true, plan: validatePlan(JSON.parse(text)) }
+      } catch (error) {
+        console.error('Gemini invalid structured response', model, error)
+      }
+    } catch (error) {
+      lastStatus = 503
+      console.error('Gemini network error', model, error)
+    }
+  }
+
+  return { ok: false, status: lastStatus }
+}
 
 function buildProfileSummary(profile: Record<string, unknown>, input: Record<string, unknown>) {
   const age = profile.birth_date ? calculateAge(String(profile.birth_date)) : null
