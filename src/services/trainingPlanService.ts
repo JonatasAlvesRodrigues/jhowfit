@@ -132,7 +132,14 @@ export const trainingPlanService = {
     const { data, error } = await supabase.functions.invoke('generate-workout-plan', {
       body: { priorityMuscles, dislikedExercises },
     })
-    if (error) throw new Error('Não foi possível acessar o gerador de treino.')
+    if (error) {
+      const context = (error as { context?: Response }).context
+      if (context) {
+        const response = await context.clone().json().catch(() => null)
+        if (response?.error) throw new Error(response.error)
+      }
+      throw new Error('Não foi possível acessar o gerador de treino.')
+    }
     if (data?.error) throw new Error(data.error)
     if (!data?.plan) throw new Error('A IA não retornou um plano válido.')
     return data as { profileSummary: AIProfileSummary; plan: GeneratedPlan }

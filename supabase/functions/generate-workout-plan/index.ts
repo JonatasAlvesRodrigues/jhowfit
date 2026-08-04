@@ -42,7 +42,11 @@ const planSchema = {
                 sets: { type: 'integer', minimum: 1, maximum: 10 },
                 repetitions: { type: 'string' },
                 restSeconds: { type: 'integer', minimum: 0, maximum: 300 },
-                initialWeight: { type: ['number', 'null'], minimum: 0 },
+                initialWeight: {
+                  type: 'number',
+                  minimum: 0,
+                  description: 'Carga inicial sugerida em kg. Use 0 quando não for aplicável.',
+                },
                 notes: { type: 'string' },
                 optional: { type: 'boolean' },
                 advancedTechnique: { type: 'string' },
@@ -110,7 +114,6 @@ Deno.serve(async (request) => {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             responseMimeType: 'application/json',
-            responseSchema: planSchema,
           },
         }),
       },
@@ -119,7 +122,7 @@ Deno.serve(async (request) => {
     if (!geminiResponse.ok) {
       const details = await geminiResponse.text()
       console.error('Gemini error', geminiResponse.status, details.slice(0, 500))
-      return json({ error: 'A IA não conseguiu gerar uma sugestão agora. Tente novamente.' }, 502)
+      return json(geminiError(geminiResponse.status), 502)
     }
 
     const geminiData = await geminiResponse.json()
@@ -169,7 +172,8 @@ function buildPrompt(profile: Record<string, unknown>, library: Array<Record<str
     'Se o perfil indicar risco ou informação insuficiente, use opções conservadoras e destaque a necessidade de avaliação profissional.',
     'Não faça diagnóstico, tratamento, promessa ou garantia de resultado.',
     'Não inclua exercícios listados como não apreciados.',
-    'Retorne apenas o JSON solicitado pelo schema.',
+    'Retorne apenas JSON válido, sem markdown, seguindo exatamente o formato obrigatório.',
+    `FORMATO OBRIGATÓRIO: ${JSON.stringify(planSchema)}`,
     `PERFIL: ${JSON.stringify(profile)}`,
     `BIBLIOTECA DISPONÍVEL: ${JSON.stringify(available)}`,
   ].join('\n\n')
@@ -193,7 +197,7 @@ function validatePlan(value: Record<string, unknown>) {
         sets: clamp(Number(exercise.sets), 1, 10),
         repetitions: cleanText(exercise.repetitions).slice(0, 40),
         restSeconds: clamp(Number(exercise.restSeconds), 0, 300),
-        initialWeight: exercise.initialWeight === null ? null : Math.max(Number(exercise.initialWeight) || 0, 0),
+        initialWeight: Number(exercise.initialWeight) > 0 ? Number(exercise.initialWeight) : null,
         notes: cleanText(exercise.notes).slice(0, 500),
         optional: Boolean(exercise.optional),
         advancedTechnique: cleanText(exercise.advancedTechnique).slice(0, 100),
@@ -241,4 +245,35 @@ function json(payload: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
   })
+}
+
+function geminiError(status: number) {
+  if (status === 400) {
+    return {
+      code: 'GEMINI_INVALID_REQUEST',
+      error: 'O Gemini recusou a configuração da geração. Atualize a função e tente novamente.',
+    }
+  }
+  if (status === 401 || status === 403) {
+    return {
+      code: 'GEMINI_KEY_DENIED',
+      error: 'A chave do Gemini não foi aceita. Verifique a chave configurada no Supabase.',
+    }
+  }
+  if (status === 404) {
+    return {
+      code: 'GEMINI_MODEL_UNAVAILABLE',
+      error: 'O modelo do Gemini não está disponível para esta chave.',
+    }
+  }
+  if (status === 429) {
+    return {
+      code: 'GEMINI_QUOTA_EXCEEDED',
+      error: 'A cota do Gemini foi atingida. Verifique o plano e o faturamento no Google AI Studio.',
+    }
+  }
+  return {
+    code: 'GEMINI_PROVIDER_ERROR',
+    error: 'O Gemini está indisponível no momento. Tente novamente em alguns minutos.',
+  }
 }
