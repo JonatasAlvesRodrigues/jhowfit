@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const root = process.cwd()
@@ -13,6 +13,7 @@ if (!existsSync(resolve(workerOutput, 'index.js'))) {
 
 mkdirSync(serverOutput, { recursive: true })
 cpSync(workerOutput, serverOutput, { recursive: true, force: true })
+rmSync(resolve(serverOutput, '.dev.vars'), { force: true })
 mkdirSync(hostingOutput, { recursive: true })
 cpSync(hostingSource, resolve(hostingOutput, 'hosting.json'), { force: true })
 
