@@ -66,14 +66,15 @@ export const trainingPlanService = {
 
   async saveWorkout(userId: string, draft: WorkoutDraft) {
     if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
+    const normalizedDays = normalizeWeekDays(draft.days)
     const workoutPayload = {
       user_id: userId,
       title: draft.name.trim(),
       focus: draft.focus.trim(),
       duration: draft.durationMinutes,
       exercise_count: draft.exercises.length,
-      scheduled_days: draft.days,
-      scheduled_date: draft.days.includes(todayWeekDay()) ? localDate() : null,
+      scheduled_days: normalizedDays,
+      scheduled_date: normalizedDays.includes(todayWeekDay()) ? localDate() : null,
       notes: draft.notes.trim() || null,
       is_active: draft.active,
       source: draft.source,
@@ -317,4 +318,32 @@ function normalizeExerciseName(value: string) {
     .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .toLowerCase()
+}
+
+function normalizeWeekDays(days: readonly string[]): WeekDay[] {
+  const aliases: Record<string, WeekDay> = {
+    domingo: 'Domingo',
+    sunday: 'Domingo',
+    segunda: 'Segunda',
+    'segunda-feira': 'Segunda',
+    monday: 'Segunda',
+    terça: 'Terça',
+    terca: 'Terça',
+    'terça-feira': 'Terça',
+    'terca-feira': 'Terça',
+    tuesday: 'Terça',
+    quarta: 'Quarta',
+    'quarta-feira': 'Quarta',
+    wednesday: 'Quarta',
+    quinta: 'Quinta',
+    'quinta-feira': 'Quinta',
+    thursday: 'Quinta',
+    sexta: 'Sexta',
+    'sexta-feira': 'Sexta',
+    friday: 'Sexta',
+    sábado: 'Sábado',
+    sabado: 'Sábado',
+    saturday: 'Sábado',
+  }
+  return [...new Set(days.map((day) => aliases[day.trim().toLowerCase()]).filter(Boolean))]
 }

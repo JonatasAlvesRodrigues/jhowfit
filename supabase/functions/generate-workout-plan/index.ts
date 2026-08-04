@@ -185,10 +185,13 @@ function validatePlan(value: Record<string, unknown>) {
   }
   return {
     planName: cleanText(value.planName).slice(0, 100) || 'Plano personalizado',
-    weeklySplit: Array.isArray(value.weeklySplit) ? value.weeklySplit.slice(0, 7) : [],
+    weeklySplit: Array.isArray(value.weeklySplit) ? value.weeklySplit.slice(0, 7).map((item: Record<string, unknown>) => ({
+      day: normalizeWeekDay(cleanText(item.day)) || cleanText(item.day).slice(0, 40),
+      workout: cleanText(item.workout).slice(0, 120),
+    })) : [],
     workouts: value.workouts.slice(0, 7).map((workout: Record<string, unknown>) => ({
       name: cleanText(workout.name).slice(0, 100) || 'Treino',
-      days: cleanArray(workout.days, 7),
+      days: normalizeWeekDays(workout.days),
       focus: cleanText(workout.focus).slice(0, 180),
       durationMinutes: clamp(Number(workout.durationMinutes), 10, 180),
       notes: cleanText(workout.notes).slice(0, 1000),
@@ -221,6 +224,41 @@ function calculateAge(birthDate: string) {
 
 function cleanArray(value: unknown, limit = 20) {
   return Array.isArray(value) ? value.map((item) => cleanText(item).slice(0, 120)).filter(Boolean).slice(0, limit) : []
+}
+
+function normalizeWeekDays(value: unknown) {
+  if (!Array.isArray(value)) return []
+  return [...new Set(value.map((day) => normalizeWeekDay(cleanText(day))).filter(Boolean))].slice(0, 7)
+}
+
+function normalizeWeekDay(value: string) {
+  const normalized = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+  const aliases: Record<string, string> = {
+    domingo: 'Domingo',
+    sunday: 'Domingo',
+    segunda: 'Segunda',
+    'segunda-feira': 'Segunda',
+    monday: 'Segunda',
+    terca: 'Terça',
+    'terca-feira': 'Terça',
+    tuesday: 'Terça',
+    quarta: 'Quarta',
+    'quarta-feira': 'Quarta',
+    wednesday: 'Quarta',
+    quinta: 'Quinta',
+    'quinta-feira': 'Quinta',
+    thursday: 'Quinta',
+    sexta: 'Sexta',
+    'sexta-feira': 'Sexta',
+    friday: 'Sexta',
+    sabado: 'Sábado',
+    saturday: 'Sábado',
+  }
+  return aliases[normalized] ?? ''
 }
 
 function array(value: unknown) {
