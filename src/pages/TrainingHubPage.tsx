@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bot,
   CalendarDays,
@@ -10,6 +10,7 @@ import {
   Library,
   MoreVertical,
   Pencil,
+  Play,
   Plus,
   Power,
   RefreshCw,
@@ -23,6 +24,8 @@ import { useTrainingHub } from '../hooks/useTrainingHub'
 import type { WorkoutDraft, WorkoutSummary, WorkoutTemplate } from '../types/trainingPlan'
 import { weekDays } from '../types/trainingPlan'
 import { ExerciseLibraryPage } from './ExerciseLibraryPage'
+import { WorkoutExecutionPage } from './WorkoutExecutionPage'
+import { workoutExecutionService } from '../services/workoutExecutionService'
 
 type TrainingTab = 'plans' | 'library' | 'ai'
 
@@ -35,6 +38,16 @@ export function TrainingHubPage({ userId }: { userId: string }) {
   const [actionMenu, setActionMenu] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [actionError, setActionError] = useState('')
+  const [runningWorkout, setRunningWorkout] = useState<WorkoutSummary | null>(null)
+  const [recoverySessionId, setRecoverySessionId] = useState<string | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    workoutExecutionService.getActive(userId).then((session) => {
+      if (mounted && session) setRecoverySessionId(session.id)
+    }).catch(() => undefined)
+    return () => { mounted = false }
+  }, [userId])
 
   if (hub.loading) return <TrainingHubLoading />
   if (hub.error || !hub.data) {
@@ -133,6 +146,20 @@ export function TrainingHubPage({ userId }: { userId: string }) {
     return <WorkoutEditor initial={editor} library={hub.data.library} saving={saving} onSave={(draft) => void saveWorkout(draft)} onCancel={() => setEditor(null)} />
   }
 
+  if (runningWorkout || recoverySessionId) {
+    return <WorkoutExecutionPage
+      userId={userId}
+      workout={runningWorkout ?? undefined}
+      recoverySessionId={recoverySessionId ?? undefined}
+      library={hub.data.library}
+      onExit={() => {
+        setRunningWorkout(null)
+        setRecoverySessionId(null)
+        void hub.retry()
+      }}
+    />
+  }
+
   return (
     <section className="training-hub-page">
       <header className="training-hub-heading">
@@ -147,6 +174,7 @@ export function TrainingHubPage({ userId }: { userId: string }) {
       </nav>
 
       {(message || actionError) && <div className={`training-feedback ${actionError ? 'is-error' : ''}`}>{actionError ? <CircleOff size={17} /> : <Check size={17} />}<span>{actionError || message}</span><button onClick={() => { setMessage(''); setActionError('') }}><X size={15} /></button></div>}
+      {recoverySessionId && <button className="recover-workout-banner" onClick={() => setRecoverySessionId(recoverySessionId)}><Play size={17} /><span><strong>Treino em andamento</strong><small>Toque para continuar de onde parou.</small></span><ChevronRight /></button>}
 
       {tab === 'library' && <ExerciseLibraryPage userId={userId} />}
       {tab === 'ai' && <AIWorkoutGenerator userId={userId} profile={hub.data.profile} library={hub.data.library} onSave={hub.saveGenerated} />}
@@ -185,7 +213,10 @@ export function TrainingHubPage({ userId }: { userId: string }) {
                       <span><CalendarDays size={14} /> {workout.days.length ? workout.days.map((day) => day.slice(0, 3)).join(' · ') : 'Sem dias'}</span>
                       <span><Dumbbell size={14} /> {workout.exercises.length} exercícios</span>
                     </div>
-                    <button className="edit-workout-cta" onClick={() => setEditor(structuredClone(workout))}>Ver e editar <ChevronRight size={15} /></button>
+                    <div className="workout-card-ctas">
+                      <button className="start-workout-cta" onClick={() => setRunningWorkout(workout)}><Play size={15} /> Iniciar treino</button>
+                      <button className="edit-workout-cta" onClick={() => setEditor(structuredClone(workout))}>Editar <ChevronRight size={15} /></button>
+                    </div>
                   </article>
                 ))}
               </div>
