@@ -1,10 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "jhow-fit",
-  "compatibility_date": "2026-08-03",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_date": "2026-08-04",
   "main": "vinext/server/fetch-handler",
   "assets": {
     "directory": "dist/client",
