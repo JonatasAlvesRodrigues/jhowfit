@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import '../src/privacy/mediaAccessGuard'
 import { AppProvider } from '../src/contexts/AppContext'
 import { AuthProvider } from '../src/contexts/AuthContext'
 import '../src/styles.css'
