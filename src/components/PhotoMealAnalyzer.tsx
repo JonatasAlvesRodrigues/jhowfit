@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type ChangeEvent } from 'react'
-import { AlertTriangle, Camera, Check, ImagePlus, LoaderCircle, Plus, RotateCcw, Sparkles, Trash2, X } from 'lucide-react'
+import { AlertTriangle, Check, ImagePlus, LoaderCircle, Plus, RotateCcw, Sparkles, Trash2, X } from 'lucide-react'
 import { Button, Field, Modal } from './ui'
 import { photoMealService, type PhotoMealItem } from '../services/photoMealService'
 import type { MealSection } from '../types'
@@ -36,16 +36,6 @@ export function PhotoMealAnalyzer({ open, userId, onClose, onConfirmed }: { open
     catch { setError('Não foi possível preparar esta imagem.') }
   }
 
-  function openSystemCamera() {
-    const input = document.createElement('input')
-    input.type = 'file'; input.accept = 'image/*'; input.setAttribute('capture', 'environment'); input.style.display = 'none'
-    const cleanup = () => input.remove()
-    input.addEventListener('change', () => { void prepareImage(input.files?.[0]); cleanup() }, { once: true })
-    input.addEventListener('cancel', cleanup, { once: true })
-    document.body.appendChild(input)
-    input.click()
-  }
-
   async function analyze() {
     if (!image) return
     setAnalyzing(true); setError('')
@@ -73,7 +63,7 @@ export function PhotoMealAnalyzer({ open, userId, onClose, onConfirmed }: { open
 
   return <Modal title="Registrar refeição por foto" onClose={close}>
     <div className="photo-meal">
-      {!image ? <div className="photo-meal-upload"><span><ImagePlus size={28} /></span><strong>Adicionar foto da refeição</strong><p>Use uma foto clara, tirada de cima e com todos os alimentos visíveis.</p><div className="photo-meal-upload__actions"><button type="button" onClick={openSystemCamera}><Camera size={16} /> Câmera do celular</button><button type="button" onClick={() => galleryRef.current?.click()}><ImagePlus size={16} /> Escolher da galeria</button></div><small>O MOVELYA não mantém acesso à câmera ou ao microfone</small></div> : <div className="photo-meal-preview"><img src={image} alt="Refeição selecionada para análise" /><button type="button" onClick={() => { setImage(''); setItems([]); if (galleryRef.current) galleryRef.current.value = ''; galleryRef.current?.click() }}><RotateCcw size={15} /> Trocar foto</button></div>}
+      {!image ? <div className="photo-meal-upload"><span><ImagePlus size={28} /></span><strong>Adicionar foto da refeição</strong><p>Use uma foto clara, tirada de cima e com todos os alimentos visíveis.</p><div className="photo-meal-upload__actions"><button type="button" onClick={() => galleryRef.current?.click()}><ImagePlus size={16} /> Tirar ou escolher foto</button></div><small>A câmera só é aberta se você escolher “Tirar Foto” no menu do iPhone e é liberada ao retornar.</small></div> : <div className="photo-meal-preview"><img src={image} alt="Refeição selecionada para análise" /><button type="button" onClick={() => { setImage(''); setItems([]); if (galleryRef.current) galleryRef.current.value = ''; galleryRef.current?.click() }}><RotateCcw size={15} /> Trocar foto</button></div>}
       <input ref={galleryRef} className="photo-meal-file" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void selectImage(event)} />
 
       {!items.length && <div className="photo-meal-warning"><AlertTriangle size={18} /><p><strong>A análise é aproximada.</strong> A IA pode errar principalmente nas quantidades, óleos, molhos, ingredientes escondidos e modo de preparo. Você revisará tudo antes de salvar.</p></div>}
