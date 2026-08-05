@@ -51,7 +51,7 @@ let localGoal = 10000
 const manualProvider: StepDataProvider = {
   async getData(userId) {
     if (!supabase) return summarize(localRecords, localGoal)
-    const [recordsResult, settingsResult] = await Promise.all([
+    const [recordsResult, settingsResult, healthResult] = await Promise.all([
       supabase
         .from('step_records')
         .select('id,steps,distance_km,duration_minutes,calories,occurred_on,source')
@@ -59,9 +59,16 @@ const manualProvider: StepDataProvider = {
         .order('occurred_on', { ascending: false })
         .order('created_at', { ascending: false }),
       supabase.from('step_settings').select('daily_goal').eq('user_id', userId).maybeSingle(),
+      supabase
+        .from('health_sync_records')
+        .select('provider,data_type,started_at,value,unit')
+        .eq('user_id', userId)
+        .in('data_type', ['steps', 'distance', 'active_calories'])
+        .order('started_at', { ascending: false }),
     ])
-    if (recordsResult.error || settingsResult.error) throw new Error('Não foi possível carregar seu histórico de passos.')
-    return summarize((recordsResult.data ?? []).map(mapRecord), Number(settingsResult.data?.daily_goal ?? 10000))
+    if (recordsResult.error || settingsResult.error || healthResult.error) throw new Error('Não foi possível carregar seu histórico de passos.')
+    const records = [...(recordsResult.data ?? []).map(mapRecord), ...aggregateHealthRecords(healthResult.data ?? [])]
+    return summarize(records, Number(settingsResult.data?.daily_goal ?? 10000))
   },
 
   async add(userId, input) {
@@ -176,6 +183,22 @@ function mapRecord(row: Record<string, unknown>): StepRecord {
     occurredOn: String(row.occurred_on),
     source: String(row.source) as StepSource,
   }
+}
+
+function aggregateHealthRecords(rows: Array<Record<string, unknown>>): StepRecord[] {
+  const daily = new Map<string, StepRecord>()
+  for (const row of rows) {
+    const source = String(row.provider) as Extract<StepSource, 'apple_health' | 'health_connect'>
+    const date = localDate(new Date(String(row.started_at)))
+    const key = `${source}:${date}`
+    const record = daily.get(key) ?? { id: `health-${key}`, steps: 0, distanceKm: 0, durationMinutes: 0, calories: 0, occurredOn: date, source }
+    const value = Number(row.value)
+    if (String(row.data_type) === 'steps') record.steps += value
+    if (String(row.data_type) === 'distance') record.distanceKm += String(row.unit) === 'm' ? value / 1000 : value
+    if (String(row.data_type) === 'active_calories') record.calories += value
+    daily.set(key, record)
+  }
+  return [...daily.values()]
 }
 
 function toRow(userId: string, input: StepRecordInput) {
