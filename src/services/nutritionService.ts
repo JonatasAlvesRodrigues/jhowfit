@@ -77,8 +77,36 @@ export interface GeneratedDietPlan {
   dailyCalories: number
   protein: number
   estimatedWeeklyCost: number
-  meals: Array<{ name: string; foods: string[]; calories: number; protein: number; notes: string; alternatives: Array<{ name: string; foods: string[]; notes: string }> }>
+  meals: Array<{
+    name: string
+    foods: string[]
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+    preparation: string
+    notes: string
+    alternatives: Array<{ name: string; foods: string[]; notes: string }>
+  }>
   safetyNotice: string
+  estimatesNotice: string
+}
+
+export interface DietGenerationInput {
+  userId: string
+  preferences: string
+  restrictions: string
+  allergies: string
+  dislikedFoods: string
+  availableIngredients: string
+  budget: string
+  cookingTime: string
+  mealsPerDay: number
+  hasSevereAllergy: boolean
+  hasEatingDisorder: boolean
+  hasOtherRisk: boolean
+  adjustment?: { type: 'swap' | 'ingredients' | 'cheaper' | 'quick' | 'exclude' | 'meal-count'; mealName?: string; detail?: string }
+  currentPlan?: GeneratedDietPlan
 }
 
 export interface SavedDietPlan {
@@ -135,14 +163,23 @@ const fallbackHistory: ChartPoint[] = [
 ]
 
 export const nutritionService = {
-  async generateDietWithAI(input: { userId: string; preferences: string; avoids: string; budget: string; mealsPerDay: number }) {
+  async generateDietWithAI(input: DietGenerationInput) {
     if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
     const { data, error } = await supabase.functions.invoke('generate-diet-plan', {
       body: {
         preferences: input.preferences,
-        avoids: input.avoids,
+        restrictions: input.restrictions,
+        allergies: input.allergies,
+        dislikedFoods: input.dislikedFoods,
+        availableIngredients: input.availableIngredients,
         budget: input.budget,
+        cookingTime: input.cookingTime,
         mealsPerDay: input.mealsPerDay,
+        hasSevereAllergy: input.hasSevereAllergy,
+        hasEatingDisorder: input.hasEatingDisorder,
+        hasOtherRisk: input.hasOtherRisk,
+        adjustment: input.adjustment,
+        currentPlan: input.currentPlan,
       },
     })
     if (error) {
