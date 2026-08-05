@@ -5,7 +5,7 @@ export function LoadingScreen() {
   return (
     <div className="system-screen loading-screen" role="status" aria-label="Carregando MOVELYA">
       <div className="loading-brand">
-        <span><img src="/movelya-logo.png" alt="" /></span>
+        <span><img src={`${import.meta.env.BASE_URL}movelya-logo.png`} alt="" /></span>
         <strong>MOVE<em>LYA</em></strong>
       </div>
       <div className="loading-line"><i /></div>

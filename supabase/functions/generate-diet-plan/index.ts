@@ -61,7 +61,7 @@ Deno.serve(async (request) => {
 })
 
 async function generate(key: string, prompt: string) {
-  for (const model of ['gemini-2.5-flash', 'gemini-2.0-flash']) {
+  for (const model of ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-2.5-flash']) {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.35, maxOutputTokens: 4096 } }),
