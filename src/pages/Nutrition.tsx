@@ -4,6 +4,7 @@ import {
   BarChart3,
   Barcode,
   BrainCircuit,
+  Camera,
   BookHeart,
   CalendarClock,
   Check,
@@ -35,6 +36,7 @@ import type {
 } from '../types'
 import { nutritionService, type DiarySection, type NutritionDiaryData, type SavedDietPlan } from '../services/nutritionService'
 import { AIDietGenerator } from '../components/AIDietGenerator'
+import { PhotoMealAnalyzer } from '../components/PhotoMealAnalyzer'
 
 const mealSections: MealSection[] = [
   'Café da manhã',
@@ -109,6 +111,7 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
   const [comboName, setComboName] = useState('')
   const [toast, setToast] = useState('')
   const [dietGeneratorOpen, setDietGeneratorOpen] = useState(false)
+  const [photoAnalyzerOpen, setPhotoAnalyzerOpen] = useState(false)
   const [savedDiets, setSavedDiets] = useState<SavedDietPlan[]>([])
 
   useEffect(() => {
@@ -333,6 +336,7 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
         </div>
         <div className="nutrition-hero__actions">
           <Button variant="secondary" onClick={() => onNavigate('/inicio')}><ArrowRight size={17} /> Ver início</Button>
+          <Button variant="secondary" onClick={() => setPhotoAnalyzerOpen(true)}><Camera size={17} /> Refeição por foto</Button>
           <Button variant="secondary" onClick={() => setDietGeneratorOpen(true)}><BrainCircuit size={17} /> Criar dieta com IA</Button>
           <Button onClick={() => { setCustomDraft(emptyCustomDraft()); setCustomOpen(true) }}><Plus size={17} /> Novo alimento</Button>
         </div>
@@ -613,6 +617,12 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
         userId={userId}
         onClose={() => setDietGeneratorOpen(false)}
         onCreated={() => { setToast('Dieta salva com sucesso.'); void loadDiary() }}
+      />
+      <PhotoMealAnalyzer
+        open={photoAnalyzerOpen}
+        userId={userId}
+        onClose={() => setPhotoAnalyzerOpen(false)}
+        onConfirmed={() => { setToast('Refeição confirmada e adicionada ao diário.'); void loadDiary() }}
       />
     </section>
   )

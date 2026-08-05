@@ -9,7 +9,7 @@ export type MealSection =
   | 'Ceia'
   | 'Outras refeições'
 
-export type MealSourceType = 'search' | 'favorite' | 'recent' | 'custom' | 'barcode' | 'public'
+export type MealSourceType = 'search' | 'favorite' | 'recent' | 'custom' | 'barcode' | 'photo' | 'public'
 
 export interface NutritionTotals {
   calories: number

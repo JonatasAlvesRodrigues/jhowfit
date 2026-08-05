@@ -772,7 +772,7 @@ function mealSectionFrom(value: string): MealSection {
 }
 
 function sourceTypeFrom(value: string): MealSourceType {
-  const allowed: MealSourceType[] = ['search', 'favorite', 'recent', 'custom', 'barcode']
+  const allowed: MealSourceType[] = ['search', 'favorite', 'recent', 'custom', 'barcode', 'photo']
   return allowed.includes(value as MealSourceType) ? value as MealSourceType : 'search'
 }
 
