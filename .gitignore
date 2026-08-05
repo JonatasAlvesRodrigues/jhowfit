@@ -4,6 +4,7 @@ dist-github/
 .env
 .env.local
 *.png
+!public/og.png
 *.log
 *.tsbuildinfo
 vite.config.js

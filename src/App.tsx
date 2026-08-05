@@ -8,6 +8,7 @@ import { DailyDashboardPage } from './pages/DailyDashboardPage'
 import { NutritionPage } from './pages/Nutrition'
 import { FoodDatabasePage } from './pages/FoodDatabasePage'
 import { WaterPage } from './pages/WaterPage'
+import { StepsPage } from './pages/StepsPage'
 import { TrainingHubPage } from './pages/TrainingHubPage'
 import { useOnboardingStatus } from './hooks/useOnboardingStatus'
 import { OnboardingPage } from './pages/OnboardingPage'
@@ -21,6 +22,7 @@ export default function App() {
   const { user, loading: authLoading, recoveryMode, logout } = useAuth()
   const onboarding = useOnboardingStatus(user?.id)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const siteOrigin = typeof window === 'undefined' ? '' : window.location.origin
 
   useEffect(() => {
     if (authLoading || onboarding.loading || status === 'booting' || status === 'transitioning') return
@@ -71,6 +73,14 @@ export default function App() {
 
   return (
     <AppErrorBoundary>
+      <title>MOVELYA — Saúde em movimento</title>
+      <meta name="description" content="Treinos, nutrição, hidratação e passos reunidos para acompanhar sua evolução no MOVELYA." />
+      <meta property="og:title" content="MOVELYA — Seu movimento, passo a passo." />
+      <meta property="og:description" content="Registre seus passos e acompanhe metas, sequência e ritmo semanal." />
+      <meta property="og:image" content={`${siteOrigin}${import.meta.env.BASE_URL}og.png`} />
+      <meta property="og:type" content="website" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:image" content={`${siteOrigin}${import.meta.env.BASE_URL}og.png`} />
       <div className="vita-shell">
         <VitaSidebar
           activeRoute={route?.id}
@@ -102,6 +112,8 @@ export default function App() {
                 <FoodDatabasePage userId={user.id} />
               ) : route?.id === 'agua' && user ? (
                 <WaterPage userId={user.id} />
+              ) : route?.id === 'atividades' && user ? (
+                <StepsPage userId={user.id} />
               ) : route?.id === 'treinos' && user ? (
                 <TrainingHubPage userId={user.id} />
               ) : route?.id === 'perfil' ? (
