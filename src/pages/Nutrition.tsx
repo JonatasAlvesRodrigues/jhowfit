@@ -33,7 +33,7 @@ import type {
   MealSection,
   MealSourceType,
 } from '../types'
-import { nutritionService, type DiarySection, type NutritionDiaryData } from '../services/nutritionService'
+import { nutritionService, type DiarySection, type NutritionDiaryData, type SavedDietPlan } from '../services/nutritionService'
 import { AIDietGenerator } from '../components/AIDietGenerator'
 
 const mealSections: MealSection[] = [
@@ -109,6 +109,7 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
   const [comboName, setComboName] = useState('')
   const [toast, setToast] = useState('')
   const [dietGeneratorOpen, setDietGeneratorOpen] = useState(false)
+  const [savedDiets, setSavedDiets] = useState<SavedDietPlan[]>([])
 
   useEffect(() => {
     void loadDiary()
@@ -125,8 +126,9 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
     setLoading(true)
     setError('')
     try {
-      const next = await nutritionService.getDiary(userId)
+      const [next, saved] = await Promise.all([nutritionService.getDiary(userId), nutritionService.getSavedDietPlans(userId)])
       setData(next)
+      setSavedDiets(saved)
       setSelectedSection((current) => next.sections.some((section) => section.section === current) ? current : 'Almoço')
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar o diário alimentar.')
@@ -408,6 +410,17 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
         <div className="nutrition-side-column">
           <Card className="nutrition-panel">
             <div className="nutrition-panel__heading">
+              <div><small>SEUS PLANOS</small><h3>Dietas salvas</h3></div>
+              <span className="nutrition-mini-tag"><Check size={14} /> {savedDiets.length}</span>
+            </div>
+            <div className="nutrition-saved-list">
+              {savedDiets.map((diet) => <article key={diet.id}><strong>{diet.name}</strong><small>{Math.round(diet.plan.dailyCalories)} kcal · {Math.round(diet.plan.protein)} g proteína</small><span>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(diet.createdAt))}</span></article>)}
+              {!savedDiets.length && <p className="nutrition-muted">As dietas que você salvar aparecerão aqui.</p>}
+            </div>
+          </Card>
+
+          <Card className="nutrition-panel">
+            <div className="nutrition-panel__heading">
               <div>
                 <small>ALIMENTOS</small>
                 <h3>{viewLabel(view)}</h3>
@@ -599,7 +612,7 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
         open={dietGeneratorOpen}
         userId={userId}
         onClose={() => setDietGeneratorOpen(false)}
-        onCreated={() => setToast('Sua sugestão de dieta foi criada. Revise antes de aplicar ao diário.')}
+        onCreated={() => { setToast('Dieta salva com sucesso.'); void loadDiary() }}
       />
     </section>
   )

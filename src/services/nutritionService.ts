@@ -81,6 +81,13 @@ export interface GeneratedDietPlan {
   safetyNotice: string
 }
 
+export interface SavedDietPlan {
+  id: string
+  name: string
+  plan: GeneratedDietPlan
+  createdAt: string
+}
+
 const mealSections: MealSection[] = [
   'Café da manhã',
   'Lanche da manhã',
@@ -156,6 +163,20 @@ export const nutritionService = {
       updated_at: nowIso(),
     })
     if (error) throw new Error('Não foi possível salvar sua dieta.')
+  },
+  async getSavedDietPlans(userId: string): Promise<SavedDietPlan[]> {
+    if (!supabase) return []
+    const { data, error } = await supabase.from('diet_plans')
+      .select('id,name,plan,created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error('Não foi possível carregar suas dietas salvas.')
+    return (data ?? []).map((item): SavedDietPlan => ({
+      id: String(item.id),
+      name: String(item.name),
+      plan: item.plan as GeneratedDietPlan,
+      createdAt: String(item.created_at),
+    }))
   },
   async getDiary(userId: string, date = localDate()): Promise<NutritionDiaryData> {
     if (!supabase) {
