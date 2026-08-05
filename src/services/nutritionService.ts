@@ -77,7 +77,7 @@ export interface GeneratedDietPlan {
   dailyCalories: number
   protein: number
   estimatedWeeklyCost: number
-  meals: Array<{ name: string; foods: string[]; calories: number; protein: number; notes: string }>
+  meals: Array<{ name: string; foods: string[]; calories: number; protein: number; notes: string; alternatives: Array<{ name: string; foods: string[]; notes: string }> }>
   safetyNotice: string
 }
 

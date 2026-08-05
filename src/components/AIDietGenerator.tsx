@@ -46,7 +46,7 @@ export function AIDietGenerator({ open, userId, onClose, onCreated }: AIDietGene
     <Modal title={plan ? 'Sua dieta sugerida' : 'Criar dieta com IA'} onClose={onClose}>
       {!plan ? (
         <form className="nutrition-modal-form ai-diet-form" onSubmit={generate}>
-          <div className="ai-diet-intro"><span><BrainCircuit size={21} /></span><div><strong>Plano alimentar adaptado a você</strong><p>A IA considera suas preferências, alimentos evitados e limite de gastos. Revise a sugestão antes de usar.</p></div></div>
+          <div className="ai-diet-intro"><span><BrainCircuit size={21} /></span><div><strong>Plano alimentar adaptado ao seu objetivo</strong><p>A IA usa o objetivo e as restrições do seu cadastro. Suas preferências ajudam, mas não limitam todas as opções.</p></div></div>
           <Field label="O que você gosta ou prefere comer" value={preferences} onChange={(event) => setPreferences(event.target.value)} placeholder="Ex.: frango, arroz, frutas, comida simples" />
           <Field label="O que não consome ou quer evitar" value={avoids} onChange={(event) => setAvoids(event.target.value)} placeholder="Ex.: lactose, peixe, amendoim, carne vermelha" />
           <div className="nutrition-modal-grid">
@@ -61,7 +61,7 @@ export function AIDietGenerator({ open, userId, onClose, onCreated }: AIDietGene
         <div className="nutrition-modal-form ai-diet-result">
           <div className="ai-diet-result__heading"><span><CheckCircle2 size={21} /></span><div><small>REVISÃO OBRIGATÓRIA</small><h3>{plan.name}</h3><p>{plan.summary}</p></div></div>
           <div className="ai-diet-goals"><span>{Math.round(plan.dailyCalories)} kcal/dia</span><span>{Math.round(plan.protein)} g proteína</span><span>~R$ {plan.estimatedWeeklyCost}/semana</span></div>
-          <div className="ai-diet-meals">{plan.meals.map((meal) => <article key={meal.name}><div><strong>{meal.name}</strong><small>{meal.calories} kcal · P {meal.protein}g</small></div><p>{meal.foods.join(' · ')}</p><em>{meal.notes}</em></article>)}</div>
+          <div className="ai-diet-meals">{plan.meals.map((meal) => <article key={meal.name}><div><strong>{meal.name}</strong><small>{meal.calories} kcal · P {meal.protein}g</small></div><p>{meal.foods.join(' · ')}</p><em>{meal.notes}</em><div className="ai-diet-alternatives"><small>2 alternativas para variar</small>{meal.alternatives.map((alternative, index) => <div key={`${meal.name}-${alternative.name}`}><b>Opção {index + 2}: {alternative.name}</b><span>{alternative.foods.join(' · ')}</span><em>{alternative.notes}</em></div>)}</div></article>)}</div>
           <div className="ai-diet-safety"><ShieldAlert size={16} /> {plan.safetyNotice}</div>
           <div className="nutrition-modal-actions"><Button variant="secondary" onClick={() => setPlan(null)}>Ajustar preferências</Button><Button onClick={onClose}>Entendi, revisar depois</Button></div>
         </div>

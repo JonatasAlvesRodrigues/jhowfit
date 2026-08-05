@@ -16,7 +16,7 @@ const schema = {
       type: 'array',
       minItems: 2,
       maxItems: 7,
-      items: { type: 'object', properties: { name: { type: 'string' }, foods: { type: 'array', items: { type: 'string' } }, calories: { type: 'number' }, protein: { type: 'number' }, notes: { type: 'string' } }, required: ['name', 'foods', 'calories', 'protein', 'notes'] },
+      items: { type: 'object', properties: { name: { type: 'string' }, foods: { type: 'array', items: { type: 'string' } }, calories: { type: 'number' }, protein: { type: 'number' }, notes: { type: 'string' }, alternatives: { type: 'array', minItems: 2, maxItems: 2, items: { type: 'object', properties: { name: { type: 'string' }, foods: { type: 'array', items: { type: 'string' } }, notes: { type: 'string' } }, required: ['name', 'foods', 'notes'] } } }, required: ['name', 'foods', 'calories', 'protein', 'notes', 'alternatives'] },
     },
     safetyNotice: { type: 'string' },
   },
@@ -38,17 +38,20 @@ Deno.serve(async (request) => {
     if (!userResponse.ok) return json({ error: 'Sessão inválida ou expirada.' }, 401)
     const user = await userResponse.json()
     const input = await request.json().catch(() => ({}))
-    const profileResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}&select=goal,current_weight,height_cm,birth_date,food_preferences,food_restrictions,allergies,meals_per_day`, { headers: { apikey: anonKey, Authorization: authorization } })
+    const profileResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}&select=goal,current_weight,height_cm,birth_date,dietary_preferences,avoided_foods,allergies,dietary_restrictions,monthly_food_budget,meals_per_day,has_health_conditions,health_conditions_details,pregnancy_status`, { headers: { apikey: anonKey, Authorization: authorization } })
     const [profile] = profileResponse.ok ? await profileResponse.json() : []
     const prompt = [
       'Crie uma sugestão de dieta diária econômica em português do Brasil. Retorne apenas JSON válido, sem markdown.',
-      'Não diagnostique, trate doenças, prometa resultados nem substitua nutricionista. Não inclua alimentos listados como evitados, alergias ou restrições.',
+      'O objetivo do perfil é a prioridade do plano. Para ganhar massa muscular, priorize distribuição de proteína e energia suficiente; para emagrecer, priorize saciedade e adequação calórica; para manutenção, priorize equilíbrio; para condicionamento ou rotina saudável, priorize regularidade e alimentos simples. Não prometa resultados.',
+      'Preferências são uma orientação, não uma lista fechada: use-as quando fizer sentido, mas pode sugerir outros alimentos comuns e compatíveis com o objetivo, orçamento e restrições. Nunca inclua alimentos evitados, alergias ou restrições.',
+      'Para CADA refeição, inclua exatamente DUAS alternativas de substituição. As alternativas devem ser diferentes da principal, práticas, econômicas e manter uma proposta nutricional semelhante para o objetivo. Exemplo: banana com iogurte pode ter crepioca como alternativa quando compatível.',
+      'Não diagnostique, trate doenças nem substitua nutricionista. Se houver condição de saúde ou gravidez, mantenha a sugestão conservadora e destaque acompanhamento profissional.',
       'Use alimentos comuns e estime custos conservadores em reais brasileiros; se orçamento não for informado, priorize opções acessíveis.',
       `FORMATO: ${JSON.stringify(schema)}`,
       `PERFIL: ${JSON.stringify(profile ?? {})}`,
-      `PREFERÊNCIAS: ${clean(input.preferences)}`,
-      `NÃO CONSOME: ${clean(input.avoids)}`,
-      `ORÇAMENTO SEMANAL: ${clean(input.budget) || 'não informado'}`,
+      `PREFERÊNCIAS ADICIONAIS DESTA GERAÇÃO: ${clean(input.preferences) || 'nenhuma'}`,
+      `NÃO CONSOME ADICIONALMENTE: ${clean(input.avoids) || 'nada informado'}`,
+      `ORÇAMENTO SEMANAL INFORMADO NESTA GERAÇÃO: ${clean(input.budget) || 'usar o orçamento do perfil ou priorizar economia'}`,
       `REFEIÇÕES POR DIA: ${clamp(input.mealsPerDay, 2, 7)}`,
     ].join('\n\n')
     const plan = await generate(geminiKey, prompt)
@@ -78,7 +81,11 @@ function validate(value: Record<string, unknown>) {
   if (!value || !Array.isArray(value.meals) || value.meals.length < 2) throw new Error('Plano inválido.')
   return {
     name: clean(value.name).slice(0, 100) || 'Dieta personalizada', summary: clean(value.summary).slice(0, 900), dailyCalories: number(value.dailyCalories), protein: number(value.protein), estimatedWeeklyCost: number(value.estimatedWeeklyCost),
-    meals: value.meals.slice(0, 7).map((meal: Record<string, unknown>) => ({ name: clean(meal.name).slice(0, 80), foods: Array.isArray(meal.foods) ? meal.foods.map(clean).filter(Boolean).slice(0, 12) : [], calories: number(meal.calories), protein: number(meal.protein), notes: clean(meal.notes).slice(0, 350) })),
+    meals: value.meals.slice(0, 7).map((meal: Record<string, unknown>) => {
+      const alternatives = Array.isArray(meal.alternatives) ? meal.alternatives.slice(0, 2).map((alternative: Record<string, unknown>) => ({ name: clean(alternative.name).slice(0, 80), foods: Array.isArray(alternative.foods) ? alternative.foods.map(clean).filter(Boolean).slice(0, 12) : [], notes: clean(alternative.notes).slice(0, 300) })) : []
+      if (alternatives.length !== 2 || alternatives.some((alternative) => !alternative.name || !alternative.foods.length)) throw new Error('Alternativas ausentes.')
+      return { name: clean(meal.name).slice(0, 80), foods: Array.isArray(meal.foods) ? meal.foods.map(clean).filter(Boolean).slice(0, 12) : [], calories: number(meal.calories), protein: number(meal.protein), notes: clean(meal.notes).slice(0, 350), alternatives }
+    }),
     safetyNotice: clean(value.safetyNotice).slice(0, 700) || 'Esta sugestão não substitui acompanhamento nutricional profissional.',
   }
 }
