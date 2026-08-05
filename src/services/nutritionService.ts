@@ -71,6 +71,16 @@ export interface ComboInput {
   items: MealCombinationItem[]
 }
 
+export interface GeneratedDietPlan {
+  name: string
+  summary: string
+  dailyCalories: number
+  protein: number
+  estimatedWeeklyCost: number
+  meals: Array<{ name: string; foods: string[]; calories: number; protein: number; notes: string }>
+  safetyNotice: string
+}
+
 const mealSections: MealSection[] = [
   'Café da manhã',
   'Lanche da manhã',
@@ -118,6 +128,24 @@ const fallbackHistory: ChartPoint[] = [
 ]
 
 export const nutritionService = {
+  async generateDietWithAI(input: { userId: string; preferences: string; avoids: string; budget: string; mealsPerDay: number }) {
+    if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
+    const { data, error } = await supabase.functions.invoke('generate-diet-plan', {
+      body: {
+        preferences: input.preferences,
+        avoids: input.avoids,
+        budget: input.budget,
+        mealsPerDay: input.mealsPerDay,
+      },
+    })
+    if (error) {
+      const context = (error as { context?: Response }).context
+      const response = context ? await context.clone().json().catch(() => null) : null
+      throw new Error(response?.error || 'Não foi possível acessar o gerador de dieta.')
+    }
+    if (!data?.plan) throw new Error(data?.error || 'A IA não retornou uma dieta válida.')
+    return data as { plan: GeneratedDietPlan }
+  },
   async getDiary(userId: string, date = localDate()): Promise<NutritionDiaryData> {
     if (!supabase) {
       return buildFallbackDiary(date)

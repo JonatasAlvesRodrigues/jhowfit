@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react'
 import {
   ArrowRight,
   BarChart3,
   Barcode,
+  BrainCircuit,
   BookHeart,
   CalendarClock,
   Check,
@@ -33,6 +34,7 @@ import type {
   MealSourceType,
 } from '../types'
 import { nutritionService, type DiarySection, type NutritionDiaryData } from '../services/nutritionService'
+import { AIDietGenerator } from '../components/AIDietGenerator'
 
 const mealSections: MealSection[] = [
   'Café da manhã',
@@ -106,6 +108,7 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
   const [comboSection, setComboSection] = useState<MealSection | null>(null)
   const [comboName, setComboName] = useState('')
   const [toast, setToast] = useState('')
+  const [dietGeneratorOpen, setDietGeneratorOpen] = useState(false)
 
   useEffect(() => {
     void loadDiary()
@@ -328,6 +331,7 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
         </div>
         <div className="nutrition-hero__actions">
           <Button variant="secondary" onClick={() => onNavigate('/inicio')}><ArrowRight size={17} /> Ver início</Button>
+          <Button variant="secondary" onClick={() => setDietGeneratorOpen(true)}><BrainCircuit size={17} /> Criar dieta com IA</Button>
           <Button onClick={() => { setCustomDraft(emptyCustomDraft()); setCustomOpen(true) }}><Plus size={17} /> Novo alimento</Button>
         </div>
       </div>
@@ -344,7 +348,7 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
             </div>
             <span className="nutrition-pill"><Flame size={15} /> Meta diária</span>
           </div>
-          <div className="nutrition-ring">
+          <div className="nutrition-ring" style={{ '--completion': summary?.completion ?? 0 } as CSSProperties}>
             <strong>{summary?.completion ?? 0}%</strong>
             <small>concluído</small>
           </div>
@@ -590,6 +594,12 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
         onClose={() => setCustomOpen(false)}
         onChange={setCustomDraft}
         onSubmit={handleSaveCustomFood}
+      />
+      <AIDietGenerator
+        open={dietGeneratorOpen}
+        userId={userId}
+        onClose={() => setDietGeneratorOpen(false)}
+        onCreated={() => setToast('Sua sugestão de dieta foi criada. Revise antes de aplicar ao diário.')}
       />
     </section>
   )
