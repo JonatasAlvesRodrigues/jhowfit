@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react'
-import { CalendarDays, Check, Clock3, Edit3, Flame, Footprints, Gauge, Medal, Plus, Route, Settings2, Target, Trash2, TriangleAlert } from 'lucide-react'
+import { CalendarDays, Check, Clock3, Edit3, Flame, Footprints, Gauge, Medal, Play, Plus, Route, Settings2, Target, Trash2, TriangleAlert } from 'lucide-react'
 import { Button, Card, Field, Modal, Progress } from '../components/ui'
+import { OutdoorActivityTracker } from '../components/OutdoorActivityTracker'
 import { localDate, stepService, type StepData, type StepRecord, type StepRecordInput } from '../services/stepService'
 import '../steps.css'
 
@@ -17,6 +18,7 @@ export function StepsPage({ userId }: { userId: string }) {
   const [goalOpen, setGoalOpen] = useState(false)
   const [goalDraft, setGoalDraft] = useState('10000')
   const [saving, setSaving] = useState(false)
+  const [startRequest, setStartRequest] = useState(0)
 
   async function load() {
     setLoading(true); setError('')
@@ -69,11 +71,13 @@ export function StepsPage({ userId }: { userId: string }) {
   return <section className="steps-page">
     <div className="page-heading steps-hero">
       <div><p>PASSOS, CAMINHADA E CORRIDA</p><h1>Seu movimento, passo a passo.</h1><span>Registre caminhadas e corridas manualmente e acompanhe sua constância.</span></div>
-      <div className="steps-hero-actions"><Button variant="secondary" onClick={openGoal}><Settings2 size={17} /> Meta diária</Button><Button onClick={openAdd}><Plus size={17} /> Registrar passos</Button></div>
+      <div className="steps-hero-actions"><Button variant="secondary" onClick={openGoal}><Settings2 size={17} /> Meta diária</Button><Button variant="secondary" onClick={openAdd}><Plus size={17} /> Registrar passos</Button><Button onClick={() => setStartRequest((value) => value + 1)}><Play size={17} fill="currentColor" /> Iniciar atividade</Button></div>
     </div>
 
     {error && <div className="nutrition-alert"><TriangleAlert size={17} />{error}</div>}
     {toast && <div className="nutrition-toast"><Check size={16} />{toast}</div>}
+
+    <OutdoorActivityTracker userId={userId} startRequest={startRequest} />
 
     <div className="steps-summary-grid">
       <Card className="steps-progress-card">
