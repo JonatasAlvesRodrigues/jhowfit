@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState, type ChangeEvent } from 'react'
-import { AlertTriangle, Camera, Check, ImagePlus, LoaderCircle, Plus, RotateCcw, Sparkles, Trash2, X } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { AlertTriangle, Camera, CameraOff, Check, ImagePlus, LoaderCircle, Plus, RotateCcw, Sparkles, Trash2, X } from 'lucide-react'
 import { Button, Field, Modal } from './ui'
 import { photoMealService, type PhotoMealItem } from '../services/photoMealService'
 import type { MealSection } from '../types'
@@ -10,7 +10,9 @@ const sections: MealSection[] = ['Café da manhã', 'Lanche da manhã', 'Almoço
 
 export function PhotoMealAnalyzer({ open, userId, onClose, onConfirmed }: { open: boolean; userId: string; onClose: () => void; onConfirmed: () => void }) {
   const galleryRef = useRef<HTMLInputElement>(null)
-  const cameraRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const cameraRequest = useRef(0)
   const [image, setImage] = useState('')
   const [items, setItems] = useState<PhotoMealItem[]>([])
   const [confidence, setConfidence] = useState(0)
@@ -20,11 +22,24 @@ export function PhotoMealAnalyzer({ open, userId, onClose, onConfirmed }: { open
   const [analyzing, setAnalyzing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [cameraOpen, setCameraOpen] = useState(false)
+  const [cameraReady, setCameraReady] = useState(false)
 
   const totals = useMemo(() => items.reduce((sum, item) => ({ calories: sum.calories + item.calories, protein: sum.protein + item.protein, carbs: sum.carbs + item.carbs, fat: sum.fat + item.fat }), { calories: 0, protein: 0, carbs: 0, fat: 0 }), [items])
+
+  useEffect(() => {
+    if (!open) releaseCamera()
+  }, [open])
+  useEffect(() => {
+    const handleVisibility = () => { if (document.hidden) closeCamera() }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => { document.removeEventListener('visibilitychange', handleVisibility); releaseCamera() }
+  }, [])
+
   if (!open) return null
 
   async function selectImage(event: ChangeEvent<HTMLInputElement>) {
+    closeCamera()
     const file = event.target.files?.[0]
     if (!file) return
     setError('')
@@ -33,6 +48,41 @@ export function PhotoMealAnalyzer({ open, userId, onClose, onConfirmed }: { open
     try { setImage(await resizeImage(file)); setItems([]); setConfidence(0); setNotes('') }
     catch { setError('Não foi possível preparar esta imagem.') }
   }
+
+  async function openCamera() {
+    if (!navigator.mediaDevices?.getUserMedia) { setError('A câmera não está disponível neste navegador. Use uma foto da galeria.'); return }
+    const requestId = ++cameraRequest.current
+    setCameraReady(false); setCameraOpen(true); setError('')
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } } })
+      if (requestId !== cameraRequest.current) { stream.getTracks().forEach((track) => track.stop()); return }
+      streamRef.current = stream
+      window.requestAnimationFrame(() => { if (videoRef.current) { videoRef.current.srcObject = stream; void videoRef.current.play() } })
+    } catch (reason) {
+      setCameraOpen(false)
+      setError((reason as DOMException)?.name === 'NotAllowedError' ? 'A permissão da câmera foi negada. Libere o acesso nas configurações do navegador ou escolha uma foto.' : 'Não foi possível abrir a câmera. Tente usar uma foto da galeria.')
+    }
+  }
+
+  function capturePhoto() {
+    const video = videoRef.current
+    if (!video?.videoWidth || !video.videoHeight) return
+    const canvas = document.createElement('canvas')
+    const max = 1600; const scale = Math.min(1, max / Math.max(video.videoWidth, video.videoHeight))
+    canvas.width = Math.round(video.videoWidth * scale); canvas.height = Math.round(video.videoHeight * scale)
+    canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height)
+    setImage(canvas.toDataURL('image/jpeg', .84)); setItems([]); setConfidence(0); setNotes('')
+    closeCamera()
+  }
+
+  function releaseCamera() {
+    cameraRequest.current += 1
+    streamRef.current?.getTracks().forEach((track) => track.stop())
+    streamRef.current = null
+    if (videoRef.current) videoRef.current.srcObject = null
+  }
+
+  function closeCamera() { releaseCamera(); setCameraOpen(false); setCameraReady(false) }
 
   async function analyze() {
     if (!image) return
@@ -57,13 +107,12 @@ export function PhotoMealAnalyzer({ open, userId, onClose, onConfirmed }: { open
     finally { setSaving(false) }
   }
 
-  function close() { setImage(''); setItems([]); setConfidence(0); setNotes(''); setError(''); if (galleryRef.current) galleryRef.current.value = ''; if (cameraRef.current) cameraRef.current.value = ''; onClose() }
+  function close() { closeCamera(); setImage(''); setItems([]); setConfidence(0); setNotes(''); setError(''); if (galleryRef.current) galleryRef.current.value = ''; onClose() }
 
   return <Modal title="Registrar refeição por foto" onClose={close}>
     <div className="photo-meal">
-      {!image ? <div className="photo-meal-upload"><span><ImagePlus size={28} /></span><strong>Adicionar foto da refeição</strong><p>Use uma foto clara, tirada de cima e com todos os alimentos visíveis.</p><div className="photo-meal-upload__actions"><button type="button" onClick={() => cameraRef.current?.click()}><Camera size={16} /> Tirar foto</button><button type="button" onClick={() => galleryRef.current?.click()}><ImagePlus size={16} /> Escolher da galeria</button></div><small>JPG, PNG ou WebP · até 12 MB</small></div> : <div className="photo-meal-preview"><img src={image} alt="Refeição selecionada para análise" /><button type="button" onClick={() => { setImage(''); setItems([]); if (galleryRef.current) galleryRef.current.value = ''; galleryRef.current?.click() }}><RotateCcw size={15} /> Trocar foto</button></div>}
+      {cameraOpen ? <div className="photo-camera"><video ref={videoRef} autoPlay muted playsInline onLoadedMetadata={() => setCameraReady(true)} /><div className="photo-camera__status">{cameraReady ? <><i /> Câmera ativa somente nesta tela</> : <><LoaderCircle className="is-spinning" /> Abrindo câmera…</>}</div><div className="photo-camera__actions"><button type="button" onClick={closeCamera}><CameraOff size={17} /> Fechar câmera</button><button type="button" className="is-capture" disabled={!cameraReady} onClick={capturePhoto}><span /><Camera size={20} /> Capturar</button></div></div> : !image ? <div className="photo-meal-upload"><span><ImagePlus size={28} /></span><strong>Adicionar foto da refeição</strong><p>Use uma foto clara, tirada de cima e com todos os alimentos visíveis.</p><div className="photo-meal-upload__actions"><button type="button" onClick={() => void openCamera()}><Camera size={16} /> Abrir câmera</button><button type="button" onClick={() => galleryRef.current?.click()}><ImagePlus size={16} /> Escolher da galeria</button></div><small>A câmera é desligada após capturar ou fechar · JPG, PNG ou WebP</small></div> : <div className="photo-meal-preview"><img src={image} alt="Refeição selecionada para análise" /><button type="button" onClick={() => { setImage(''); setItems([]); if (galleryRef.current) galleryRef.current.value = ''; galleryRef.current?.click() }}><RotateCcw size={15} /> Trocar foto</button></div>}
       <input ref={galleryRef} className="photo-meal-file" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void selectImage(event)} />
-      <input ref={cameraRef} className="photo-meal-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event) => void selectImage(event)} />
 
       {!items.length && <div className="photo-meal-warning"><AlertTriangle size={18} /><p><strong>A análise é aproximada.</strong> A IA pode errar principalmente nas quantidades, óleos, molhos, ingredientes escondidos e modo de preparo. Você revisará tudo antes de salvar.</p></div>}
       {error && !items.length && <p className="ai-diet-error">{error}</p>}

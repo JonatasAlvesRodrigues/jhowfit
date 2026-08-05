@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState, type ComponentType, type FormEvent } from 'react'
-import { Activity, Bike, Check, ChevronRight, CircleStop, Clock3, CloudOff, Footprints, Gauge, LocateFixed, Map, MapPin, Pause, Play, RotateCcw, Route, Share2, Sparkles, TimerReset, TriangleAlert, WifiOff, X } from 'lucide-react'
+import { useEffect, useRef, useState, type ComponentType, type FormEvent } from 'react'
+import { Activity, Bike, Check, ChevronRight, CircleStop, Clock3, CloudOff, Crosshair, Footprints, Gauge, LocateFixed, Map, MapPin, Pause, Play, RotateCcw, Route, Share2, Sparkles, TimerReset, TriangleAlert, WifiOff, X } from 'lucide-react'
 import { Button, Card, Modal } from './ui'
 import { outdoorActivityService, type ActivityRecord, type ActivityType, type GpsStatus, type RoutePoint } from '../services/outdoorActivityService'
+import { liveActivityBridge } from '../services/liveActivityBridge'
+import 'leaflet/dist/leaflet.css'
 
 interface LiveSession {
   type: ActivityType
@@ -42,6 +44,8 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
   const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine)
   const [backgroundWarning, setBackgroundWarning] = useState(false)
   const [now, setNow] = useState(Date.now())
+  const originalTitle = useRef(typeof document === 'undefined' ? 'MOVELYA' : document.title)
+  const wakeLock = useRef<{ release: () => Promise<void> } | null>(null)
 
   async function loadHistory() {
     try { setActivities(await outdoorActivityService.list(userId)) }
@@ -64,6 +68,19 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
     if (!session || session.status !== 'active') return
     const timer = window.setInterval(() => setNow(Date.now()), 1000)
     return () => window.clearInterval(timer)
+  }, [session?.status, session?.startedAt])
+  useEffect(() => {
+    if (!session) { document.title = originalTitle.current; return }
+    document.title = `${formatClock(elapsed(session, now))} · ${configFor(session.type).label} · MOVELYA`
+    return () => { document.title = originalTitle.current }
+  }, [session, now])
+  useEffect(() => {
+    if (!session || session.status !== 'active' || !('wakeLock' in navigator)) return
+    let cancelled = false
+    ;(navigator as Navigator & { wakeLock: { request: (type: 'screen') => Promise<{ release: () => Promise<void> }> } }).wakeLock.request('screen')
+      .then((sentinel) => { if (cancelled) void sentinel.release(); else wakeLock.current = sentinel })
+      .catch(() => undefined)
+    return () => { cancelled = true; void wakeLock.current?.release(); wakeLock.current = null }
   }, [session?.status, session?.startedAt])
   useEffect(() => {
     const connected = () => setOnline(true)
@@ -95,9 +112,15 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
           if (!current || current.status !== 'active') return current
           const previous = current.route[current.route.length - 1]
           const increment = previous ? distanceBetween(previous, point) : 0
-          const validIncrement = point.accuracy <= 100 && increment >= .003 && increment <= .5 ? increment : 0
-          const route = point.accuracy <= 100 ? [...current.route.slice(-1998), point] : current.route
-          return { ...current, route, distanceKm: current.distanceKm + validIncrement, gpsStatus: 'active' }
+          const secondsSincePrevious = previous ? Math.max((point.recordedAt - previous.recordedAt) / 1000, 1) : 1
+          const measuredSpeed = increment / (secondsSincePrevious / 3600)
+          const minimumMovement = previous ? Math.max(.003, Math.min(Math.max(previous.accuracy, point.accuracy) / 1000 * .35, .012)) : 0
+          const maximumSpeed = current.type === 'bike' ? 75 : current.type === 'run' ? 32 : 16
+          const accurate = point.accuracy <= 65
+          const plausible = !previous || measuredSpeed <= maximumSpeed
+          const moved = !previous || increment >= minimumMovement
+          if (!accurate || !plausible || !moved) return { ...current, gpsStatus: accurate ? 'active' : 'searching' }
+          return { ...current, route: [...current.route.slice(-1998), point], distanceKm: current.distanceKm + increment, gpsStatus: 'active' }
         })
       },
       (gpsError) => setSession((current) => current ? { ...current, gpsStatus: gpsError.code === 1 ? 'denied' : gpsError.code === 2 ? 'disabled' : 'unavailable' } : current),
@@ -110,10 +133,17 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
   const calories = session ? Math.round(elapsedSeconds / 60 * calorieRate[session.type]) : 0
   const speed = elapsedSeconds > 0 && session ? session.distanceKm / (elapsedSeconds / 3600) : 0
   const pace = session?.distanceKm ? elapsedSeconds / session.distanceKm : null
+  const liveUpdateBucket = Math.floor(elapsedSeconds / 15)
+
+  useEffect(() => {
+    if (!session || !liveActivityBridge.isAvailable()) return
+    liveActivityBridge.update({ type: session.type, label: configFor(session.type).label, startedAt: session.startedAt, elapsedSeconds, distanceKm: session.distanceKm, status: session.status })
+  }, [session?.status, session?.distanceKm, liveUpdateBucket])
 
   function start(type: ActivityType) {
     const outdoor = isOutdoor(type)
     setSession({ type, startedAt: Date.now(), pausedAt: null, pausedTotalMs: 0, status: 'active', distanceKm: 0, route: [], gpsStatus: outdoor ? 'searching' : 'not_required', interrupted: false })
+    liveActivityBridge.start({ type, label: configFor(type).label, startedAt: Date.now(), elapsedSeconds: 0, distanceKm: 0, status: 'active' })
     setNow(Date.now()); setChooserOpen(false); setError(''); setBackgroundWarning(false)
   }
 
@@ -150,6 +180,7 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
         interrupted: session.interrupted,
       })
       localStorage.removeItem(storageKey(userId)); setSaved(record); setSession(null); setFinishing(false); setObservation(''); setDifficulty(3)
+      liveActivityBridge.end({ type: record.type, label: configFor(record.type).label, startedAt: new Date(record.startedAt).getTime(), elapsedSeconds: record.durationSeconds, distanceKm: record.distanceKm, status: 'finished' })
       await loadHistory()
     } catch (reason) { setError(message(reason)) }
     finally { setSaving(false) }
@@ -234,11 +265,65 @@ function Comparison({ current, previous }: { current: ActivityRecord; previous: 
 }
 
 function MapPreview({ route, gpsStatus, live = false }: { route: RoutePoint[]; gpsStatus: GpsStatus; live?: boolean }) {
-  const points = useMemo(() => routeToPolyline(route), [route])
-  const segments = points.split(' ')
-  const first = segments[0]?.split(',')
-  const last = segments[segments.length - 1]?.split(',')
-  return <div className={`activity-map ${route.length > 1 ? 'has-route' : ''}`}><div className="activity-map-grid" />{route.length > 1 ? <svg viewBox="0 0 400 180" preserveAspectRatio="none" aria-label="Traçado do percurso"><polyline points={points} /><circle cx={first?.[0]} cy={first?.[1]} r="5" className="start" /><circle cx={last?.[0]} cy={last?.[1]} r="5" className="end" /></svg> : <div className="activity-map-empty"><Map size={26} /><strong>{gpsStatus === 'not_required' ? 'Atividade sem percurso GPS' : gpsStatus === 'denied' ? 'Localização não permitida' : gpsStatus === 'disabled' ? 'GPS indisponível ou desativado' : 'Aguardando pontos do percurso'}</strong><p>{gpsStatus === 'denied' ? 'Permita a localização nas configurações do navegador para registrar o próximo mapa.' : 'Quando houver sinal, o traçado aparecerá aqui automaticamente.'}</p></div>}<span><MapPin size={12} /> {live ? 'Mapa ao vivo' : 'Mapa do percurso'}</span></div>
+  const container = useRef<HTMLDivElement>(null)
+  const map = useRef<import('leaflet').Map | null>(null)
+  const routeLayer = useRef<import('leaflet').LayerGroup | null>(null)
+  const leaflet = useRef<typeof import('leaflet') | null>(null)
+  const lastCenteredPoint = useRef(0)
+
+  useEffect(() => {
+    if (!container.current || map.current || !route.length) return
+    let cancelled = false
+    void import('leaflet').then((module) => {
+      if (cancelled || !container.current) return
+      const L = module
+      const latest = route[route.length - 1]
+      leaflet.current = module
+      const instance = L.map(container.current, { zoomControl: true, attributionControl: true }).setView([latest.latitude, latest.longitude], 17)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(instance)
+      routeLayer.current = L.layerGroup().addTo(instance)
+      map.current = instance
+      drawRoute(L, instance, routeLayer.current, route, live)
+      window.setTimeout(() => instance.invalidateSize(), 80)
+    })
+    return () => { cancelled = true; map.current?.remove(); map.current = null; routeLayer.current = null; leaflet.current = null }
+  }, [Boolean(route.length)])
+
+  useEffect(() => {
+    const L = leaflet.current
+    if (!L || !map.current || !routeLayer.current || !route.length) return
+    drawRoute(L, map.current, routeLayer.current, route, live)
+    const latest = route[route.length - 1]
+    if (live && latest.recordedAt !== lastCenteredPoint.current) {
+      map.current.panTo([latest.latitude, latest.longitude], { animate: true })
+      lastCenteredPoint.current = latest.recordedAt
+    }
+  }, [route, live])
+
+  function recenter() {
+    const latest = route[route.length - 1]
+    if (latest && map.current) map.current.setView([latest.latitude, latest.longitude], Math.max(map.current.getZoom(), 17), { animate: true })
+  }
+
+  const latest = route[route.length - 1]
+  return <div className={`activity-map ${route.length ? 'has-route' : ''}`}>
+    {route.length ? <div ref={container} className="activity-map-canvas" /> : <><div className="activity-map-grid" /><div className="activity-map-empty"><Map size={26} /><strong>{gpsStatus === 'not_required' ? 'Atividade sem percurso GPS' : gpsStatus === 'denied' ? 'Localização não permitida' : gpsStatus === 'disabled' ? 'GPS indisponível ou desativado' : 'Aguardando localização precisa'}</strong><p>{gpsStatus === 'denied' ? 'Permita a localização nas configurações do navegador para registrar o próximo mapa.' : 'O primeiro ponto aparece quando a precisão estiver melhor que 65 metros.'}</p></div></>}
+    <span><MapPin size={12} /> {live ? 'Mapa ao vivo' : 'Mapa do percurso'}{latest && ` · precisão ±${Math.round(latest.accuracy)} m`}</span>
+    {route.length > 0 && <button className="activity-map-recenter" type="button" onClick={recenter} aria-label="Centralizar na localização atual"><Crosshair size={15} /></button>}
+  </div>
+}
+
+function drawRoute(L: typeof import('leaflet'), map: import('leaflet').Map, group: import('leaflet').LayerGroup, route: RoutePoint[], live: boolean) {
+  group.clearLayers()
+  const coordinates = route.map((point): [number, number] => [point.latitude, point.longitude])
+  if (!coordinates.length) return
+  if (coordinates.length > 1) L.polyline(coordinates, { color: '#27d68f', weight: 5, opacity: .95, lineCap: 'round', lineJoin: 'round' }).addTo(group)
+  const first = route[0]
+  const latest = route[route.length - 1]
+  L.circleMarker([first.latitude, first.longitude], { radius: 6, color: '#07100b', weight: 2, fillColor: '#e2a358', fillOpacity: 1 }).bindTooltip('Início').addTo(group)
+  L.circle([latest.latitude, latest.longitude], { radius: Math.max(latest.accuracy, 5), color: '#27d68f', weight: 1, opacity: .25, fillColor: '#27d68f', fillOpacity: .07 }).addTo(group)
+  L.circleMarker([latest.latitude, latest.longitude], { radius: 7, color: '#07100b', weight: 3, fillColor: '#27d68f', fillOpacity: 1 }).bindTooltip(live ? 'Você está aqui' : 'Fim').addTo(group)
+  if (!live && coordinates.length > 1) map.fitBounds(L.latLngBounds(coordinates), { padding: [28, 28], maxZoom: 17 })
 }
 
 function elapsed(session: LiveSession, reference: number) { const end = session.status === 'paused' && session.pausedAt ? session.pausedAt : reference; return Math.max(1, Math.floor((end - session.startedAt - session.pausedTotalMs) / 1000)) }
@@ -260,7 +345,6 @@ function gpsMessage(status: GpsStatus) { if (status === 'active' || status === '
 
 function distanceBetween(a: RoutePoint, b: RoutePoint) { const radius = 6371; const lat = degrees(b.latitude - a.latitude); const lon = degrees(b.longitude - a.longitude); const value = Math.sin(lat / 2) ** 2 + Math.cos(degrees(a.latitude)) * Math.cos(degrees(b.latitude)) * Math.sin(lon / 2) ** 2; return radius * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value)) }
 function degrees(value: number) { return value * Math.PI / 180 }
-function routeToPolyline(route: RoutePoint[]) { if (!route.length) return ''; const lats = route.map((point) => point.latitude); const lons = route.map((point) => point.longitude); const minLat = Math.min(...lats); const maxLat = Math.max(...lats); const minLon = Math.min(...lons); const maxLon = Math.max(...lons); return route.map((point) => { const x = 18 + (point.longitude - minLon) / Math.max(maxLon - minLon, .000001) * 364; const y = 162 - (point.latitude - minLat) / Math.max(maxLat - minLat, .000001) * 144; return `${x.toFixed(1)},${y.toFixed(1)}` }).join(' ') }
 function shareText(activity: ActivityRecord) { return `${configFor(activity.type).label} no MOVELYA · ${formatDistance(activity.distanceKm)} · ${formatDuration(activity.durationSeconds)} · ${formatPace(activity.averagePaceSeconds)}` }
 
 async function createShareCard(activity: ActivityRecord) {
