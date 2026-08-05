@@ -101,28 +101,6 @@ export const dashboardService = {
     }
   },
 
-  async addWater(userId: string, amount = 0.25) {
-    if (!supabase) throw new Error('A conexÃ£o com o Supabase nÃ£o estÃ¡ configurada.')
-    const date = localDate()
-    const { data: current, error: readError } = await supabase
-      .from('daily_stats')
-      .select('water_current,water_goal')
-      .eq('user_id', userId)
-      .eq('date', date)
-      .maybeSingle()
-    if (readError) throw new Error('NÃ£o foi possÃ­vel atualizar sua Ã¡gua.')
-
-    const goal = Number(current?.water_goal ?? 3)
-    const next = round(Math.min(Number(current?.water_current ?? 0) + amount, goal), 2)
-    const { error } = await supabase.from('daily_stats').upsert({
-      user_id: userId,
-      date,
-      water_current: next,
-      water_goal: goal,
-    }, { onConflict: 'user_id,date' })
-    if (error) throw new Error('NÃ£o foi possÃ­vel atualizar sua Ã¡gua.')
-    return { current: next, goal }
-  },
 }
 
 function mapWorkout(row: Record<string, unknown>): DashboardWorkout {

@@ -27,11 +27,5 @@ export function useDailyDashboard(userId?: string) {
     void load()
   }, [load])
 
-  const addWater = useCallback(async () => {
-    if (!userId) return
-    await dashboardService.addWater(userId)
-    setData(await dashboardService.getDailyDashboard(userId))
-  }, [userId])
-
-  return { data, loading, error, retry: load, addWater }
+  return { data, loading, error, retry: load }
 }

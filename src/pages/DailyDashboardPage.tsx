@@ -27,8 +27,7 @@ interface DailyDashboardPageProps {
 }
 
 export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPageProps) {
-  const { data, loading, error, retry, addWater } = useDailyDashboard(userId)
-  const [actionError, setActionError] = useState('')
+  const { data, loading, error, retry } = useDailyDashboard(userId)
   const greeting = useMemo(getGreeting, [])
   const currentDate = useMemo(() => new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long',
@@ -51,15 +50,6 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
 
   const initials = data.profile.name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   const weightDifference = data.weight.difference
-
-  async function handleWater() {
-    setActionError('')
-    try {
-      await addWater()
-    } catch (requestError) {
-      setActionError(requestError instanceof Error ? requestError.message : 'NÃ£o foi possÃ­vel atualizar sua Ã¡gua.')
-    }
-  }
 
   return (
     <section className="daily-dashboard">
@@ -93,8 +83,6 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           <div><strong>Todas as metas concluÃ­das!</strong><p>Ã“timo trabalho. ConsistÃªncia tambÃ©m inclui uma boa recuperaÃ§Ã£o.</p></div>
         </div>
       )}
-
-      {actionError && <div className="dashboard-inline-error" role="alert">{actionError}</div>}
 
       <article className="today-summary">
         <div className="today-summary__copy">
