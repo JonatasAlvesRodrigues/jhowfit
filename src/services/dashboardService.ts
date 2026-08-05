@@ -1,4 +1,4 @@
-﻿import { supabase } from '../integrations/supabase'
+import { supabase } from '../integrations/supabase'
 import type { DailyDashboardData, DashboardMetric, DashboardWorkout, WeightPoint } from '../types/dashboard'
 
 interface DailyStatsRow {
@@ -17,7 +17,7 @@ const emptyMetric = (goal: number): DashboardMetric => ({ current: 0, goal })
 
 export const dashboardService = {
   async getDailyDashboard(userId: string): Promise<DailyDashboardData> {
-    if (!supabase) throw new Error('A conexÃ£o com o Supabase nÃ£o estÃ¡ configurada.')
+    if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
 
     const date = localDate()
     const [profileResult, statsResult, mealsResult, workoutResult, weightResult] = await Promise.all([
@@ -55,7 +55,7 @@ export const dashboardService = {
 
     const firstError = [profileResult.error, statsResult.error, mealsResult.error, workoutResult.error, weightResult.error]
       .find(Boolean)
-    if (firstError) throw new Error('NÃ£o foi possÃ­vel carregar o resumo do dia.')
+    if (firstError) throw new Error('Não foi possível carregar o resumo do dia.')
 
     const stats = statsResult.data as DailyStatsRow | null
     const mealCalories = mealsResult.data?.reduce((total, meal) => total + Number(meal.calories ?? 0), 0) ?? 0
@@ -88,7 +88,7 @@ export const dashboardService = {
 
     return {
       profile: {
-        name: profileResult.data?.full_name?.trim() || 'UsuÃ¡rio MOVELYA',
+        name: profileResult.data?.full_name?.trim() || 'Usuário MOVELYA',
         avatarUrl: profileResult.data?.avatar_url || null,
       },
       metrics,
@@ -144,17 +144,17 @@ function getInsight(
   workout: DashboardWorkout | null,
   allGoalsCompleted: boolean,
 ) {
-  if (allGoalsCompleted) return 'Metas concluÃ­das. Excelente consistÃªncia hoje â€” aproveite para recuperar bem.'
+  if (allGoalsCompleted) return 'Metas concluídas. Excelente consistência hoje — aproveite para recuperar bem.'
   const proteinMissing = Math.max(metrics.protein.goal - metrics.protein.current, 0)
   if (proteinMissing > 0 && ratio(metrics.protein) >= .7) {
-    return `Faltam apenas ${Math.ceil(proteinMissing)} g de proteÃ­na para sua meta diÃ¡ria.`
+    return `Faltam apenas ${Math.ceil(proteinMissing)} g de proteína para sua meta diária.`
   }
-  if (ratio(metrics.water) < .55) return 'Sua hidrataÃ§Ã£o estÃ¡ abaixo do esperado. Que tal beber mais 250 ml agora?'
+  if (ratio(metrics.water) < .55) return 'Sua hidratação está abaixo do esperado. Que tal beber mais 250 ml agora?'
   if (ratio(metrics.steps) >= .75 && ratio(metrics.steps) < 1) {
-    return `VocÃª estÃ¡ perto da meta: faltam ${Math.ceil(metrics.steps.goal - metrics.steps.current).toLocaleString('pt-BR')} passos.`
+    return `Você está perto da meta: faltam ${Math.ceil(metrics.steps.goal - metrics.steps.current).toLocaleString('pt-BR')} passos.`
   }
-  if (workout && !workout.completed) return 'Seu treino ainda estÃ¡ pendente. Um comeÃ§o curto jÃ¡ mantÃ©m a rotina em movimento.'
-  return 'Pequenas escolhas consistentes fazem diferenÃ§a. Registre sua prÃ³xima atividade.'
+  if (workout && !workout.completed) return 'Seu treino ainda está pendente. Um começo curto já mantém a rotina em movimento.'
+  return 'Pequenas escolhas consistentes fazem diferença. Registre sua próxima atividade.'
 }
 
 function localDate() {

@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   font-family: "DM Sans", sans-serif;
   color: #f4f7f5;
   background: #080a09;
@@ -271,7 +271,7 @@ main { padding: 38px 42px 52px; max-width: 1530px; margin: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
 
-/* MOVELYA â€” application shell */
+/* MOVELYA — application shell */
 :root {
   color-scheme: dark;
   --vita-bg: #080b09;

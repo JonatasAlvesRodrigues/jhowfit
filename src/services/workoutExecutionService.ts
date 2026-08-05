@@ -1,4 +1,4 @@
-﻿import { supabase } from '../integrations/supabase'
+import { supabase } from '../integrations/supabase'
 import type { ExerciseLibraryItem } from '../types/exerciseLibrary'
 import type { WorkoutSummary } from '../types/trainingPlan'
 import type { ExecutionExercise, ExecutionSet, WorkoutExecutionSession, WorkoutFinishSummary } from '../types/workoutExecution'
@@ -10,7 +10,7 @@ export const workoutExecutionService = {
     requireSupabase()
     const { data, error } = await supabase!.from('workout_sessions').select('id')
       .eq('user_id', userId).in('status', ['active', 'paused']).maybeSingle()
-    if (error) throw new Error('NÃ£o foi possÃ­vel verificar o treino em andamento.')
+    if (error) throw new Error('Não foi possível verificar o treino em andamento.')
     if (!data) {
       localStorage.removeItem(SESSION_STORAGE_KEY)
       return null
@@ -39,7 +39,7 @@ export const workoutExecutionService = {
       user_id: userId, workout_id: workout.id, workout_name: workout.name,
       exercise_count: workout.exercises.length,
     }).select('id').single()
-    if (sessionError || !session) throw new Error('NÃ£o foi possÃ­vel iniciar o treino.')
+    if (sessionError || !session) throw new Error('Não foi possível iniciar o treino.')
 
     try {
       const exerciseRows = workout.exercises.map((exercise, position) => {
@@ -65,7 +65,7 @@ export const workoutExecutionService = {
       if (setsError) throw setsError
     } catch {
       await supabase!.from('workout_sessions').delete().eq('id', session.id).eq('user_id', userId)
-      throw new Error('NÃ£o foi possÃ­vel preparar as sÃ©ries do treino.')
+      throw new Error('Não foi possível preparar as séries do treino.')
     }
     localStorage.setItem(SESSION_STORAGE_KEY, session.id)
     return this.load(session.id, userId)
@@ -78,7 +78,7 @@ export const workoutExecutionService = {
       supabase!.from('workout_session_exercises')
         .select('*,workout_session_sets(*)').eq('session_id', sessionId).eq('user_id', userId).order('position'),
     ])
-    if (sessionResult.error || exercisesResult.error) throw new Error('NÃ£o foi possÃ­vel recuperar o treino.')
+    if (sessionResult.error || exercisesResult.error) throw new Error('Não foi possível recuperar o treino.')
     return {
       id: sessionResult.data.id, workoutId: sessionResult.data.workout_id,
       workoutName: sessionResult.data.workout_name, status: sessionResult.data.status,
@@ -97,7 +97,7 @@ export const workoutExecutionService = {
       completed_at: completed ? new Date().toISOString() : null,
       is_personal_record: personalRecord, updated_at: new Date().toISOString(),
     }).eq('id', set.id).eq('user_id', userId)
-    if (error) throw new Error('NÃ£o foi possÃ­vel salvar esta sÃ©rie.')
+    if (error) throw new Error('Não foi possível salvar esta série.')
     return personalRecord
   },
 
@@ -118,7 +118,7 @@ export const workoutExecutionService = {
       total_paused_seconds: pausedSeconds,
       updated_at: new Date().toISOString(),
     }).eq('id', session.id).eq('user_id', userId)
-    if (error) throw new Error('NÃ£o foi possÃ­vel pausar o treino.')
+    if (error) throw new Error('Não foi possível pausar o treino.')
     return { pausedAt: paused ? new Date().toISOString() : null, totalPausedSeconds: pausedSeconds }
   },
 
@@ -127,7 +127,7 @@ export const workoutExecutionService = {
     const { error } = await supabase!.from('workout_session_exercises').update({
       skipped: true, updated_at: new Date().toISOString(),
     }).eq('id', exerciseId).eq('user_id', userId)
-    if (error) throw new Error('NÃ£o foi possÃ­vel pular o exercÃ­cio.')
+    if (error) throw new Error('Não foi possível pular o exercício.')
   },
 
   async replaceExercise(userId: string, exerciseId: string, replacement: ExerciseLibraryItem) {
@@ -136,7 +136,7 @@ export const workoutExecutionService = {
       library_exercise_id: replacement.id, name: replacement.name, image_url: replacement.imageUrl,
       notes: replacement.safetyTips[0] ?? null, updated_at: new Date().toISOString(),
     }).eq('id', exerciseId).eq('user_id', userId)
-    if (error) throw new Error('NÃ£o foi possÃ­vel trocar o exercÃ­cio.')
+    if (error) throw new Error('Não foi possível trocar o exercício.')
   },
 
   async abandon(userId: string, sessionId: string) {
@@ -165,7 +165,7 @@ export const workoutExecutionService = {
       volume_total: volumeTotal, completed_sets: completedSets.length, exercise_count: exercisesCompleted,
       pr_count: personalRecords, difficulty, notes: notes.trim() || null, paused_at: null, updated_at: new Date().toISOString(),
     }).eq('id', session.id).eq('user_id', userId)
-    if (error) throw new Error('NÃ£o foi possÃ­vel concluir o treino.')
+    if (error) throw new Error('Não foi possível concluir o treino.')
     const date = localDate()
     const { data: daily } = await supabase!.from('daily_stats').select('id,workout_minutes')
       .eq('user_id', userId).eq('date', date).maybeSingle()
@@ -206,7 +206,7 @@ function numberOrNull(value: unknown) {
 }
 
 function requireSupabase() {
-  if (!supabase) throw new Error('A conexÃ£o com o Supabase nÃ£o estÃ¡ configurada.')
+  if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
 }
 
 function localDate() {

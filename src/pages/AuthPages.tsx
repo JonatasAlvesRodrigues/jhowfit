@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
@@ -27,11 +27,11 @@ export function AuthPage({ routeId, navigate }: AuthPageProps) {
       <aside className="auth-story">
         <VitaLogo />
         <div className="auth-story__content">
-          <span>EVOLUA COM PROPÃ“SITO</span>
-          <h2>Seu bem-estar comeÃ§a com um passo.</h2>
-          <p>Treinos, alimentaÃ§Ã£o e evoluÃ§Ã£o reunidos em uma experiÃªncia simples e pessoal.</p>
+          <span>EVOLUA COM PROPÓSITO</span>
+          <h2>Seu bem-estar começa com um passo.</h2>
+          <p>Treinos, alimentação e evolução reunidos em uma experiência simples e pessoal.</p>
         </div>
-        <small>MOVELYA Â· Sua jornada, no seu ritmo.</small>
+        <small>MOVELYA · Sua jornada, no seu ritmo.</small>
       </aside>
       <main className="auth-main">
         <div className="auth-mobile-logo"><VitaLogo /></div>
@@ -69,9 +69,9 @@ function LoginForm({ navigate }: Pick<AuthPageProps, 'navigate'>) {
     <AuthCard
       eyebrow="BEM-VINDO DE VOLTA"
       title="Entre na sua conta"
-      description="Continue sua evoluÃ§Ã£o de onde parou."
+      description="Continue sua evolução de onde parou."
     >
-      {!configured && <AuthAlert type="error">A conexÃ£o com o Supabase nÃ£o estÃ¡ disponÃ­vel neste ambiente.</AuthAlert>}
+      {!configured && <AuthAlert type="error">A conexão com o Supabase não está disponível neste ambiente.</AuthAlert>}
       {sessionMessage && <AuthAlert>{sessionMessage}</AuthAlert>}
       {error && <AuthAlert type="error">{error}</AuthAlert>}
       <form className="auth-form" onSubmit={submit} noValidate>
@@ -81,7 +81,7 @@ function LoginForm({ navigate }: Pick<AuthPageProps, 'navigate'>) {
         <SubmitButton loading={loading}>Entrar <ArrowRight size={17} /></SubmitButton>
       </form>
       <AuthDivider />
-      <p className="auth-switch">Ainda nÃ£o tem uma conta? <button onClick={() => navigate('/criar-conta')}>Criar conta</button></p>
+      <p className="auth-switch">Ainda não tem uma conta? <button onClick={() => navigate('/criar-conta')}>Criar conta</button></p>
     </AuthCard>
   )
 }
@@ -111,21 +111,21 @@ function SignUpForm({ navigate }: Pick<AuthPageProps, 'navigate'>) {
   }
 
   return (
-    <AuthCard eyebrow="SUA JORNADA COMEÃ‡A AQUI" title="Crie sua conta" description="Leva menos de um minuto.">
+    <AuthCard eyebrow="SUA JORNADA COMEÇA AQUI" title="Crie sua conta" description="Leva menos de um minuto.">
       {error && <AuthAlert type="error">{error}</AuthAlert>}
       <form className="auth-form" onSubmit={submit} noValidate>
-        <AuthInput label="Nome" value={name} onChange={setName} placeholder="Como podemos chamar vocÃª?" icon={<UserRound size={17} />} autoComplete="name" />
+        <AuthInput label="Nome" value={name} onChange={setName} placeholder="Como podemos chamar você?" icon={<UserRound size={17} />} autoComplete="name" />
         <AuthInput label="E-mail" type="email" value={email} onChange={setEmail} placeholder="voce@exemplo.com" icon={<Mail size={17} />} autoComplete="email" />
-        <PasswordInput label="Senha" value={password} onChange={setPassword} autoComplete="new-password" hint="MÃ­nimo de 8 caracteres, com letra maiÃºscula e nÃºmero." />
+        <PasswordInput label="Senha" value={password} onChange={setPassword} autoComplete="new-password" hint="Mínimo de 8 caracteres, com letra maiúscula e número." />
         <PasswordInput label="Confirmar senha" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" />
         <div className="auth-checks">
           <AuthCheckbox checked={terms} onChange={setTerms}>Li e aceito os <a href="#termos" onClick={(event) => event.preventDefault()}>Termos de Uso</a>.</AuthCheckbox>
-          <AuthCheckbox checked={privacy} onChange={setPrivacy}>Li e aceito a <a href="#privacidade" onClick={(event) => event.preventDefault()}>PolÃ­tica de Privacidade</a>.</AuthCheckbox>
+          <AuthCheckbox checked={privacy} onChange={setPrivacy}>Li e aceito a <a href="#privacidade" onClick={(event) => event.preventDefault()}>Política de Privacidade</a>.</AuthCheckbox>
         </div>
         <SubmitButton loading={loading}>Criar minha conta <ArrowRight size={17} /></SubmitButton>
       </form>
       <AuthDivider />
-      <p className="auth-switch">JÃ¡ possui uma conta? <button onClick={() => navigate('/entrar')}>Entrar</button></p>
+      <p className="auth-switch">Já possui uma conta? <button onClick={() => navigate('/entrar')}>Entrar</button></p>
     </AuthCard>
   )
 }
@@ -150,7 +150,7 @@ function ForgotPasswordForm({ navigate }: Pick<AuthPageProps, 'navigate'>) {
   }
 
   if (sent) {
-    return <AuthStatus icon={<MailCheck size={29} />} eyebrow="E-MAIL ENVIADO" title="Confira sua caixa de entrada" description={`Enviamos as instruÃ§Ãµes de recuperaÃ§Ã£o para ${email}.`} actionLabel="Voltar para entrar" onAction={() => navigate('/entrar')} />
+    return <AuthStatus icon={<MailCheck size={29} />} eyebrow="E-MAIL ENVIADO" title="Confira sua caixa de entrada" description={`Enviamos as instruções de recuperação para ${email}.`} actionLabel="Voltar para entrar" onAction={() => navigate('/entrar')} />
   }
 
   return (
@@ -158,7 +158,7 @@ function ForgotPasswordForm({ navigate }: Pick<AuthPageProps, 'navigate'>) {
       {error && <AuthAlert type="error">{error}</AuthAlert>}
       <form className="auth-form" onSubmit={submit} noValidate>
         <AuthInput label="E-mail" type="email" value={email} onChange={setEmail} placeholder="voce@exemplo.com" icon={<Mail size={17} />} autoComplete="email" />
-        <SubmitButton loading={loading}>Enviar link de recuperaÃ§Ã£o <ArrowRight size={17} /></SubmitButton>
+        <SubmitButton loading={loading}>Enviar link de recuperação <ArrowRight size={17} /></SubmitButton>
       </form>
       <button className="auth-back" onClick={() => navigate('/entrar')}><ArrowLeft size={16} /> Voltar para entrar</button>
     </AuthCard>
@@ -175,7 +175,7 @@ function ResetPasswordForm({ navigate }: Pick<AuthPageProps, 'navigate'>) {
 
   async function submit(event: FormEvent) {
     event.preventDefault()
-    const validation = validatePassword(password) || (password !== confirmPassword ? 'As senhas nÃ£o coincidem.' : '')
+    const validation = validatePassword(password) || (password !== confirmPassword ? 'As senhas não coincidem.' : '')
     if (validation) return setError(validation)
     setLoading(true)
     setError('')
@@ -186,18 +186,18 @@ function ResetPasswordForm({ navigate }: Pick<AuthPageProps, 'navigate'>) {
   }
 
   if (!session && !recoveryMode) {
-    return <AuthStatus icon={<KeyRound size={29} />} eyebrow="LINK INVÃLIDO" title="Solicite um novo link" description="Este link de recuperaÃ§Ã£o expirou ou jÃ¡ foi utilizado." actionLabel="Recuperar senha" onAction={() => navigate('/esqueci-senha')} />
+    return <AuthStatus icon={<KeyRound size={29} />} eyebrow="LINK INVÁLIDO" title="Solicite um novo link" description="Este link de recuperação expirou ou já foi utilizado." actionLabel="Recuperar senha" onAction={() => navigate('/esqueci-senha')} />
   }
 
   if (done) {
-    return <AuthStatus icon={<Check size={29} />} eyebrow="SENHA ATUALIZADA" title="Tudo certo!" description="Sua nova senha jÃ¡ estÃ¡ ativa. VocÃª pode continuar no MOVELYA." actionLabel="Ir para o inÃ­cio" onAction={() => navigate('/inicio')} />
+    return <AuthStatus icon={<Check size={29} />} eyebrow="SENHA ATUALIZADA" title="Tudo certo!" description="Sua nova senha já está ativa. Você pode continuar no MOVELYA." actionLabel="Ir para o início" onAction={() => navigate('/inicio')} />
   }
 
   return (
     <AuthCard eyebrow="PROTEJA SUA CONTA" title="Crie uma nova senha" description="Escolha uma senha forte e diferente das anteriores.">
       {error && <AuthAlert type="error">{error}</AuthAlert>}
       <form className="auth-form" onSubmit={submit} noValidate>
-        <PasswordInput label="Nova senha" value={password} onChange={setPassword} autoComplete="new-password" hint="MÃ­nimo de 8 caracteres, com letra maiÃºscula e nÃºmero." />
+        <PasswordInput label="Nova senha" value={password} onChange={setPassword} autoComplete="new-password" hint="Mínimo de 8 caracteres, com letra maiúscula e número." />
         <PasswordInput label="Confirmar nova senha" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" />
         <SubmitButton loading={loading}>Salvar nova senha <Check size={17} /></SubmitButton>
       </form>
@@ -223,16 +223,16 @@ function ConfirmEmailPage({ navigate }: Pick<AuthPageProps, 'navigate'>) {
     setLoading(true)
     const result = await resendConfirmation(email)
     setLoading(false)
-    setMessage(result.success ? 'Um novo e-mail de confirmaÃ§Ã£o foi enviado.' : result.message ?? '')
+    setMessage(result.success ? 'Um novo e-mail de confirmação foi enviado.' : result.message ?? '')
   }
 
   return (
     <AuthStatus
       icon={confirmed ? <Check size={29} /> : <MailCheck size={29} />}
       eyebrow={confirmed ? 'E-MAIL CONFIRMADO' : 'VERIFIQUE SEU E-MAIL'}
-      title={confirmed ? 'Conta confirmada!' : 'Falta sÃ³ confirmar seu e-mail'}
-      description={confirmed ? 'VocÃª serÃ¡ direcionado ao MOVELYA em instantes.' : `Enviamos um link de confirmaÃ§Ã£o para ${email || 'o endereÃ§o informado'}.`}
-      actionLabel={confirmed ? 'Ir para o inÃ­cio' : loading ? 'Enviando...' : 'Reenviar e-mail'}
+      title={confirmed ? 'Conta confirmada!' : 'Falta só confirmar seu e-mail'}
+      description={confirmed ? 'Você será direcionado ao MOVELYA em instantes.' : `Enviamos um link de confirmação para ${email || 'o endereço informado'}.`}
+      actionLabel={confirmed ? 'Ir para o início' : loading ? 'Enviando...' : 'Reenviar e-mail'}
       onAction={confirmed ? () => navigate('/inicio') : resend}
       secondaryLabel={confirmed ? undefined : 'Voltar para entrar'}
       onSecondary={() => navigate('/entrar')}
@@ -295,14 +295,14 @@ function AuthStatus({ icon, eyebrow, title, description, actionLabel, onAction, 
 
 function validateEmail(email: string) {
   if (!email.trim()) return 'Informe seu e-mail.'
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'Informe um e-mail vÃ¡lido.'
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'Informe um e-mail válido.'
   return ''
 }
 
 function validatePassword(password: string) {
   if (!password) return 'Informe uma senha.'
   if (password.length < 8) return 'A senha deve ter pelo menos 8 caracteres.'
-  if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) return 'Use ao menos uma letra maiÃºscula, uma minÃºscula e um nÃºmero.'
+  if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) return 'Use ao menos uma letra maiúscula, uma minúscula e um número.'
   return ''
 }
 
@@ -312,9 +312,9 @@ function validateSignUp(input: { name: string; email: string; password: string; 
   if (emailError) return emailError
   const passwordError = validatePassword(input.password)
   if (passwordError) return passwordError
-  if (input.password !== input.confirmPassword) return 'As senhas nÃ£o coincidem.'
-  if (!input.terms) return 'VocÃª precisa aceitar os Termos de Uso.'
-  if (!input.privacy) return 'VocÃª precisa aceitar a PolÃ­tica de Privacidade.'
+  if (input.password !== input.confirmPassword) return 'As senhas não coincidem.'
+  if (!input.terms) return 'Você precisa aceitar os Termos de Uso.'
+  if (!input.privacy) return 'Você precisa aceitar a Política de Privacidade.'
   return ''
 }
 
