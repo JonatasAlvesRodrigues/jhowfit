@@ -16,7 +16,7 @@ export function useVitaRoute() {
     timer.current = setTimeout(() => {
       const nextRoute = findRoute(pathname)
       setRoute(nextRoute)
-      document.title = nextRoute ? `${nextRoute.label} Â· MOVELYA` : 'PÃ¡gina nÃ£o encontrada Â· MOVELYA'
+      document.title = nextRoute ? `${nextRoute.label} · MOVELYA` : 'Página não encontrada · MOVELYA'
       setStatus('ready')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }, withFeedback ? 240 : 320)

@@ -11,7 +11,7 @@ interface NavigationProps {
 export function VitaLogo({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`vita-logo ${compact ? 'is-compact' : ''}`} aria-label="MOVELYA">
-      <span className="vita-logo__mark">
+      <span className="vita-logo__mark" aria-hidden="true">
         <img src="/movelya-logo.png" alt="" />
       </span>
       <span className="vita-logo__name">MOVE<strong>LYA</strong></span>

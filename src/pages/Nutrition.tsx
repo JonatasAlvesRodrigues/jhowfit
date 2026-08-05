@@ -630,9 +630,9 @@ function MealSectionCard({
           <h3>{section.meals.length ? `${section.meals.length} alimento(s)` : 'Nenhum item registrado'}</h3>
         </div>
         <div className="nutrition-section-card__actions">
-          <button type="button" onClick={onCopy}><Copy size={14} /> Copiar refeição</button>
-          <button type="button" onClick={onRepeat}><RotateCcw size={14} /> Repetir do dia anterior</button>
-          <button type="button" onClick={onSaveCombo}><Heart size={14} /> Salvar combinação</button>
+          <button type="button" onClick={onCopy} aria-label="Copiar refeição" title="Copiar refeição"><Copy size={14} /></button>
+          <button type="button" onClick={onRepeat} aria-label="Repetir do dia anterior" title="Repetir do dia anterior"><RotateCcw size={14} /></button>
+          <button type="button" onClick={onSaveCombo} aria-label="Salvar combinação" title="Salvar combinação"><Heart size={14} /></button>
         </div>
       </div>
       <div className="nutrition-section-card__progress">
