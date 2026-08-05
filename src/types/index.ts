@@ -67,6 +67,10 @@ export interface FoodCatalogItem extends NutritionTotals {
   isPublic: boolean
   isFavorite: boolean
   sourceType: MealSourceType
+  brand?: string
+  sugar?: number
+  informationSource?: string
+  ownerId?: string | null
 }
 
 export interface MealCombinationItem extends NutritionTotals {

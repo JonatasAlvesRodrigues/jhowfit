@@ -1,5 +1,5 @@
 import {
-  Activity, Apple, ChartNoAxesCombined, ClipboardMinus, Dumbbell, Goal, House,
+  Activity, Apple, ChartNoAxesCombined, ClipboardMinus, Dumbbell, Goal, House, Library,
   KeyRound, LogOut, MailCheck, Settings, UserPlus, UserRound,
 } from 'lucide-react'
 import type { RouteId, VitaRoute } from '../types/navigation'
@@ -8,6 +8,7 @@ export const vitaRoutes: VitaRoute[] = [
   { id: 'inicio', path: '/inicio', label: 'Início', eyebrow: 'VISÃO GERAL', description: 'Seu dia, seus indicadores e próximos passos em um só lugar.', icon: House },
   { id: 'treinos', path: '/treinos', label: 'Treinos', mobileLabel: 'Treino', eyebrow: 'MOVIMENTO', description: 'Planeje sessões e acompanhe sua rotina de exercícios.', icon: Dumbbell },
   { id: 'dieta', path: '/dieta', label: 'Dieta', eyebrow: 'NUTRIÇÃO', description: 'Organize refeições e mantenha sua alimentação no caminho certo.', icon: Apple },
+  { id: 'alimentos', path: '/alimentos', label: 'Banco de alimentos', mobileLabel: 'Alimentos', eyebrow: 'NUTRIÇÃO', description: 'Consulte informações nutricionais e gerencie seus alimentos.', icon: Library },
   { id: 'atividades', path: '/atividades', label: 'Atividades', mobileLabel: 'Atividade', eyebrow: 'VIDA ATIVA', description: 'Corridas, caminhadas, passos e todas as suas atividades.', icon: Activity },
   { id: 'evolucao', path: '/evolucao', label: 'Evolução', eyebrow: 'PROGRESSO', description: 'Visualize mudanças no corpo e celebre cada avanço.', icon: ChartNoAxesCombined },
   { id: 'relatorios', path: '/relatorios', label: 'Relatórios', eyebrow: 'ANÁLISES', description: 'Entenda seus hábitos por meio de relatórios claros.', icon: ClipboardMinus },

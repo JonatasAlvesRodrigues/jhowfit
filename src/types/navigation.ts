@@ -4,6 +4,7 @@ export type RouteId =
   | 'inicio'
   | 'treinos'
   | 'dieta'
+  | 'alimentos'
   | 'atividades'
   | 'evolucao'
   | 'relatorios'
