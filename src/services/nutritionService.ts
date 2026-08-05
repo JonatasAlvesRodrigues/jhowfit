@@ -146,6 +146,17 @@ export const nutritionService = {
     if (!data?.plan) throw new Error(data?.error || 'A IA não retornou uma dieta válida.')
     return data as { plan: GeneratedDietPlan }
   },
+  async saveGeneratedDiet(userId: string, plan: GeneratedDietPlan) {
+    if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
+    const { error } = await supabase.from('diet_plans').insert({
+      user_id: userId,
+      name: plan.name,
+      plan,
+      source: 'ai',
+      updated_at: nowIso(),
+    })
+    if (error) throw new Error('Não foi possível salvar sua dieta.')
+  },
   async getDiary(userId: string, date = localDate()): Promise<NutritionDiaryData> {
     if (!supabase) {
       return buildFallbackDiary(date)

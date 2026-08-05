@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { BrainCircuit, CheckCircle2, LoaderCircle, ShieldAlert, Sparkles } from 'lucide-react'
+import { BrainCircuit, CheckCircle2, LoaderCircle, Save, ShieldAlert, Sparkles } from 'lucide-react'
 import { Button, Field, Modal } from './ui'
 import { nutritionService, type GeneratedDietPlan } from '../services/nutritionService'
 
@@ -18,6 +18,8 @@ export function AIDietGenerator({ open, userId, onClose, onCreated }: AIDietGene
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [plan, setPlan] = useState<GeneratedDietPlan | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   if (!open) return null
 
@@ -34,11 +36,26 @@ export function AIDietGenerator({ open, userId, onClose, onCreated }: AIDietGene
         mealsPerDay: Number(meals) || 4,
       })
       setPlan(response.plan)
-      onCreated()
+      setSaved(false)
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível gerar a dieta agora.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function savePlan() {
+    if (!plan) return
+    setSaving(true)
+    setError('')
+    try {
+      await nutritionService.saveGeneratedDiet(userId, plan)
+      setSaved(true)
+      onCreated()
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Não foi possível salvar a dieta.')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -63,7 +80,8 @@ export function AIDietGenerator({ open, userId, onClose, onCreated }: AIDietGene
           <div className="ai-diet-goals"><span>{Math.round(plan.dailyCalories)} kcal/dia</span><span>{Math.round(plan.protein)} g proteína</span><span>~R$ {plan.estimatedWeeklyCost}/semana</span></div>
           <div className="ai-diet-meals">{plan.meals.map((meal) => <article key={meal.name}><div><strong>{meal.name}</strong><small>{meal.calories} kcal · P {meal.protein}g</small></div><p>{meal.foods.join(' · ')}</p><em>{meal.notes}</em><div className="ai-diet-alternatives"><small>2 alternativas para variar</small>{meal.alternatives.map((alternative, index) => <div key={`${meal.name}-${alternative.name}`}><b>Opção {index + 2}: {alternative.name}</b><span>{alternative.foods.join(' · ')}</span><em>{alternative.notes}</em></div>)}</div></article>)}</div>
           <div className="ai-diet-safety"><ShieldAlert size={16} /> {plan.safetyNotice}</div>
-          <div className="nutrition-modal-actions"><Button variant="secondary" onClick={() => setPlan(null)}>Ajustar preferências</Button><Button onClick={onClose}>Entendi, revisar depois</Button></div>
+          {error && <p className="ai-diet-error">{error}</p>}
+          <div className="nutrition-modal-actions"><Button variant="secondary" onClick={() => setPlan(null)}>Ajustar preferências</Button><Button onClick={() => void savePlan()} disabled={saving || saved}>{saving ? <><LoaderCircle className="is-spinning" size={16} /> Salvando...</> : saved ? <><CheckCircle2 size={16} /> Dieta salva</> : <><Save size={16} /> Salvar dieta</>}</Button></div>
         </div>
       )}
     </Modal>
