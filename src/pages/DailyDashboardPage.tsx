@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import {
   Activity,
   ArrowRight,
@@ -41,8 +41,8 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
     return (
       <section className="dashboard-state dashboard-state--error">
         <span><RefreshCw size={24} /></span>
-        <small>RESUMO INDISPONÍVEL</small>
-        <h1>Não foi possível carregar seu dia.</h1>
+        <small>RESUMO INDISPONÃVEL</small>
+        <h1>NÃ£o foi possÃ­vel carregar seu dia.</h1>
         <p>{error || 'Tente novamente em alguns instantes.'}</p>
         <button className="vita-primary-button" onClick={() => void retry()}><RefreshCw size={17} /> Tentar novamente</button>
       </section>
@@ -57,7 +57,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
     try {
       await addWater()
     } catch (requestError) {
-      setActionError(requestError instanceof Error ? requestError.message : 'Não foi possível atualizar sua água.')
+      setActionError(requestError instanceof Error ? requestError.message : 'NÃ£o foi possÃ­vel atualizar sua Ã¡gua.')
     }
   }
 
@@ -76,13 +76,13 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
             <p>{capitalize(currentDate)}</p>
           </div>
         </div>
-        <button className="daily-notification" aria-label="Abrir notificações"><Bell size={20} /><i /></button>
+        <button className="daily-notification" aria-label="Abrir notificaÃ§Ãµes"><Bell size={20} /><i /></button>
       </header>
 
       {!data.hasAnyData && (
         <div className="dashboard-empty-banner">
           <span><Gauge size={22} /></span>
-          <div><strong>Seu dia começa aqui</strong><p>Registre água, alimentação ou atividade para acompanhar seu progresso.</p></div>
+          <div><strong>Seu dia comeÃ§a aqui</strong><p>Registre Ã¡gua, alimentaÃ§Ã£o ou atividade para acompanhar seu progresso.</p></div>
           <button onClick={() => onNavigate('/atividades')}>Registrar <ArrowRight size={15} /></button>
         </div>
       )}
@@ -90,7 +90,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
       {data.allGoalsCompleted && (
         <div className="dashboard-complete-banner">
           <CircleCheck size={22} />
-          <div><strong>Todas as metas concluídas!</strong><p>Ótimo trabalho. Consistência também inclui uma boa recuperação.</p></div>
+          <div><strong>Todas as metas concluÃ­das!</strong><p>Ã“timo trabalho. ConsistÃªncia tambÃ©m inclui uma boa recuperaÃ§Ã£o.</p></div>
         </div>
       )}
 
@@ -102,8 +102,8 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           <h2>{data.allGoalsCompleted ? 'Dia completo. Mandou muito bem!' : motivation(data.completion)}</h2>
           <p>{data.insight}</p>
           <div className="today-summary__legend">
-            <span><i /> Metas diárias</span>
-            <b>{data.completion}% concluído</b>
+            <span><i /> Metas diÃ¡rias</span>
+            <b>{data.completion}% concluÃ­do</b>
           </div>
         </div>
         <DashboardProgressRing value={data.completion} />
@@ -129,7 +129,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           onClick={() => onNavigate('/dieta')}
         />
         <DashboardMetricCard
-          label="Proteína"
+          label="ProteÃ­na"
           icon={Salad}
           metric={data.metrics.protein}
           currentLabel={`${Math.round(data.metrics.protein.current)} g`}
@@ -138,11 +138,11 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           onClick={() => onNavigate('/dieta')}
         />
         <DashboardMetricCard
-          label="Água"
+          label="Ãgua"
           icon={Droplets}
           metric={data.metrics.water}
           currentLabel={`${data.metrics.water.current.toFixed(2).replace('.', ',')} L`}
-          goalLabel={`Meta ${data.metrics.water.goal.toFixed(1).replace('.', ',')} L · toque para +250 ml`}
+          goalLabel={`Meta ${data.metrics.water.goal.toFixed(1).replace('.', ',')} L Â· toque para +250 ml`}
           color="blue"
           onClick={() => void handleWater()}
         />
@@ -150,7 +150,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           label="Minutos ativos"
           icon={Timer}
           currentLabel={`${data.metrics.activeMinutes} min`}
-          goalLabel="Meta diária de 30 min"
+          goalLabel="Meta diÃ¡ria de 30 min"
           metric={{ current: data.metrics.activeMinutes, goal: 30 }}
           color="green"
           onClick={() => onNavigate('/atividades')}
@@ -158,8 +158,8 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
         <DashboardMetricCard
           label="Treino"
           icon={Dumbbell}
-          currentLabel={data.workout?.completed ? 'Concluído' : data.workout ? 'Pendente' : 'Sem treino'}
-          goalLabel={data.workout?.title ?? 'Planeje seu próximo treino'}
+          currentLabel={data.workout?.completed ? 'ConcluÃ­do' : data.workout ? 'Pendente' : 'Sem treino'}
+          goalLabel={data.workout?.title ?? 'Planeje seu prÃ³ximo treino'}
           metric={{ current: data.workout?.completed ? 1 : 0, goal: 1 }}
           status={data.workout?.completed ? 'FEITO' : 'HOJE'}
           color="green"
@@ -171,27 +171,27 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
         <article className="daily-panel workout-today">
           <div className="daily-panel__heading">
             <div><small>TREINO DO DIA</small><h2>{data.workout?.title ?? 'Nenhum treino programado'}</h2></div>
-            <span className={data.workout?.completed ? 'is-complete' : ''}>{data.workout?.completed ? 'CONCLUÍDO' : 'HOJE'}</span>
+            <span className={data.workout?.completed ? 'is-complete' : ''}>{data.workout?.completed ? 'CONCLUÃDO' : 'HOJE'}</span>
           </div>
           {data.workout ? (
             <>
               <p className="workout-muscles">
-                {data.workout.muscleGroups.length ? data.workout.muscleGroups.join(' · ') : data.workout.focus || 'Treino personalizado'}
+                {data.workout.muscleGroups.length ? data.workout.muscleGroups.join(' Â· ') : data.workout.focus || 'Treino personalizado'}
               </p>
               <div className="workout-facts">
-                <span><Timer size={17} /><b>{data.workout.duration} min</b><small>Duração</small></span>
-                <span><Activity size={17} /><b>{data.workout.level}</b><small>Nível</small></span>
-                <span><Dumbbell size={17} /><b>{data.workout.exerciseCount}</b><small>Exercícios</small></span>
+                <span><Timer size={17} /><b>{data.workout.duration} min</b><small>DuraÃ§Ã£o</small></span>
+                <span><Activity size={17} /><b>{data.workout.level}</b><small>NÃ­vel</small></span>
+                <span><Dumbbell size={17} /><b>{data.workout.exerciseCount}</b><small>ExercÃ­cios</small></span>
               </div>
               <button className="start-workout-button" onClick={() => onNavigate('/treinos')} disabled={data.workout.completed}>
                 {data.workout.completed ? <CircleCheck size={18} /> : <Play size={18} fill="currentColor" />}
-                {data.workout.completed ? 'Treino concluído' : 'Iniciar treino'}
+                {data.workout.completed ? 'Treino concluÃ­do' : 'Iniciar treino'}
               </button>
             </>
           ) : (
             <div className="no-workout">
               <span><Dumbbell size={25} /></span>
-              <p>Seu dia está livre. Você pode descansar ou escolher um treino para manter a rotina.</p>
+              <p>Seu dia estÃ¡ livre. VocÃª pode descansar ou escolher um treino para manter a rotina.</p>
               <button onClick={() => onNavigate('/treinos')}>Escolher treino <ArrowRight size={15} /></button>
             </div>
           )}
@@ -199,8 +199,8 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
 
         <article className="daily-panel weight-evolution">
           <div className="daily-panel__heading">
-            <div><small>EVOLUÇÃO</small><h2>Peso corporal</h2></div>
-            <button onClick={() => onNavigate('/evolucao')}>Ver evolução <ArrowRight size={14} /></button>
+            <div><small>EVOLUÃ‡ÃƒO</small><h2>Peso corporal</h2></div>
+            <button onClick={() => onNavigate('/evolucao')}>Ver evoluÃ§Ã£o <ArrowRight size={14} /></button>
           </div>
           <div className="weight-current">
             <div>
@@ -215,13 +215,13 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
             </div>
             <MiniWeightChart points={data.weight.history} />
           </div>
-          {data.weight.current === null && <p className="weight-hint">Adicione seu primeiro registro para visualizar sua evolução.</p>}
+          {data.weight.current === null && <p className="weight-hint">Adicione seu primeiro registro para visualizar sua evoluÃ§Ã£o.</p>}
         </article>
       </div>
 
       <article className="daily-insight">
         <span className="daily-insight__icon"><Sparkles size={23} /></span>
-        <div><small>INSIGHT VITAFIT IA</small><h2>{data.insight}</h2><p>Baseado nos registros e metas do seu dia.</p></div>
+        <div><small>INSIGHT MOVELYA IA</small><h2>{data.insight}</h2><p>Baseado nos registros e metas do seu dia.</p></div>
         <button onClick={() => onNavigate('/relatorios')}>Ver detalhes <ArrowRight size={15} /></button>
       </article>
     </section>
@@ -230,7 +230,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
 
 function DashboardLoading() {
   return (
-    <section className="daily-dashboard" aria-label="Carregando resumo diário" role="status">
+    <section className="daily-dashboard" aria-label="Carregando resumo diÃ¡rio" role="status">
       <div className="daily-loading daily-loading--header" />
       <div className="daily-loading daily-loading--summary" />
       <div className="daily-loading-grid">{Array.from({ length: 6 }, (_, index) => <div className="daily-loading" key={index} />)}</div>
@@ -247,11 +247,12 @@ function getGreeting() {
 }
 
 function motivation(completion: number) {
-  if (completion >= 75) return 'Você está muito perto das suas metas.'
-  if (completion >= 40) return 'Bom ritmo. Continue cuidando de você.'
+  if (completion >= 75) return 'VocÃª estÃ¡ muito perto das suas metas.'
+  if (completion >= 40) return 'Bom ritmo. Continue cuidando de vocÃª.'
   return 'Cada escolha de hoje conta.'
 }
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
+

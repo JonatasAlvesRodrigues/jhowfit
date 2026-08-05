@@ -10,9 +10,11 @@ interface NavigationProps {
 
 export function VitaLogo({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={`vita-logo ${compact ? 'is-compact' : ''}`} aria-label="VitaFit">
-      <span className="vita-logo__mark">V</span>
-      <span className="vita-logo__name">Vita<strong>Fit</strong></span>
+    <div className={`vita-logo ${compact ? 'is-compact' : ''}`} aria-label="MOVELYA">
+      <span className="vita-logo__mark">
+        <img src="/movelya-logo.png" alt="" />
+      </span>
+      <span className="vita-logo__name">MOVE<strong>LYA</strong></span>
     </div>
   )
 }
@@ -35,7 +37,9 @@ export function VitaSidebar({
       <aside className={`vita-sidebar ${isOpen ? 'is-open' : ''}`}>
         <div className="vita-sidebar__top">
           <VitaLogo />
-          <button className="sidebar-close" onClick={onClose} aria-label="Fechar menu"><X size={20} /></button>
+          <button className="sidebar-close" onClick={onClose} aria-label="Fechar menu">
+            <X size={20} />
+          </button>
         </div>
         <p className="nav-section-label">MENU PRINCIPAL</p>
         <nav className="desktop-nav" aria-label="Navegação principal">
@@ -53,7 +57,7 @@ export function VitaSidebar({
           ))}
         </nav>
         <div className="sidebar-version">
-          <span>VitaFit</span>
+          <span>MOVELYA</span>
           <small>Versão inicial · Estrutura visual</small>
         </div>
       </aside>

@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react'
+﻿import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { ErrorPage } from '../pages/SystemPages'
 
 interface State { hasError: boolean }
@@ -11,7 +11,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('VitaFit interface error', error, info)
+    console.error('MOVELYA interface error', error, info)
   }
 
   render() {
@@ -21,3 +21,4 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
     return this.props.children
   }
 }
+

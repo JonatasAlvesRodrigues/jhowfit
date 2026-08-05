@@ -5,16 +5,18 @@ import { VitaLogo } from './VitaNavigation'
 
 export function VitaHeader({ route, onOpenMenu }: { route: VitaRoute | null; onOpenMenu: () => void }) {
   const { user } = useAuth()
-  const name = String(user?.user_metadata?.full_name || 'Usuário VitaFit')
+  const name = String(user?.user_metadata?.full_name || 'Usuário MOVELYA')
   const initials = name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   return (
     <header className="vita-header">
       <div className="vita-header__mobile">
-        <button className="header-menu-button" onClick={onOpenMenu} aria-label="Abrir menu"><Menu size={21} /></button>
+        <button className="header-menu-button" onClick={onOpenMenu} aria-label="Abrir menu">
+          <Menu size={21} />
+        </button>
         <VitaLogo compact />
       </div>
       <div className="vita-breadcrumb">
-        <span>VitaFit</span>
+        <span>MOVELYA</span>
         <i>/</i>
         <strong>{route?.label ?? 'Página não encontrada'}</strong>
       </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useRef, useState } from 'react'
 import type { VitaRoute } from '../types/navigation'
 import { findRoute } from '../utils/navigation'
 
@@ -16,7 +16,7 @@ export function useVitaRoute() {
     timer.current = setTimeout(() => {
       const nextRoute = findRoute(pathname)
       setRoute(nextRoute)
-      document.title = nextRoute ? `${nextRoute.label} · VitaFit` : 'Página não encontrada · VitaFit'
+      document.title = nextRoute ? `${nextRoute.label} Â· MOVELYA` : 'PÃ¡gina nÃ£o encontrada Â· MOVELYA'
       setStatus('ready')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }, withFeedback ? 240 : 320)
@@ -67,3 +67,4 @@ function getCurrentPath() {
   }
   return window.location.pathname
 }
+

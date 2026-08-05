@@ -5,6 +5,7 @@ import { MobileNavigation, VitaSidebar } from './components/VitaNavigation'
 import { useAuth } from './contexts/AuthContext'
 import { AuthPage } from './pages/AuthPages'
 import { DailyDashboardPage } from './pages/DailyDashboardPage'
+import { NutritionPage } from './pages/Nutrition'
 import { TrainingHubPage } from './pages/TrainingHubPage'
 import { useOnboardingStatus } from './hooks/useOnboardingStatus'
 import { OnboardingPage } from './pages/OnboardingPage'
@@ -93,6 +94,8 @@ export default function App() {
             <div className="vita-content" aria-live="polite">
               {route?.id === 'inicio' && (user || import.meta.env.DEV) ? (
                 <DailyDashboardPage userId={user?.id ?? '00000000-0000-0000-0000-000000000000'} onNavigate={navigate} />
+              ) : route?.id === 'dieta' && user ? (
+                <NutritionPage userId={user.id} onNavigate={navigate} />
               ) : route?.id === 'treinos' && user ? (
                 <TrainingHubPage userId={user.id} />
               ) : route?.id === 'perfil' ? (

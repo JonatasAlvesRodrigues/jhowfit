@@ -16,9 +16,9 @@ const workouts: Workout[] = [
 ]
 
 const meals: Meal[] = [
-  { id: 'm1', name: 'Café da manhã', description: 'Ovos, pão integral e mamão', calories: 420, time: '07:30' },
-  { id: 'm2', name: 'Almoço', description: 'Frango, arroz, feijão e salada', calories: 610, time: '12:40' },
-  { id: 'm3', name: 'Lanche', description: 'Iogurte, whey e banana', calories: 210, time: '16:15' },
+  { id: 'm1', name: 'Café da manhã', description: 'Ovos, pão integral e mamão', calories: 420, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 0, time: '07:30' },
+  { id: 'm2', name: 'Almoço', description: 'Frango, arroz, feijão e salada', calories: 610, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 0, time: '12:40' },
+  { id: 'm3', name: 'Lanche', description: 'Iogurte, whey e banana', calories: 210, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 0, time: '16:15' },
 ]
 
 export const fitnessService = {
@@ -48,7 +48,7 @@ export const fitnessService = {
     if (!data?.length) return structuredClone(meals)
     return data.map((item): Meal => ({
       id: item.id, name: item.name, description: item.description,
-      calories: item.calories, time: item.time.slice(0, 5),
+      calories: item.calories, protein: Number(item.protein ?? 0), carbs: Number(item.carbs ?? 0), fat: Number(item.fat ?? 0), fiber: Number(item.fiber ?? 0), sodium: Number(item.sodium ?? 0), time: item.time.slice(0, 5),
     }))
   },
   async getWeightHistory(): Promise<ChartPoint[]> {

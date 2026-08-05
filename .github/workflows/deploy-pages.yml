@@ -1,4 +1,4 @@
-name: Deploy VitaFit to GitHub Pages
+name: Deploy MOVELYA to GitHub Pages
 
 on:
   push:
