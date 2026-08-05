@@ -4,11 +4,13 @@ import { Button, Field, Modal } from './ui'
 import { photoMealService, type PhotoMealItem } from '../services/photoMealService'
 import type { MealSection } from '../types'
 import '../photoMeal.css'
+import '../photoMealUpload.css'
 
 const sections: MealSection[] = ['Café da manhã', 'Lanche da manhã', 'Almoço', 'Lanche da tarde', 'Jantar', 'Ceia', 'Outras refeições']
 
 export function PhotoMealAnalyzer({ open, userId, onClose, onConfirmed }: { open: boolean; userId: string; onClose: () => void; onConfirmed: () => void }) {
-  const fileRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
   const [image, setImage] = useState('')
   const [items, setItems] = useState<PhotoMealItem[]>([])
   const [confidence, setConfidence] = useState(0)
@@ -55,12 +57,13 @@ export function PhotoMealAnalyzer({ open, userId, onClose, onConfirmed }: { open
     finally { setSaving(false) }
   }
 
-  function close() { setImage(''); setItems([]); setConfidence(0); setNotes(''); setError(''); if (fileRef.current) fileRef.current.value = ''; onClose() }
+  function close() { setImage(''); setItems([]); setConfidence(0); setNotes(''); setError(''); if (galleryRef.current) galleryRef.current.value = ''; if (cameraRef.current) cameraRef.current.value = ''; onClose() }
 
   return <Modal title="Registrar refeição por foto" onClose={close}>
     <div className="photo-meal">
-      {!image ? <button className="photo-meal-upload" type="button" onClick={() => fileRef.current?.click()}><span><ImagePlus size={28} /></span><strong>Enviar foto da refeição</strong><p>Use uma foto clara, tirada de cima e com todos os alimentos visíveis.</p><small>JPG, PNG ou WebP · até 12 MB</small></button> : <div className="photo-meal-preview"><img src={image} alt="Refeição selecionada para análise" /><button type="button" onClick={() => { setImage(''); setItems([]); fileRef.current?.click() }}><RotateCcw size={15} /> Trocar foto</button></div>}
-      <input ref={fileRef} className="photo-meal-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event) => void selectImage(event)} />
+      {!image ? <div className="photo-meal-upload"><span><ImagePlus size={28} /></span><strong>Adicionar foto da refeição</strong><p>Use uma foto clara, tirada de cima e com todos os alimentos visíveis.</p><div className="photo-meal-upload__actions"><button type="button" onClick={() => cameraRef.current?.click()}><Camera size={16} /> Tirar foto</button><button type="button" onClick={() => galleryRef.current?.click()}><ImagePlus size={16} /> Escolher da galeria</button></div><small>JPG, PNG ou WebP · até 12 MB</small></div> : <div className="photo-meal-preview"><img src={image} alt="Refeição selecionada para análise" /><button type="button" onClick={() => { setImage(''); setItems([]); if (galleryRef.current) galleryRef.current.value = ''; galleryRef.current?.click() }}><RotateCcw size={15} /> Trocar foto</button></div>}
+      <input ref={galleryRef} className="photo-meal-file" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void selectImage(event)} />
+      <input ref={cameraRef} className="photo-meal-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event) => void selectImage(event)} />
 
       {!items.length && <div className="photo-meal-warning"><AlertTriangle size={18} /><p><strong>A análise é aproximada.</strong> A IA pode errar principalmente nas quantidades, óleos, molhos, ingredientes escondidos e modo de preparo. Você revisará tudo antes de salvar.</p></div>}
       {error && !items.length && <p className="ai-diet-error">{error}</p>}

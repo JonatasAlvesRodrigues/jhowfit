@@ -1,0 +1,34 @@
+.photo-meal-upload__actions {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.photo-meal-upload__actions button {
+  min-height: 40px;
+  padding: 0 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(39, 214, 143, .28);
+  border-radius: 10px;
+  color: #b9d9c8;
+  background: rgba(39, 214, 143, .08);
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.photo-meal-upload__actions button:first-child {
+  color: #06251a;
+  border-color: var(--vita-green);
+  background: var(--vita-green);
+}
+
+@media (max-width: 420px) {
+  .photo-meal-upload__actions { width: 100%; }
+  .photo-meal-upload__actions button { flex: 1; padding-inline: 8px; }
+}
