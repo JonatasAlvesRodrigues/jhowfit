@@ -13,6 +13,8 @@ const permissionContent: Array<{ key: HealthPermission; title: string; descripti
   { key: 'weight', title: 'Peso', description: 'Opcional. Só é importado com sua autorização.', icon: Weight },
 ]
 
+const nativeIntegrationReleased = false
+
 export function HealthIntegrationsPage({ userId }: { userId: string }) {
   const [availability, setAvailability] = useState<NativeHealthAvailability | null>(null)
   const [provider, setProvider] = useState<HealthProvider>('apple_health')
@@ -39,7 +41,7 @@ export function HealthIntegrationsPage({ userId }: { userId: string }) {
   useEffect(() => { void load() }, [userId])
   useEffect(() => { if (!notice) return; const timer = window.setTimeout(() => setNotice(''), 4000); return () => window.clearTimeout(timer) }, [notice])
 
-  const connected = connection?.status === 'connected' || connection?.status === 'error'
+  const connected = nativeIntegrationReleased && (connection?.status === 'connected' || connection?.status === 'error')
   const authorized = useMemo(() => permissionContent.filter((item) => connection?.permissions[item.key]), [connection])
 
   async function connect() {
@@ -91,7 +93,7 @@ export function HealthIntegrationsPage({ userId }: { userId: string }) {
         <header>
           <span className={provider === 'apple_health' ? 'is-apple' : 'is-android'}>{provider === 'apple_health' ? <Apple size={25} /> : <HeartPulse size={25} />}</span>
           <div><small>SERVIÇO DESTE DISPOSITIVO</small><h2>{providerName(provider)}</h2></div>
-          <i className={connected ? 'is-connected' : ''}>{connected ? 'Conectado' : 'Não conectado'}</i>
+          <i className={connected ? 'is-connected' : ''}>{connected ? 'Conectado' : 'Em breve'}</i>
         </header>
 
         <div className="health-connection-meta">
@@ -104,7 +106,7 @@ export function HealthIntegrationsPage({ userId }: { userId: string }) {
         {connection?.lastError && <p className="health-last-error"><TriangleAlert size={14} /> A última sincronização encontrou um problema: {connection.lastError}</p>}
 
         <footer>
-          {!connected ? <Button onClick={() => void connect()} disabled={busy || !availability?.available}><Link2 size={16} />{availability?.available ? `Conectar ${providerName(provider)}` : 'Disponível no app nativo'}</Button> : <><Button onClick={() => void sync()} disabled={busy}><RefreshCw size={16} className={busy ? 'is-spinning' : ''} /> Sincronizar agora</Button><Button variant="secondary" onClick={() => void disconnect()} disabled={busy}><Unplug size={16} /> Desconectar</Button></>}
+          {!connected ? <Button onClick={() => void connect()} disabled><Link2 size={16} /> Conexão desativada nesta versão</Button> : <><Button onClick={() => void sync()} disabled={busy}><RefreshCw size={16} className={busy ? 'is-spinning' : ''} /> Sincronizar agora</Button><Button variant="secondary" onClick={() => void disconnect()} disabled={busy}><Unplug size={16} /> Desconectar</Button></>}
         </footer>
       </Card>
 
@@ -115,12 +117,12 @@ export function HealthIntegrationsPage({ userId }: { userId: string }) {
       </Card>
     </div>
 
-    {!availability?.available && <div className="health-native-notice"><Smartphone size={22} /><div><strong>Você está usando a versão web/PWA</strong><p>{availability?.reason} A conexão real exige um aplicativo iOS com HealthKit ou Android com o SDK Health Connect.</p></div></div>}
+    <div className="health-native-notice"><Smartphone size={22} /><div><strong>Integração desativada por enquanto</strong><p>O MOVELYA ainda não possui aplicativo nativo para iPhone ou Android. Por segurança, conectar, sincronizar e alterar permissões permanecerão bloqueados até o lançamento do app.</p></div></div>
 
     <Card className="health-permissions-card">
       <div className="health-section-heading"><div><small>CONTROLE INDIVIDUAL</small><h2>Permissões de sincronização</h2></div><span>Somente leitura</span></div>
       <div className="health-permission-list">
-        {permissionContent.map(({ key, title, description, icon: Icon }) => <article key={key} className={key === 'weight' ? 'is-sensitive' : ''}><span><Icon size={18} /></span><div><strong>{title}{key === 'weight' && <i>OPCIONAL</i>}</strong><p>{description}</p></div><label className="health-switch"><input type="checkbox" checked={permissions[key]} disabled={busy || (connected && !availability?.available)} onChange={() => void togglePermission(key)} /><b /></label></article>)}
+        {permissionContent.map(({ key, title, description, icon: Icon }) => <article key={key} className={key === 'weight' ? 'is-sensitive' : ''}><span><Icon size={18} /></span><div><strong>{title}{key === 'weight' && <i>OPCIONAL</i>}</strong><p>{description}</p></div><label className="health-switch"><input type="checkbox" checked={nativeIntegrationReleased && permissions[key]} disabled onChange={() => void togglePermission(key)} /><b /></label></article>)}
       </div>
       {connected && <p className="health-permission-help">Desativar uma categoria impede novas importações no MOVELYA. No iPhone, a revogação da permissão do sistema deve ser feita também no app Saúde; no Android, em Health Connect.</p>}
     </Card>
@@ -137,4 +139,3 @@ function providerName(provider: HealthProvider) { return provider === 'apple_hea
 function platformName(platform?: NativeHealthAvailability['platform']) { return platform === 'ios' ? 'iPhone' : platform === 'android' ? 'Android' : 'Navegador' }
 function formatDateTime(value?: string | null) { return value ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value)) : 'Ainda não sincronizado' }
 function message(error: unknown) { return error instanceof Error ? error.message : 'Não foi possível concluir esta ação.' }
-
