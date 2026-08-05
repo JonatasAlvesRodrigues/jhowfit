@@ -142,9 +142,9 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           icon={Droplets}
           metric={data.metrics.water}
           currentLabel={`${data.metrics.water.current.toFixed(2).replace('.', ',')} L`}
-          goalLabel={`Meta ${data.metrics.water.goal.toFixed(1).replace('.', ',')} L Â· toque para +250 ml`}
+          goalLabel={`Meta pessoal ${data.metrics.water.goal.toFixed(1).replace('.', ',')} L · ver detalhes`}
           color="blue"
-          onClick={() => void handleWater()}
+          onClick={() => onNavigate('/agua')}
         />
         <DashboardMetricCard
           label="Minutos ativos"

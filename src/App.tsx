@@ -7,6 +7,7 @@ import { AuthPage } from './pages/AuthPages'
 import { DailyDashboardPage } from './pages/DailyDashboardPage'
 import { NutritionPage } from './pages/Nutrition'
 import { FoodDatabasePage } from './pages/FoodDatabasePage'
+import { WaterPage } from './pages/WaterPage'
 import { TrainingHubPage } from './pages/TrainingHubPage'
 import { useOnboardingStatus } from './hooks/useOnboardingStatus'
 import { OnboardingPage } from './pages/OnboardingPage'
@@ -99,6 +100,8 @@ export default function App() {
                 <NutritionPage userId={user.id} onNavigate={navigate} />
               ) : route?.id === 'alimentos' && user ? (
                 <FoodDatabasePage userId={user.id} />
+              ) : route?.id === 'agua' && user ? (
+                <WaterPage userId={user.id} />
               ) : route?.id === 'treinos' && user ? (
                 <TrainingHubPage userId={user.id} />
               ) : route?.id === 'perfil' ? (
