@@ -22,6 +22,7 @@ import { NotificationsPage } from './pages/NotificationsPage'
 import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './pages/SystemPages'
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
+import './pwa/registerServiceWorker'
 
 export default function App() {
   const { route, status, navigate, retry } = useVitaRoute()
@@ -80,6 +81,7 @@ export default function App() {
   return (
     <AppErrorBoundary>
       <title>MOVELYA — Saúde em movimento</title>
+      <link rel="manifest" href={`${import.meta.env.BASE_URL}manifest.webmanifest`} />
       <meta name="description" content="Treinos, nutrição, hidratação e passos reunidos para acompanhar sua evolução no MOVELYA." />
       <meta property="og:title" content="MOVELYA — Seu movimento, passo a passo." />
       <meta property="og:description" content="Registre seus passos e acompanhe metas, sequência e ritmo semanal." />
