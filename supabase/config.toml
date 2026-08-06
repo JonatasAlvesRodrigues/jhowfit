@@ -397,6 +397,11 @@ enabled = true
 verify_jwt = true
 entrypoint = "./functions/analyze-meal-photo/index.ts"
 
+[functions.fitness-chat]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/fitness-chat/index.ts"
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

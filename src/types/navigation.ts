@@ -9,6 +9,7 @@ export type RouteId =
   | 'atividades'
   | 'evolucao'
   | 'relatorios'
+  | 'assistente'
   | 'metas'
   | 'perfil'
   | 'configuracoes'
