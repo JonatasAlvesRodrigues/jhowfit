@@ -49,9 +49,9 @@ Deno.serve(async (request) => {
     if (!historyResult.ok) return json({ error: 'Não foi possível recuperar esta conversa.' }, 502)
     const history = (historyResult.data ?? []).reverse().map((item: Record<string, unknown>) => ({ role: item.role, content: String(item.content) }))
 
-    const outputText = openaiKey
-      ? await generateWithOpenAI(openaiKey, systemPrompt(permissions, context), history, message)
-      : await generateWithGemini(geminiKey!, systemPrompt(permissions, context), history, message)
+    const outputText = geminiKey
+      ? await generateWithGemini(geminiKey, systemPrompt(permissions, context), history, message)
+      : await generateWithOpenAI(openaiKey!, systemPrompt(permissions, context), history, message)
     if (!outputText) return json({ error: 'A IA não retornou uma resposta válida.' }, 502)
     const parsed = JSON.parse(outputText)
     const assistant = validateAssistant(parsed, permissions)
@@ -102,14 +102,15 @@ function systemPrompt(permissions: Record<string,boolean>, context: Record<strin
 }
 
 async function generateWithOpenAI(key:string,instructions:string,history:Array<Record<string,unknown>>,message:string) {
-  const response = await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({model:Deno.env.get('OPENAI_MODEL')||'gpt-5.6-sol',store:false,reasoning:{effort:'low'},text:{verbosity:'low',format:{type:'json_schema',name:'fitness_assistant_response',strict:true,schema:responseSchema}},instructions,input:[...history,{role:'user',content:message}],max_output_tokens:1800})})
+  const response = await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({model:Deno.env.get('OPENAI_MODEL')||'gpt-5.6',store:false,reasoning:{effort:'low'},text:{verbosity:'low',format:{type:'json_schema',name:'fitness_assistant_response',strict:true,schema:responseSchema}},instructions,input:[...history,{role:'user',content:message}],max_output_tokens:1800})})
   if(!response.ok){console.error('OpenAI error',response.status,(await response.text()).slice(0,600));throw new Error(providerError(response.status))}
   const data=await response.json();return data.output?.flatMap((item:any)=>item.content??[]).find((item:any)=>item.type==='output_text')?.text??''
 }
 
 async function generateWithGemini(key:string,instructions:string,history:Array<Record<string,unknown>>,message:string) {
   const transcript=history.map((item)=>`${item.role==='assistant'?'ASSISTENTE':'USUÁRIO'}: ${item.content}`).join('\n')
-  const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({systemInstruction:{parts:[{text:instructions}]},contents:[{parts:[{text:`HISTÓRICO:\n${transcript}\n\nUSUÁRIO: ${message}\n\nResponda somente com JSON válido no formato: ${JSON.stringify(responseSchema)}`}]}],generationConfig:{responseMimeType:'application/json',temperature:.25,maxOutputTokens:2200}})})
+  const model = Deno.env.get('GEMINI_MODEL') || 'gemini-3.6-flash'
+  const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({systemInstruction:{parts:[{text:instructions}]},contents:[{parts:[{text:`HISTÓRICO:\n${transcript}\n\nUSUÁRIO: ${message}\n\nResponda somente com JSON válido no formato: ${JSON.stringify(responseSchema)}`}]}],generationConfig:{responseMimeType:'application/json',temperature:.25,maxOutputTokens:2200}})})
   if(!response.ok){console.error('Gemini error',response.status,(await response.text()).slice(0,600));throw new Error(providerError(response.status))}
   const data=await response.json();return data?.candidates?.[0]?.content?.parts?.map((part:any)=>part.text??'').join('')??''
 }
