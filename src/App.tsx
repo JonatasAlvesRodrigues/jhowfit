@@ -121,6 +121,7 @@ export default function App() {
               {status === 'transitioning' && <span />}
             </div>
             <div className="vita-content" aria-live="polite">
+              <div key={route?.id ?? 'not-found'} className="vita-route-stage">
               {route?.id === 'inicio' && (user || import.meta.env.DEV) ? (
                 <DailyDashboardPage userId={user?.id ?? '00000000-0000-0000-0000-000000000000'} onNavigate={navigate} />
               ) : route?.id === 'dieta' && user ? (
@@ -158,6 +159,7 @@ export default function App() {
               ) : (
                 <NotFoundPage onNavigate={() => navigate('/inicio')} />
               )}
+              </div>
             </div>
           </main>
         </div>

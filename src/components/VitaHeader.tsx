@@ -18,7 +18,7 @@ export function VitaHeader({ route, onOpenMenu, onNavigate }: { route: VitaRoute
       <div className="vita-breadcrumb">
         <span>MOVELYA</span>
         <i>/</i>
-        <strong>{route?.label ?? 'Página não encontrada'}</strong>
+        <strong key={route?.id ?? 'not-found'}>{route?.label ?? 'Página não encontrada'}</strong>
       </div>
       <div className="vita-header__actions">
         <span className="theme-status" title="Tema escuro ativo"><Moon size={16} /><span>Escuro</span></span>

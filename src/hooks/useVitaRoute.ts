@@ -19,7 +19,7 @@ export function useVitaRoute() {
       document.title = nextRoute ? `${nextRoute.label} · MOVELYA` : 'Página não encontrada · MOVELYA'
       setStatus('ready')
       window.scrollTo({ top: 0, behavior: 'smooth' })
-    }, withFeedback ? 240 : 320)
+    }, withFeedback ? 170 : 240)
   }, [])
 
   useEffect(() => {
