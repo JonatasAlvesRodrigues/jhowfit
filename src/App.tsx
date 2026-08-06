@@ -15,6 +15,7 @@ import { OnboardingPage } from './pages/OnboardingPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { HealthIntegrationsPage } from './pages/HealthIntegrationsPage'
 import { BodyEvolutionPage } from './pages/BodyEvolutionPage'
+import { GoalsPage } from './pages/GoalsPage'
 import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './pages/SystemPages'
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
@@ -124,6 +125,8 @@ export default function App() {
                 <HealthIntegrationsPage userId={user.id} />
               ) : route?.id === 'evolucao' && user ? (
                 <BodyEvolutionPage userId={user.id} />
+              ) : route?.id === 'metas' && user ? (
+                <GoalsPage userId={user.id} />
               ) : route ? (
                 <RoutePlaceholder route={route} onNavigate={navigate} />
               ) : (
