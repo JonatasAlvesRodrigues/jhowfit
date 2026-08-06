@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, CalendarDays, Check, ChevronDown, Clock3, Droplets, Dumbbell, Flame, Footprints, Gauge, Info, Medal, RefreshCw, Scale, Sparkles, TrendingDown, TrendingUp, Trophy, Utensils } from 'lucide-react'
+import { Activity, CalendarDays, Check, ChevronDown, Clock3, Download, Droplets, Dumbbell, Flame, Footprints, Gauge, Info, Medal, RefreshCw, Scale, Sparkles, TrendingDown, TrendingUp, Trophy, Utensils } from 'lucide-react'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { currentWeekStart, reportWeekOptions, toLocalDate, weeklyReportService, type WeeklyReport } from '../services/weeklyReportService'
+import { PdfExportDialog } from '../components/PdfExportDialog'
 
 type Props = { userId: string }
 
@@ -13,6 +14,7 @@ export function WeeklyReportPage({ userId }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [retryKey, setRetryKey] = useState(0)
+  const [pdfOpen, setPdfOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -37,7 +39,7 @@ export function WeeklyReportPage({ userId }: Props) {
   }
 
   return <section className="weekly-report">
-    <header className="report-hero"><div><small>RELATÓRIO SEMANAL</small><h1>Seu progresso em uma semana</h1><p>Dados calculados a partir dos registros vinculados ao seu perfil.</p></div><label className="week-picker"><span>Período</span><CalendarDays size={17}/><select value={weekStart} onChange={(event) => setWeekStart(event.target.value)} aria-label="Selecionar semana">{options.map((start) => <option key={start} value={start}>{formatPeriod(start)}</option>)}</select><ChevronDown size={15}/></label></header>
+    <header className="report-hero"><div><small>RELATÓRIO SEMANAL</small><h1>Seu progresso em uma semana</h1><p>Dados calculados a partir dos registros vinculados ao seu perfil.</p></div><div className="report-hero__actions"><label className="week-picker"><span>Período</span><CalendarDays size={17}/><select value={weekStart} onChange={(event) => setWeekStart(event.target.value)} aria-label="Selecionar semana">{options.map((start) => <option key={start} value={start}>{formatPeriod(start)}</option>)}</select><ChevronDown size={15}/></label><button className="report-export-button" onClick={() => setPdfOpen(true)}><Download size={17}/> Exportar PDF</button></div></header>
 
     {!report.hasData && <div className="report-empty-banner"><Info size={20}/><div><strong>Sem registros nesta semana</strong><p>Os indicadores permanecerão zerados até que você registre treinos, refeições, água, passos ou peso.</p></div></div>}
 
@@ -63,7 +65,7 @@ export function WeeklyReportPage({ userId }: Props) {
 
     <section className="report-section"><div className="report-section__title"><span><Sparkles size={19}/></span><div><small>CONQUISTAS</small><h2>Destaques da semana</h2></div></div><div className="highlights-grid"><Highlight icon={<Footprints/>} label="Melhor dia de passos" value={bestSteps.steps ? `${bestSteps.day} · ${bestSteps.steps.toLocaleString('pt-BR')}` : 'Sem registro'}/><Highlight icon={<Clock3/>} label="Maior treino" value={report.largestWorkout ? `${report.largestWorkout.name} · ${report.largestWorkout.minutes} min` : 'Sem registro'}/><Highlight icon={<Trophy/>} label="Recorde de carga" value={report.loadRecord ? `${report.loadRecord.name} · ${report.loadRecord.weight.toLocaleString('pt-BR')} kg` : 'Sem registro'}/><Highlight icon={<Medal/>} label="Consistência" value={report.completed ? `${report.completed} treino(s) concluído(s)` : 'Sem treino concluído'}/><Highlight icon={<Scale/>} label="Evolução de peso" value={weightDelta !== null ? `${Math.abs(weightDelta).toFixed(1).replace('.', ',')} kg no período` : 'Sem registros suficientes'}/></div></section>
 
-    <Attention report={report}/>
+    <Attention report={report}/>{pdfOpen && <PdfExportDialog userId={userId} report={report} onClose={() => setPdfOpen(false)}/>} 
   </section>
 }
 
