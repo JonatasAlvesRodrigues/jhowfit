@@ -13,3 +13,34 @@
 .activity-live{z-index:90}
 .activity-map{height:250px;border-color:#2a3a31;box-shadow:inset 0 0 0 1px rgba(255,255,255,.015),0 16px 40px rgba(0,0,0,.18)}.activity-live .activity-map{height:300px}.activity-map-canvas{position:absolute;z-index:1;inset:0}.activity-map .leaflet-container{width:100%;height:100%;font-family:inherit;background:#0b130e}.activity-map .leaflet-tile-pane{filter:saturate(.58) brightness(.47) contrast(1.18)}.activity-map .leaflet-overlay-pane{filter:drop-shadow(0 0 5px rgba(39,214,143,.4))}.activity-map .leaflet-overlay-pane svg{inset:auto;width:auto;height:auto;padding:0;filter:none}.activity-map .leaflet-control-zoom{overflow:hidden;border:1px solid #33463b!important;border-radius:9px!important;box-shadow:0 7px 25px rgba(0,0,0,.25)}.activity-map .leaflet-control-zoom a{color:#d5e3dc;background:rgba(8,14,10,.9);border-color:#33463b}.activity-map .leaflet-control-zoom a:hover{color:var(--vita-green);background:#122019}.activity-map .leaflet-control-attribution{color:#839088;background:rgba(7,11,8,.72);font-size:7px}.activity-map .leaflet-control-attribution a{color:#78bd9f}.activity-map-recenter{position:absolute;z-index:500;right:11px;bottom:11px;width:38px;height:38px;display:grid;place-items:center;border:1px solid #385043;border-radius:10px;color:var(--vita-green);background:rgba(7,13,9,.9);box-shadow:0 8px 24px rgba(0,0,0,.3);cursor:pointer}.activity-map-recenter:hover{background:#14241b}.activity-live-metrics>div:first-child,.activity-live-metrics>div:nth-child(2){border-color:rgba(39,214,143,.2);background:linear-gradient(145deg,rgba(39,214,143,.09),rgba(16,22,18,.9))}.activity-live-metrics>div:first-child strong,.activity-live-metrics>div:nth-child(2) strong{font-size:20px}.activity-live>footer .button{min-height:50px;border-radius:14px}.activity-live-time{padding:9px 0}.activity-launch-card{border-color:rgba(39,214,143,.18)}
 @media(max-width:720px){.activity-live .activity-map{height:260px}.activity-map{height:225px}.activity-live>main{width:min(100% - 22px,900px)}.activity-live-metrics>div:first-child strong,.activity-live-metrics>div:nth-child(2) strong{font-size:17px}}
+
+/* Soft ambient hero treatment: avoids the hard green rectangular band. */
+.steps-hero {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+}
+.steps-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -86px;
+  right: -3%;
+  width: min(620px, 58vw);
+  height: 270px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(39, 214, 143, .12) 0%, rgba(39, 214, 143, .055) 34%, transparent 72%);
+  filter: blur(18px);
+  opacity: .82;
+}
+.steps-hero > div { position: relative; }
+
+@media (max-width: 720px) {
+  .steps-hero::before {
+    top: -52px;
+    right: -28%;
+    width: 110vw;
+    height: 230px;
+    opacity: .62;
+  }
+}
