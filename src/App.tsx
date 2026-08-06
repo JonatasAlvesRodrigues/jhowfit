@@ -129,7 +129,7 @@ export default function App() {
               ) : route?.id === 'metas' && user ? (
                 <GoalsPage userId={user.id} />
               ) : route?.id === 'relatorios' && user ? (
-                <WeeklyReportPage />
+                <WeeklyReportPage userId={user.id} />
               ) : route ? (
                 <RoutePlaceholder route={route} onNavigate={navigate} />
               ) : (
