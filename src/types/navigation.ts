@@ -11,6 +11,7 @@ export type RouteId =
   | 'relatorios'
   | 'assistente'
   | 'metas'
+  | 'conquistas'
   | 'perfil'
   | 'configuracoes'
   | 'notificacoes'

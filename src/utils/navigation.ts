@@ -1,6 +1,6 @@
 import {
   Activity, Apple, Bot, ChartNoAxesCombined, ClipboardMinus, Droplets, Dumbbell, Goal, House, Library,
-  Bell, KeyRound, LogOut, MailCheck, Settings, UserPlus, UserRound,
+  Bell, KeyRound, LogOut, MailCheck, Medal, Settings, UserPlus, UserRound,
 } from 'lucide-react'
 import type { RouteId, VitaRoute } from '../types/navigation'
 
@@ -15,6 +15,7 @@ export const vitaRoutes: VitaRoute[] = [
   { id: 'relatorios', path: '/relatorios', label: 'Relatórios', eyebrow: 'ANÁLISES', description: 'Entenda seus hábitos por meio de relatórios claros.', icon: ClipboardMinus },
   { id: 'assistente', path: '/assistente', label: 'Assistente IA', mobileLabel: 'IA', eyebrow: 'INTELIGÊNCIA', description: 'Converse com a IA usando apenas os dados que você autorizar.', icon: Bot },
   { id: 'metas', path: '/metas', label: 'Metas', eyebrow: 'OBJETIVOS', description: 'Defina aonde quer chegar e acompanhe seu ritmo.', icon: Goal },
+  { id: 'conquistas', path: '/conquistas', label: 'Conquistas', eyebrow: 'CONSISTÊNCIA', description: 'Celebre sua constância, suas medalhas e cada passo da sua evolução.', icon: Medal },
   { id: 'perfil', path: '/perfil', label: 'Perfil', eyebrow: 'SUA CONTA', description: 'Gerencie suas informações e preferências pessoais.', icon: UserRound },
   { id: 'configuracoes', path: '/configuracoes', label: 'Configurações', eyebrow: 'PREFERÊNCIAS', description: 'Ajuste o MOVELYA para funcionar do seu jeito.', icon: Settings },
   { id: 'notificacoes', path: '/notificacoes', label: 'Notificações', eyebrow: 'LEMBRETES', description: 'Escolha quando e como o MOVELYA deve lembrar você.', icon: Bell },
