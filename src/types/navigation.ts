@@ -14,6 +14,7 @@ export type RouteId =
   | 'conquistas'
   | 'perfil'
   | 'configuracoes'
+  | 'privacidade'
   | 'notificacoes'
   | 'sair'
   | 'entrar'

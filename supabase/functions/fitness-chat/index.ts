@@ -41,7 +41,10 @@ Deno.serve(async (request) => {
 
     const conversations = await restGet(supabaseUrl, authHeaders, `ai_conversations?id=eq.${encodeURIComponent(conversationId)}&user_id=eq.${encodeURIComponent(user.id)}&select=id,permissions`)
     if (!conversations.ok || !conversations.data?.[0]) return json({ error: 'Conversa não encontrada.' }, 404)
-    const permissions = normalizePermissions(conversations.data[0].permissions)
+    const conversationPermissions = normalizePermissions(conversations.data[0].permissions)
+    const privacyResult = await restGet(supabaseUrl, authHeaders, `ai_data_permissions?user_id=eq.${encodeURIComponent(user.id)}&select=profile,nutrition,workouts,weight,measurements,photos,activities`)
+    const privacyPermissions = privacyResult.data?.[0] ?? {}
+    const permissions = applyPrivacyBoundary(conversationPermissions, privacyPermissions)
     const [historyResult, context] = await Promise.all([
       restGet(supabaseUrl, authHeaders, `ai_messages?conversation_id=eq.${encodeURIComponent(conversationId)}&select=role,content&order=created_at.desc&limit=16`),
       gatherContext(supabaseUrl, authHeaders, user.id, permissions),
@@ -135,6 +138,16 @@ function validPayload(type: string, p: Record<string,unknown>) {
 }
 
 function normalizePermissions(value: unknown) { const source = value && typeof value === 'object' ? value as Record<string,unknown> : {}; return Object.fromEntries(permissionKeys.map((key)=>[key,source[key] === true])) }
+function applyPrivacyBoundary(conversation: Record<string,boolean>, privacy: Record<string,unknown>) {
+  const allowed = (category: string) => privacy[category] === true
+  return {
+    profile: conversation.profile && allowed('profile'), objective: conversation.objective && allowed('profile'),
+    workouts: conversation.workouts && allowed('workouts'), history: conversation.history && allowed('workouts'),
+    nutrition: conversation.nutrition && allowed('nutrition'), steps: conversation.steps && allowed('activities'),
+    water: conversation.water && allowed('activities'), weight: conversation.weight && allowed('weight'),
+    goals: conversation.goals && allowed('profile'),
+  }
+}
 async function restGet(base:string,headers:Record<string,string>,path:string){ const response=await fetch(`${base}/rest/v1/${path}`,{headers}); return {ok:response.ok,data:response.ok?await response.json():null} }
 async function restWrite(base:string,headers:Record<string,string>,table:string,body:unknown){ const response=await fetch(`${base}/rest/v1/${table}`,{method:'POST',headers:{...headers,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(body)}); return {ok:response.ok,data:response.ok?await response.json():null} }
 function cleanText(value:unknown,limit=500){ return typeof value === 'string' ? value.trim().slice(0,limit) : '' }

@@ -21,6 +21,7 @@ import { FitnessChatPage } from './pages/FitnessChatPage'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { AchievementsPage } from './pages/AchievementsPage'
 import { PwaInstallPrompt } from './components/PwaInstallPrompt'
+import { PrivacyPage } from './pages/PrivacyPage'
 import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './pages/SystemPages'
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
@@ -132,6 +133,8 @@ export default function App() {
                 <ProfilePage onLogout={handleLogout} />
               ) : route?.id === 'configuracoes' && user ? (
                 <HealthIntegrationsPage userId={user.id} />
+              ) : route?.id === 'privacidade' && user ? (
+                <PrivacyPage userId={user.id} onLogout={handleLogout} />
               ) : route?.id === 'evolucao' && user ? (
                 <BodyEvolutionPage userId={user.id} />
               ) : route?.id === 'metas' && user ? (
