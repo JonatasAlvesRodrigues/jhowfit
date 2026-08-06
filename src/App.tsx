@@ -18,6 +18,7 @@ import { BodyEvolutionPage } from './pages/BodyEvolutionPage'
 import { GoalsPage } from './pages/GoalsPage'
 import { WeeklyReportPage } from './pages/WeeklyReportPage'
 import { FitnessChatPage } from './pages/FitnessChatPage'
+import { NotificationsPage } from './pages/NotificationsPage'
 import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './pages/SystemPages'
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
@@ -102,6 +103,7 @@ export default function App() {
           <VitaHeader
             route={route}
             onOpenMenu={() => setSidebarOpen(true)}
+            onNavigate={navigate}
           />
 
           <main className={`vita-main ${status === 'transitioning' ? 'is-transitioning' : ''}`}>
@@ -133,6 +135,8 @@ export default function App() {
                 <WeeklyReportPage userId={user.id} />
               ) : route?.id === 'assistente' && user ? (
                 <FitnessChatPage userId={user.id} />
+              ) : route?.id === 'notificacoes' && user ? (
+                <NotificationsPage userId={user.id} onNavigate={navigate} />
               ) : route ? (
                 <RoutePlaceholder route={route} onNavigate={navigate} />
               ) : (
