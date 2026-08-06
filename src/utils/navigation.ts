@@ -1,6 +1,6 @@
 import {
   Activity, Apple, Bot, ChartNoAxesCombined, ClipboardMinus, Droplets, Dumbbell, Goal, House, Library,
-  Bell, KeyRound, LogOut, MailCheck, Medal, Settings, ShieldCheck, UserPlus, UserRound,
+  Bell, KeyRound, LogOut, MailCheck, Medal, Settings, ShieldCheck, UserPlus, UserRound, LockKeyhole,
 } from 'lucide-react'
 import type { RouteId, VitaRoute } from '../types/navigation'
 
@@ -32,7 +32,8 @@ export const authRoutes: VitaRoute[] = [
 ]
 
 export const onboardingRoute: VitaRoute = { id: 'configuracao-inicial', path: '/configuracao-inicial', label: 'Configuração inicial', eyebrow: 'PERSONALIZAÇÃO', description: 'Conte-nos um pouco sobre você.', icon: UserRound }
+export const adminRoute: VitaRoute = { id: 'administracao', path: '/administracao', label: 'Administração', eyebrow: 'CONTROLE', description: 'Painel operacional protegido por função.', icon: LockKeyhole }
 export const mobileRouteIds: RouteId[] = ['inicio', 'treinos', 'dieta', 'atividades', 'perfil']
 export const mobileRoutes = mobileRouteIds.map((id) => vitaRoutes.find((route) => route.id === id)!)
-export function findRoute(pathname: string) { const normalized = pathname === '/' ? '/inicio' : pathname.replace(/\/+$/, '').toLowerCase(); return [...vitaRoutes, ...authRoutes, onboardingRoute].find((route) => route.path === normalized) ?? null }
+export function findRoute(pathname: string) { const normalized = pathname === '/' ? '/inicio' : pathname.replace(/\/+$/, '').toLowerCase(); return [...vitaRoutes, adminRoute, ...authRoutes, onboardingRoute].find((route) => route.path === normalized) ?? null }
 export function isPrivateRoute(route: VitaRoute | null) { return Boolean(route && !route.public) }

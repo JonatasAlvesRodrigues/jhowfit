@@ -23,6 +23,7 @@ import { AchievementsPage } from './pages/AchievementsPage'
 import { PwaInstallPrompt } from './components/PwaInstallPrompt'
 import { PwaUpdatePrompt } from './components/PwaUpdatePrompt'
 import { PrivacyPage } from './pages/PrivacyPage'
+import { AdminPage } from './pages/AdminPage'
 import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './pages/SystemPages'
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
@@ -30,7 +31,7 @@ import './pwa/registerServiceWorker'
 
 export default function App() {
   const { route, status, navigate, retry } = useVitaRoute()
-  const { user, loading: authLoading, recoveryMode, logout } = useAuth()
+  const { user, role, loading: authLoading, recoveryMode, logout } = useAuth()
   const onboarding = useOnboardingStatus(user?.id)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const siteOrigin = typeof window === 'undefined' ? '' : window.location.origin
@@ -57,7 +58,8 @@ export default function App() {
     }
     if (user && route?.public && route.id !== 'redefinir-senha' && route.id !== 'confirmar-email') navigate('/inicio')
     if (user && route?.id === 'sair') handleLogout()
-  }, [authLoading, onboarding.loading, onboarding.completed, status, recoveryMode, route, user, navigate])
+    if (user && route?.id === 'administracao' && role === 'user') navigate('/inicio')
+  }, [authLoading, onboarding.loading, onboarding.completed, status, recoveryMode, route, user, role, navigate])
 
   async function handleLogout() {
     await logout()
@@ -137,6 +139,8 @@ export default function App() {
                 <HealthIntegrationsPage userId={user.id} />
               ) : route?.id === 'privacidade' && user ? (
                 <PrivacyPage userId={user.id} onLogout={handleLogout} />
+              ) : route?.id === 'administracao' && user && role !== 'user' ? (
+                <AdminPage />
               ) : route?.id === 'evolucao' && user ? (
                 <BodyEvolutionPage userId={user.id} />
               ) : route?.id === 'metas' && user ? (

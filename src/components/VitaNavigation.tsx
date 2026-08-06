@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import type { RouteId } from '../types/navigation'
-import { mobileRoutes, vitaRoutes } from '../utils/navigation'
+import { adminRoute, mobileRoutes, vitaRoutes } from '../utils/navigation'
+import { useAuth } from '../contexts/AuthContext'
 
 interface NavigationProps {
   activeRoute?: RouteId
@@ -26,6 +27,8 @@ export function VitaSidebar({
   isOpen,
   onClose,
 }: NavigationProps & { isOpen: boolean; onClose: () => void }) {
+  const { role } = useAuth()
+  const routes = role === 'user' ? vitaRoutes : [...vitaRoutes, adminRoute]
   return (
     <>
       <button
@@ -43,7 +46,7 @@ export function VitaSidebar({
         </div>
         <p className="nav-section-label">MENU PRINCIPAL</p>
         <nav className="desktop-nav" aria-label="Navegação principal">
-          {vitaRoutes.map(({ id, path, label, icon: Icon }) => (
+          {routes.map(({ id, path, label, icon: Icon }) => (
             <button
               key={id}
               className={activeRoute === id ? 'is-active' : ''}
