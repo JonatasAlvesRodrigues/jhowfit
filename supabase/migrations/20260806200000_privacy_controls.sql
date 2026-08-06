@@ -66,6 +66,8 @@ begin
   if confirmation <> 'EXCLUIR MINHA CONTA' then raise exception 'Confirmation text does not match'; end if;
   insert into public.privacy_audit_logs (user_id, action, metadata)
   values (current_user_id, 'account_deleted', jsonb_build_object('requested_at', now()));
+  delete from storage.objects
+  where bucket_id = 'progress-photos' and (storage.foldername(name))[1] = current_user_id::text;
   delete from auth.users where id = current_user_id;
 end;
 $$;
