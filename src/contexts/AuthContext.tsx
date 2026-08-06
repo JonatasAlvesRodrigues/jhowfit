@@ -23,6 +23,7 @@ interface AuthContextValue {
   sessionMessage: string
   configured: boolean
   role: AppRole
+  roleLoading: boolean
   login: (email: string, password: string) => Promise<AuthResult>
   signUp: (input: SignUpInput) => Promise<AuthResult>
   logout: () => Promise<void>
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [recoveryMode, setRecoveryMode] = useState(false)
   const [sessionMessage, setSessionMessage] = useState('')
   const [role, setRole] = useState<AppRole>('user')
+  const [roleLoading, setRoleLoading] = useState(false)
   const hadSession = useRef(false)
   const manualLogout = useRef(false)
 
@@ -53,8 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession)
       setUser(nextSession?.user ?? null)
-      if (nextSession?.user) void adminService.getRole(nextSession.user.id).then(setRole)
-      else setRole('user')
+      if (nextSession?.user) {
+        setRoleLoading(true)
+        void adminService.getRole(nextSession.user.id).then(setRole).finally(() => setRoleLoading(false))
+      } else { setRole('user'); setRoleLoading(false) }
 
       if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true)
       if (event === 'USER_UPDATED') setRecoveryMode(false)
@@ -74,7 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: initial }) => {
       setSession(initial.session)
       setUser(initial.session?.user ?? null)
-      if (initial.session?.user) void adminService.getRole(initial.session.user.id).then(setRole)
+      if (initial.session?.user) {
+        setRoleLoading(true)
+        void adminService.getRole(initial.session.user.id).then(setRole).finally(() => setRoleLoading(false))
+      }
       hadSession.current = Boolean(initial.session)
       setLoading(false)
     }).catch(() => {
@@ -114,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null)
     setUser(null)
     setRole('user')
+    setRoleLoading(false)
   }, [])
 
   const recoverPassword = useCallback(async (email: string): Promise<AuthResult> => {
@@ -152,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionMessage,
     configured: isSupabaseConfigured,
     role,
+    roleLoading,
     login,
     signUp,
     logout,
@@ -159,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updatePassword,
     resendConfirmation,
     clearSessionMessage: () => setSessionMessage(''),
-  }), [user, session, loading, recoveryMode, sessionMessage, role, login, signUp, logout, recoverPassword, updatePassword, resendConfirmation])
+  }), [user, session, loading, recoveryMode, sessionMessage, role, roleLoading, login, signUp, logout, recoverPassword, updatePassword, resendConfirmation])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

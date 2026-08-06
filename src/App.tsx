@@ -31,13 +31,13 @@ import './pwa/registerServiceWorker'
 
 export default function App() {
   const { route, status, navigate, retry } = useVitaRoute()
-  const { user, role, loading: authLoading, recoveryMode, logout } = useAuth()
+  const { user, role, roleLoading, loading: authLoading, recoveryMode, logout } = useAuth()
   const onboarding = useOnboardingStatus(user?.id)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const siteOrigin = typeof window === 'undefined' ? '' : window.location.origin
 
   useEffect(() => {
-    if (authLoading || onboarding.loading || status === 'booting' || status === 'transitioning') return
+    if (authLoading || roleLoading || onboarding.loading || status === 'booting' || status === 'transitioning') return
     if (import.meta.env.DEV && !user && route?.id === 'configuracao-inicial') return
     if (import.meta.env.DEV && !user && (route?.id === 'inicio' || route?.id === 'conquistas')) return
     if (recoveryMode && route?.id !== 'redefinir-senha') {
@@ -59,14 +59,14 @@ export default function App() {
     if (user && route?.public && route.id !== 'redefinir-senha' && route.id !== 'confirmar-email') navigate('/inicio')
     if (user && route?.id === 'sair') handleLogout()
     if (user && route?.id === 'administracao' && role === 'user') navigate('/inicio')
-  }, [authLoading, onboarding.loading, onboarding.completed, status, recoveryMode, route, user, role, navigate])
+  }, [authLoading, roleLoading, onboarding.loading, onboarding.completed, status, recoveryMode, route, user, role, navigate])
 
   async function handleLogout() {
     await logout()
     navigate('/entrar')
   }
 
-  if (status === 'booting' || authLoading || (Boolean(user) && onboarding.loading)) return <LoadingScreen />
+  if (status === 'booting' || authLoading || roleLoading || (Boolean(user) && onboarding.loading)) return <LoadingScreen />
   if (status === 'error') return <ErrorPage onRetry={retry} />
   if (import.meta.env.DEV && !user && route?.id === 'configuracao-inicial') {
     return <OnboardingPage userId="development-preview" initialName="João Silva" onComplete={() => undefined} />

@@ -1,4 +1,4 @@
-const VERSION = '2026.08.06.2'
+const VERSION = '2026.08.06.3'
 const STATIC_CACHE = `movelya-static-${VERSION}`
 
 self.addEventListener('install', (event) => {
