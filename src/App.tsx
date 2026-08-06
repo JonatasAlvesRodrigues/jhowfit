@@ -20,6 +20,7 @@ import { WeeklyReportPage } from './pages/WeeklyReportPage'
 import { FitnessChatPage } from './pages/FitnessChatPage'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { AchievementsPage } from './pages/AchievementsPage'
+import { PwaInstallPrompt } from './components/PwaInstallPrompt'
 import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './pages/SystemPages'
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
@@ -67,7 +68,7 @@ export default function App() {
     return <OnboardingPage userId="development-preview" initialName="João Silva" onComplete={() => undefined} />
   }
   if ((!user && isPrivateRoute(route) && !(import.meta.env.DEV && (route?.id === 'inicio' || route?.id === 'conquistas'))) || (recoveryMode && route?.id !== 'redefinir-senha')) return <LoadingScreen />
-  if (route?.public) return <AuthPage routeId={route.id} navigate={navigate} />
+  if (route?.public) return <><PwaInstallPrompt /><AuthPage routeId={route.id} navigate={navigate} /></>
   if (user && route?.id === 'configuracao-inicial') {
     return <OnboardingPage
       userId={user.id}
@@ -81,6 +82,7 @@ export default function App() {
 
   return (
     <AppErrorBoundary>
+      <PwaInstallPrompt />
       <title>MOVELYA — Saúde em movimento</title>
       <link rel="manifest" href={`${import.meta.env.BASE_URL}manifest.webmanifest`} />
       <meta name="description" content="Treinos, nutrição, hidratação e passos reunidos para acompanhar sua evolução no MOVELYA." />
