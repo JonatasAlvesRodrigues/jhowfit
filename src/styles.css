@@ -307,7 +307,7 @@ body { overflow-x: hidden; }
 .vita-logo.is-compact .vita-logo__mark { width: 34px; height: 34px; font-size: 19px; border-radius: 10px 10px 10px 3px; }.vita-logo.is-compact .vita-logo__mark img { width: 114px; height: 114px; left: -40px; top: -33px; }
 .vita-logo.is-compact .vita-logo__name { font-size: 15px; }
 .nav-section-label { margin: 42px 13px 10px; color: #526058; font-size: 8px; letter-spacing: 1.75px; font-weight: 800; }
-.desktop-nav { display: flex; flex-direction: column; gap: 3px; }
+.desktop-nav { min-height: 0; flex: 1 1 auto; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; scrollbar-width: thin; scrollbar-color: #2b4034 transparent; padding-right: 3px; }
 .desktop-nav button { position: relative; width: 100%; min-height: 43px; padding: 0 13px; border: 0; border-radius: 11px; display: flex; align-items: center; gap: 12px; color: #849189; background: transparent; font-size: 12px; font-weight: 600; cursor: pointer; transition: color .18s ease, background .18s ease, transform .18s ease; }
 .desktop-nav button:hover { color: #d8e0db; background: rgba(255, 255, 255, .035); transform: translateX(2px); }
 .desktop-nav button:active { transform: scale(.985); }
