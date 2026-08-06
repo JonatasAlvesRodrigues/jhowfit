@@ -18,13 +18,13 @@ Em **Authentication → URL Configuration**, configure:
 **Site URL**
 
 ```text
-https://jonatasalvesrodrigues.github.io/jhowfit/
+https://jonatasalvesrodrigues.github.io/movelya/
 ```
 
 **Redirect URLs**
 
 ```text
-https://jonatasalvesrodrigues.github.io/jhowfit/**
+https://jonatasalvesrodrigues.github.io/movelya/**
 https://jhow-fit-app.jonatasalves2005rodr.chatgpt.site/**
 http://127.0.0.1:4173/**
 http://localhost:3000/**
