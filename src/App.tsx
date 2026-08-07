@@ -6,11 +6,11 @@ import { useAuth } from './contexts/AuthContext'
 import { AuthPage } from './pages/AuthPages'
 import { DailyDashboardPage } from './pages/DailyDashboardPage'
 import { ReferenceDashboardPage } from './pages/ReferenceDashboardPage'
+import { ReferenceTrainingPage } from './pages/ReferenceTrainingPage'
 import { NutritionPage } from './pages/Nutrition'
 import { FoodDatabasePage } from './pages/FoodDatabasePage'
 import { WaterPage } from './pages/WaterPage'
 import { StepsPage } from './pages/StepsPage'
-import { TrainingHubPage } from './pages/TrainingHubPage'
 import { useOnboardingStatus } from './hooks/useOnboardingStatus'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { ProfilePage } from './pages/ProfilePage'
@@ -98,7 +98,7 @@ export default function App() {
       <meta property="og:type" content="website" />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:image" content={`${siteOrigin}${import.meta.env.BASE_URL}og.png`} />
-      <div className={`vita-shell ${route?.id === 'inicio' ? 'reference-shell' : ''}`}>
+      <div className={`vita-shell ${route?.id === 'inicio' || route?.id === 'treinos' ? 'reference-shell' : ''}`}>
         <VitaSidebar
           activeRoute={route?.id}
           isOpen={sidebarOpen}
@@ -133,8 +133,8 @@ export default function App() {
                 <WaterPage userId={user.id} />
               ) : route?.id === 'atividades' && user ? (
                 <StepsPage userId={user.id} />
-              ) : route?.id === 'treinos' && user ? (
-                <TrainingHubPage userId={user.id} />
+              ) : route?.id === 'treinos' && (user || import.meta.env.DEV) ? (
+                <ReferenceTrainingPage onNavigate={navigate} />
               ) : route?.id === 'perfil' ? (
                 <ProfilePage onLogout={handleLogout} />
               ) : route?.id === 'configuracoes' && user ? (
