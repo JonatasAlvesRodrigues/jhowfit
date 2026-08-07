@@ -87,7 +87,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
 
       <article className="today-summary">
         <div className="today-summary__copy">
-          <small>RESUMO DE HOJE</small>
+          <small className="today-summary__eyebrow"><span><Activity size={17} /></span> RESUMO DE HOJE</small>
           <h2>{data.allGoalsCompleted ? 'Dia completo. Mandou muito bem!' : motivation(data.completion)}</h2>
           <p>{data.insight}</p>
           <div className="today-summary__legend">
