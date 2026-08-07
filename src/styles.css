@@ -1736,6 +1736,7 @@ button:not(:disabled):active { transition-duration: 80ms; }
 .daily-metrics-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 14px !important; }
 .daily-metric { position: relative !important; min-height: 214px !important; padding: 26px 28px 22px !important; display: flex !important; flex-direction: column !important; border-radius: 28px !important; }
 .daily-metric__icon { flex: 0 0 56px !important; width: 56px !important; height: 56px !important; border: 1px solid currentColor !important; border-radius: 50% !important; box-shadow: 0 0 17px currentColor !important; }
+.daily-metric__copy { position: static !important; }
 .daily-metric__top { position: absolute !important; top: 43px !important; left: 100px !important; right: 26px !important; }
 .daily-metric__top small { color: #eef8f3 !important; font-size: 13px !important; letter-spacing: 2px !important; }
 .daily-metric__top i { padding: 7px 12px !important; border: 1px solid currentColor !important; border-radius: 20px !important; font-size: 12px !important; }
@@ -1754,6 +1755,7 @@ button:not(:disabled):active { transition-duration: 80ms; }
   .daily-metrics-grid { gap: 9px !important; }
   .daily-metric { min-height: 178px !important; padding: 17px 15px 15px !important; border-radius: 20px !important; }
   .daily-metric__icon { flex-basis: 41px !important; width: 41px !important; height: 41px !important; }
+  .daily-metric__copy { position: static !important; }
   .daily-metric__top { top: 29px !important; left: 67px !important; right: 13px !important; }
   .daily-metric__top small { font-size: 8px !important; letter-spacing: 1px !important; }
   .daily-metric__top i { padding: 4px 7px !important; font-size: 8px !important; }
