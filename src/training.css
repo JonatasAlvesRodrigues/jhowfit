@@ -30,7 +30,7 @@
 .weekly-days i { position: absolute; top: 10px; right: 9px; width: 5px; height: 5px; border-radius: 50%; background: var(--vita-green); box-shadow: 0 0 8px rgba(39,214,143,.5); }
 .workout-list-section, .workout-template-section { margin-top: 18px; }
 .training-workout-grid { margin-top: 11px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.training-workout-card { position: relative; min-width: 0; min-height: 240px; padding: 18px; border: 1px solid var(--vita-border); border-radius: 17px; background: linear-gradient(145deg, #111713, #0d120f); }
+.training-workout-card { position: relative; min-width: 0; min-height: 240px; padding: 18px; border: 1px solid var(--vita-border); border-radius: 17px; display: flex; flex-direction: column; background: linear-gradient(145deg, #111713, #0d120f); }
 .training-workout-card.is-inactive { opacity: .58; }
 .training-workout-card__top { display: flex; align-items: center; gap: 8px; }
 .training-workout-card__top > span { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 11px; color: var(--vita-green); background: var(--vita-green-soft); }
@@ -230,18 +230,26 @@
 }
 
 @media (max-width: 720px) {
-  .training-hub-heading { min-height: 102px; align-items: flex-start; }
-  .training-hub-heading h1 { font-size: 27px; }
+  .training-hub-heading { min-height: auto; padding: 5px 2px 12px; align-items: flex-start; }
+  .training-hub-heading h1 { font-size: 25px; }
   .training-hub-heading p { max-width: 245px; line-height: 1.45; }
   .training-hub-heading > button { width: 43px; min-width: 43px; padding: 0; font-size: 0; }
-  .training-tabs { position: sticky; z-index: 22; top: calc(var(--vita-header) + 4px); margin-inline: -3px; background: rgba(13,18,15,.97); backdrop-filter: blur(12px); }
-  .training-tabs button { flex: 1; min-width: 0; padding: 0 5px; justify-content: center; font-size: 7px; }
+  .training-tabs { position: static; min-height: 49px; margin: 0 0 18px; padding: 4px; overflow-x: auto; scrollbar-width: none; }
+  .training-tabs::-webkit-scrollbar { display: none; }
+  .training-tabs button { flex: 0 0 auto; min-width: 88px; padding: 0 10px; justify-content: center; font-size: 7px; }
   .training-tabs button span { display: none; }
-  .weekly-workout-view { padding: 16px; }
+  .weekly-workout-view { margin-bottom: 18px; padding: 16px; }
   .weekly-days { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; }
   .weekly-days > div { flex: 0 0 92px; scroll-snap-align: start; }
-  .training-workout-grid { grid-template-columns: 1fr; gap: 8px; }
-  .training-workout-card { min-height: 225px; }
+  .workout-list-section, .workout-template-section { margin-top: 0; }
+  .workout-list-section .training-section-heading { margin-bottom: 10px; }
+  .training-workout-grid { grid-template-columns: 1fr; gap: 12px; }
+  .training-workout-card { min-height: 244px; padding: 18px; border-radius: 20px; }
+  .training-workout-card h3 { white-space: normal; line-height: 1.14; }
+  .training-workout-card > p { height: auto; min-height: 25px; }
+  .training-workout-meta { margin-top: 13px; }
+  .workout-card-ctas { margin-top: 17px; grid-template-columns: 1fr 1fr; }
+  .workout-card-ctas button { min-height: 46px; border-radius: 12px; }
   .workout-template-track { grid-template-columns: none; display: flex; scroll-snap-type: x mandatory; }
   .workout-template-track > button { flex: 0 0 230px; scroll-snap-align: start; }
   .workout-editor__header { min-height: 75px; grid-template-columns: 45px 1fr 45px; }

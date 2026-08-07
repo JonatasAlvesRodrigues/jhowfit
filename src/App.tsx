@@ -165,7 +165,7 @@ export default function App() {
         </div>
 
         <MobileNavigation activeRoute={route?.id} onNavigate={navigate} />
-        {route?.id !== 'assistente' && <AIFloatingButton onNavigate={navigate} />}
+        {route?.id !== 'assistente' && route?.id !== 'treinos' && <AIFloatingButton onNavigate={navigate} />}
       </div>
     </AppErrorBoundary>
   )
