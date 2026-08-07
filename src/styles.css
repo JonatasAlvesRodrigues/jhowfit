@@ -1270,6 +1270,8 @@ body { background: radial-gradient(circle at 90% -10%, rgba(19, 87, 116, .16), t
 .exercise-placeholder > span { width: 55px; height: 55px; display: grid; place-items: center; border: 1px solid rgba(39,214,143,.17); border-radius: 17px; color: var(--vita-green); background: rgba(39,214,143,.06); box-shadow: 0 12px 35px rgba(0,0,0,.16); }
 .exercise-placeholder strong { margin-top: 10px; color: #9daba2; font: 700 9px "Manrope"; }
 .exercise-placeholder small { margin-top: 3px; color: #4f5e55; font-size: 7px; }
+.exercise-placeholder a { display: inline-flex; align-items: center; gap: 5px; margin-top: 11px; color: #25d995; font-size: 10px; text-decoration: none; }
+.exercise-placeholder a:hover { text-decoration: underline; }
 .exercise-visual.is-compact { width: 54px; height: 54px; border-radius: 10px; }
 .exercise-visual.is-compact .exercise-placeholder > span { width: 38px; height: 38px; border-radius: 11px; }
 .exercise-library-card__body { padding: 14px; }

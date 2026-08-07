@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Dumbbell, Heart, House, MapPin, Plus } from 'lucide-react'
+import { Dumbbell, ExternalLink, Heart, House, MapPin, Plus } from 'lucide-react'
 import type { ExerciseLibraryItem } from '../types/exerciseLibrary'
 
 const mediaCache = new Map<string, string | null>()
@@ -20,7 +20,13 @@ async function resolveProviderMedia(name: string) {
       .then((response) => response.ok ? response.json() : null)
       .then((payload) => {
         const rows = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : []
-        const row = rows.find((item: Record<string, unknown>) => item.gifUrl || item.gif_url || item.imageUrl || item.image_url)
+        const queryTokens = key.split(/[^a-z0-9]+/).filter((token) => token.length > 2)
+        const row = rows.find((item: Record<string, unknown>) => {
+          const itemName = String(item.name || item.exerciseName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          const matchedTokens = queryTokens.filter((token) => itemName.includes(token)).length
+          const relevant = queryTokens.length === 0 || matchedTokens >= Math.max(1, Math.ceil(queryTokens.length / 2))
+          return relevant && (item.gifUrl || item.gif_url || item.imageUrl || item.image_url)
+        })
         return row ? String(row.gifUrl || row.gif_url || row.imageUrl || row.image_url) : null
       })
       .catch(() => null)
@@ -41,12 +47,13 @@ export function ExerciseVisual({
   const [providerMedia, setProviderMedia] = useState<string | null>(null)
   const directMedia = exercise.gifUrl || exercise.imageUrl || exercise.thumbnailUrl || (exercise.externalId ? `https://static.exercisedb.dev/media/${encodeURIComponent(exercise.externalId)}.gif` : null)
   useEffect(() => {
-    if (directMedia || providerMedia || mediaFailed) return
+    if (providerMedia || (directMedia && !mediaFailed)) return
     let active = true
     void resolveProviderMedia(exercise.name).then((url) => { if (active && url) setProviderMedia(url) })
     return () => { active = false }
   }, [directMedia, exercise.name, mediaFailed, providerMedia])
-  const mediaUrl = directMedia || providerMedia
+  const mediaUrl = mediaFailed ? providerMedia : (directMedia || providerMedia)
+  const youtubeUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(`como fazer ${exercise.name}`)}`
   return (
     <div className={`exercise-visual ${compact ? 'is-compact' : ''}`}>
       {mediaUrl && !mediaFailed ? (
@@ -57,6 +64,7 @@ export function ExerciseVisual({
         <div className="exercise-placeholder">
           <span><Dumbbell size={compact ? 22 : 36} strokeWidth={1.6} /></span>
           {!compact && <><strong>{exercise.primaryMuscle}</strong><small>Ilustração em preparação</small></>}
+          {!compact && <a href={youtubeUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><ExternalLink size={13} /> Ver execução no YouTube</a>}
         </div>
       )}
     </div>
