@@ -5,7 +5,6 @@ import { AIFloatingButton, MobileNavigation, VitaSidebar } from './components/Vi
 import { useAuth } from './contexts/AuthContext'
 import { AuthPage } from './pages/AuthPages'
 import { DailyDashboardPage } from './pages/DailyDashboardPage'
-import { ReferenceDashboardPage } from './pages/ReferenceDashboardPage'
 import { NutritionPage } from './pages/Nutrition'
 import { FoodDatabasePage } from './pages/FoodDatabasePage'
 import { WaterPage } from './pages/WaterPage'
@@ -98,7 +97,7 @@ export default function App() {
       <meta property="og:type" content="website" />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:image" content={`${siteOrigin}${import.meta.env.BASE_URL}og.png`} />
-      <div className={`vita-shell ${route?.id === 'inicio' ? 'reference-shell' : ''}`}>
+      <div className="vita-shell">
         <VitaSidebar
           activeRoute={route?.id}
           isOpen={sidebarOpen}
@@ -124,7 +123,7 @@ export default function App() {
             <div className="vita-content" aria-live="polite">
               <div key={route?.id ?? 'not-found'} className="vita-route-stage">
               {route?.id === 'inicio' && (user || import.meta.env.DEV) ? (
-                <ReferenceDashboardPage onNavigate={navigate} />
+                <DailyDashboardPage userId={user?.id ?? '00000000-0000-0000-0000-000000000000'} onNavigate={navigate} />
               ) : route?.id === 'dieta' && user ? (
                 <NutritionPage userId={user.id} onNavigate={navigate} />
               ) : route?.id === 'alimentos' && user ? (
