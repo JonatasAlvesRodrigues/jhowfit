@@ -271,6 +271,63 @@ main { padding: 38px 42px 52px; max-width: 1530px; margin: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
 
+/* Mobile navigation — floating glass dock */
+@media (max-width: 720px) {
+  .vita-content { padding-bottom: calc(126px + env(safe-area-inset-bottom)); }
+  .vita-bottom-nav {
+    z-index: 72;
+    inset: auto 10px calc(9px + env(safe-area-inset-bottom));
+    min-height: 76px;
+    padding: 7px 8px;
+    overflow: visible;
+    border: 1px solid rgba(102, 233, 171, .34);
+    border-radius: 27px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(61, 237, 165, .11), transparent 45%),
+      linear-gradient(135deg, rgba(27, 42, 34, .93), rgba(9, 15, 12, .96));
+    box-shadow: inset 0 1px rgba(255,255,255,.12), inset 0 -1px rgba(20, 225, 145, .18), 0 16px 42px rgba(0,0,0,.48), 0 0 28px rgba(25, 221, 143, .10);
+    backdrop-filter: blur(26px) saturate(130%);
+  }
+  .vita-bottom-nav button {
+    min-height: 61px;
+    padding: 7px 2px 5px;
+    gap: 5px;
+    border-radius: 20px;
+    color: #94a29c;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: -.1px;
+    text-shadow: 0 1px 8px rgba(0,0,0,.4);
+  }
+  .vita-bottom-nav .bottom-icon { height: 27px; }
+  .vita-bottom-nav button .bottom-icon svg { width: 23px; height: 23px; stroke-width: 1.75; }
+  .vita-bottom-nav button.is-active {
+    position: relative;
+    z-index: 2;
+    min-height: 77px;
+    margin: -15px 0 -1px;
+    border: 1px solid rgba(72, 249, 175, .68);
+    border-radius: 25px;
+    color: #45eca7;
+    background: linear-gradient(160deg, rgba(43, 116, 79, .86), rgba(13, 41, 29, .96));
+    box-shadow: inset 0 1px rgba(199,255,225,.2), inset 0 -12px 22px rgba(0,0,0,.18), 0 0 0 1px rgba(31, 231, 145, .17), 0 0 25px rgba(41, 235, 151, .36), 0 14px 27px rgba(0,0,0,.34);
+    text-shadow: 0 0 16px rgba(75, 255, 181, .8);
+  }
+  .vita-bottom-nav button.is-active .bottom-icon { filter: drop-shadow(0 0 9px rgba(67, 247, 169, .8)); }
+  .vita-bottom-nav button.is-active .bottom-icon::after { display: none; }
+  .ai-floating-button {
+    z-index: 73;
+    right: 2px;
+    bottom: calc(47px + env(safe-area-inset-bottom));
+    width: 57px;
+    height: 57px;
+    border-color: rgba(103, 255, 190, .78);
+    background: radial-gradient(circle at 31% 22%, #b9ffe0, #3af0aa 45%, #13794f 100%);
+    box-shadow: inset 0 1px rgba(255,255,255,.48), 0 0 0 5px rgba(42, 231, 151, .10), 0 0 29px rgba(47, 236, 156, .5), 0 13px 26px rgba(0,0,0,.48);
+  }
+  .ai-floating-button b { right: -3px; bottom: -5px; }
+}
+
 /* Reference composition: compact dashboard rhythm */
 .daily-welcome__right { display: flex; align-items: center; gap: 9px; }
 .daily-streak { min-width: 88px; min-height: 58px; padding: 8px 10px; display: grid; grid-template-columns: 17px 1fr; gap: 1px 6px; align-items: center; border: 1px solid rgba(255,157,70,.18); border-radius: 16px; color: #ffae5f; background: linear-gradient(145deg, rgba(65,43,20,.7), rgba(20,16,11,.9)); }
