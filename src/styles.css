@@ -1774,6 +1774,100 @@ button:not(:disabled):active { transition-duration: 80ms; }
 .daily-metric--blue .daily-metric__icon { box-shadow: 0 0 8px rgba(76,168,255,.25) !important; }
 .daily-progress i { box-shadow: 0 0 6px currentColor !important; }
 
+/* Shared reference card system across the product.
+   The dashboard reference is intentionally matte: color is reserved for
+   accents, while surfaces, borders, spacing and controls stay consistent. */
+:root {
+  --reference-card-surface: linear-gradient(145deg, #0d1713 0%, #080f0c 100%);
+  --reference-card-border: rgba(128, 165, 145, .28);
+  --reference-card-inset: rgba(226, 255, 239, .065);
+  --reference-card-shadow: 0 14px 32px rgba(0, 0, 0, .24);
+}
+
+:is(.training-workout-card, .history-panel, .exercise-progress-panel,
+    .water-progress-card, .water-stat, .water-history, .water-weekly,
+    .steps-progress-card, .steps-stat, .steps-history, .steps-weekly,
+    .nutrition-summary-card, .nutrition-macro-card, .nutrition-panel,
+    .nutrition-section-card, .activity-launch-card, .activity-recent-card,
+    .daily-panel, .health-connection-card, .health-security-card,
+    .privacy-card, .system-card) {
+  border: 1px solid var(--reference-card-border) !important;
+  border-radius: 22px !important;
+  background: var(--reference-card-surface) !important;
+  box-shadow: inset 0 1px var(--reference-card-inset), var(--reference-card-shadow) !important;
+}
+
+:is(.training-workout-card, .water-stat, .steps-stat, .nutrition-macro-card) {
+  position: relative;
+  overflow: hidden;
+}
+
+:is(.training-workout-card, .water-stat, .steps-stat, .nutrition-macro-card)::after {
+  content: '';
+  position: absolute;
+  inset: auto -30px -58px auto;
+  width: 150px;
+  height: 110px;
+  border-radius: 50%;
+  opacity: .08;
+  pointer-events: none;
+  background: radial-gradient(ellipse, currentColor, transparent 68%);
+  filter: blur(18px);
+}
+
+:is(.training-workout-card, .water-stat, .steps-stat, .nutrition-macro-card) > * {
+  position: relative;
+  z-index: 1;
+}
+
+:is(.water-progress-card, .steps-progress-card, .nutrition-summary-card--progress) {
+  background: linear-gradient(135deg, #0d211b 0%, #09120f 68%, #08100d 100%) !important;
+  border-color: rgba(90, 199, 155, .38) !important;
+}
+
+.nutrition-macro-card--orange { background: linear-gradient(145deg, #2a1c11, #100d09) !important; border-color: rgba(226, 139, 61, .40) !important; }
+.nutrition-macro-card--blue { background: linear-gradient(145deg, #102333, #091016) !important; border-color: rgba(76, 168, 255, .38) !important; }
+.nutrition-macro-card--green { background: linear-gradient(145deg, #10271e, #09130f) !important; border-color: rgba(65, 203, 145, .38) !important; }
+.training-workout-card { background: linear-gradient(145deg, #101a15, #080f0c) !important; }
+
+:is(.nutrition-summary-card__heading small, .nutrition-panel__heading small,
+    .water-progress-copy > small, .water-stat > small, .water-panel-heading small,
+    .steps-progress-copy > small, .steps-stat > small, .steps-panel-heading small,
+    .history-panel-title small, .exercise-progress-panel header small) {
+  letter-spacing: 1.3px;
+  font-weight: 800;
+}
+
+:is(.water-progress-card, .steps-progress-card) .button,
+:is(.water-quick-actions, .training-workout-card, .nutrition-panel) .button {
+  border-radius: 11px;
+}
+
+:is(.water-log-list article, .steps-record-list article, .activity-recent-list > button,
+    .activity-type-grid > button, .training-workout-card .edit-workout-cta,
+    .water-reminder-toggle, .activity-observation, .activity-comparison) {
+  border-color: rgba(128, 165, 145, .22) !important;
+  border-radius: 12px !important;
+  background: #0a110d !important;
+  box-shadow: inset 0 1px rgba(226, 255, 239, .035) !important;
+}
+
+:is(.water-progress-ring, .steps-progress-ring) {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, currentColor 22%, transparent));
+}
+
+@media (max-width: 720px) {
+  :is(.training-workout-card, .history-panel, .exercise-progress-panel,
+      .water-progress-card, .water-stat, .water-history, .water-weekly,
+      .steps-progress-card, .steps-stat, .steps-history, .steps-weekly,
+      .nutrition-summary-card, .nutrition-macro-card, .nutrition-panel,
+      .nutrition-section-card, .activity-launch-card, .activity-recent-card,
+      .daily-panel, .health-connection-card, .health-security-card,
+      .privacy-card, .system-card) {
+    border-radius: 18px !important;
+  }
+}
+
 /* Exact reference framing for the initial dashboard viewport */
 .daily-dashboard { gap: 16px; }
 .today-summary { position: relative; overflow: hidden; }
