@@ -664,6 +664,65 @@ body { overflow-x: hidden; }
 
 @keyframes auth-spin { to { transform: rotate(360deg); } }
 
+/* Exact mobile composition from the JHOW reference. */
+@media (max-width: 720px) {
+  body { background: radial-gradient(circle at 75% -12%, rgba(0, 104, 131, .20), transparent 35%), #050b12; }
+  .vita-shell { background: transparent; }
+  .vita-header { height: 72px; border-bottom-color: rgba(115, 156, 173, .13); background: rgba(5, 11, 18, .88); }
+  .header-menu-button, .vita-icon-button, .vita-profile .profile-avatar { border-color: rgba(137, 174, 190, .20); background: linear-gradient(145deg, rgba(30, 48, 58, .75), rgba(12, 22, 29, .9)); }
+  .header-menu-button { width: 42px; height: 42px; border-radius: 14px; color: #dce6e9; }
+  .vita-header__mobile .vita-logo__mark { width: 44px; height: 44px; border-radius: 14px; background: transparent; box-shadow: 0 0 25px rgba(31, 238, 160, .20); }
+  .vita-logo__letter { font-size: 31px; }
+  .vita-icon-button { width: 42px; height: 42px; border-radius: 14px; color: #ecf4f5; }
+  .vita-profile .profile-avatar { width: 42px; height: 42px; border-radius: 14px; color: #42e8ad; background: linear-gradient(145deg, #0a302d, #08201f); }
+  .vita-content { width: min(100%, 440px); padding: 17px 13px calc(96px + env(safe-area-inset-bottom)); }
+  .daily-dashboard { gap: 10px; }
+  .daily-welcome { min-height: 77px; align-items: flex-start; padding: 3px 2px 0; }
+  .daily-user small { color: #19efad; font-size: 10px; letter-spacing: 1.4px; }
+  .daily-user h1 { margin-top: 5px; color: #f5f8f7; font-size: 31px; letter-spacing: -1.5px; }
+  .daily-user p { margin-top: 5px; color: #a5b0b1; font-size: 12px; }
+  .daily-streak { min-width: 111px; min-height: 68px; padding: 10px 11px; border-radius: 17px; grid-template-columns: 19px 1fr; border-color: rgba(255, 173, 74, .20); background: linear-gradient(145deg, rgba(47, 38, 26, .82), rgba(17, 18, 19, .97)); }
+  .daily-streak strong { font-size: 18px; }
+  .daily-streak small { font-size: 8px; color: #aaa194; white-space: normal; line-height: 1.15; }
+  .today-summary { min-height: 254px; padding: 25px 21px; border-radius: 24px; border-color: rgba(38, 182, 193, .29); background: radial-gradient(circle at 86% 45%, rgba(0, 219, 192, .15), transparent 29%), linear-gradient(145deg, #062d35, #071923 68%, #071118); }
+  .today-summary__copy { max-width: 60%; align-self: flex-start; }
+  .today-summary__copy > small { color: #17f0b1; font-size: 10px; letter-spacing: 1.5px; }
+  .today-summary__copy h2 { max-width: 220px; margin-top: 11px; font-size: 23px; line-height: 1.16; letter-spacing: -1px; }
+  .today-summary__copy > p { max-width: 215px; margin-top: 11px; color: #b8c4c5; font-size: 11px; line-height: 1.55; }
+  .today-summary__legend { margin-top: 19px; display: flex; flex-direction: column; align-items: flex-start; gap: 9px; color: #e7eff0; font-size: 11px; }
+  .today-summary__legend .hydration-legend { gap: 5px; color: #e9f2f2; }
+  .today-summary__legend .hydration-legend svg { color: #48d2ff; }
+  .today-summary__legend .hydration-legend b { color: #789092; font-weight: 400; }
+  .today-summary__legend button { display: inline-flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(42, 195, 190, .20); border-radius: 14px; color: #9ce5db; background: rgba(39, 170, 165, .12); font-size: 9px; }
+  .daily-ring { flex-basis: 114px; height: 114px; align-self: center; margin-right: -7px; }
+  .daily-ring strong { font-size: 25px; }
+  .daily-ring span { color: #b2c2c4; font-size: 9px; text-transform: none; letter-spacing: 0; }
+  .daily-metrics-grid { gap: 9px; }
+  .daily-metric { min-height: 181px; padding: 17px; gap: 7px; border-radius: 21px; border-color: rgba(129, 171, 177, .18); }
+  .daily-metric--green { background: linear-gradient(145deg, #063f3b, #09211f 78%); border-color: rgba(21, 217, 177, .28); }
+  .daily-metric--orange { background: linear-gradient(145deg, #3b2a16, #191913 80%); border-color: rgba(255, 170, 72, .25); }
+  .daily-metric--purple { background: linear-gradient(145deg, #262044, #171528 80%); border-color: rgba(174, 136, 255, .24); }
+  .daily-metric--blue { background: linear-gradient(145deg, #0b3152, #101d31 80%); border-color: rgba(49, 167, 246, .24); }
+  .daily-metric__icon { width: 34px; height: 34px; flex-basis: 34px; background: transparent; }
+  .daily-metric__top small { font-size: 10px; letter-spacing: 1.2px; }
+  .daily-metric__top i { padding: 5px 8px; border-radius: 12px; background: rgba(21, 216, 162, .13); font-size: 9px; }
+  .daily-metric--orange .daily-metric__top i { background: rgba(255, 157, 70, .13); }
+  .daily-metric--purple .daily-metric__top i { background: rgba(175, 140, 255, .13); }
+  .daily-metric--blue .daily-metric__top i { background: rgba(76, 168, 255, .13); }
+  .daily-metric__copy > strong { margin-top: 20px; font-size: 27px; letter-spacing: -1px; }
+  .daily-metric__goal { margin-top: 6px; color: #b2bebc; font-size: 11px; }
+  .daily-progress { height: 6px; margin-top: 17px; background: rgba(220, 240, 240, .13); }
+  .daily-energy { min-height: 56px; padding: 9px 12px; gap: 8px; border-radius: 18px; border-color: rgba(194, 218, 99, .20); background: linear-gradient(90deg, rgba(48, 63, 30, .78), rgba(13, 23, 17, .96)); }
+  .daily-energy strong { font-size: 11px; }
+  .daily-energy > span:not(.daily-energy__icon) { font-size: 10px; }
+  .daily-energy > i { min-width: 54px; height: 6px; }
+  .vita-bottom-nav { min-height: calc(76px + env(safe-area-inset-bottom)); padding-top: 7px; border-top-color: rgba(112, 156, 169, .18); background: rgba(7, 16, 24, .95); }
+  .vita-bottom-nav button { min-height: 59px; color: #aeb8ba; font-size: 10px; }
+  .vita-bottom-nav button.is-active { color: #17f0b1; background: rgba(21, 217, 177, .08); }
+  .vita-bottom-nav button.is-active .bottom-icon::after { display: none; }
+  .ai-floating-button { right: 19px; bottom: calc(95px + env(safe-area-inset-bottom)); width: 64px; height: 64px; }
+}
+
 /* Focused, responsive chat surface */
 @media (max-width: 1100px) {
   .fitness-chat-page { position: relative; isolation: isolate; grid-template-columns: 1fr; height: calc(100dvh - var(--vita-header) - 92px); min-height: 560px; border-radius: 18px; }

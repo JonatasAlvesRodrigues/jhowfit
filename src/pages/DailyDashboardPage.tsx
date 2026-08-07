@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import {
   Activity,
   ArrowRight,
-  Bell,
   CircleCheck,
   Droplets,
   Dumbbell,
@@ -48,25 +47,23 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
     )
   }
 
-  const initials = data.profile.name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   const weightDifference = data.weight.difference
+  const waterCurrentMl = Math.round(data.metrics.water.current * 1000)
+  const waterGoalMl = Math.round(data.metrics.water.goal * 1000)
 
   return (
     <section className="daily-dashboard">
       <header className="daily-welcome">
         <div className="daily-user">
-          <span className="daily-avatar">
-            {data.profile.avatarUrl
-              ? <img src={data.profile.avatarUrl} alt="" />
-              : initials}
-          </span>
           <div>
             <small>{greeting}</small>
             <h1>{data.profile.name.split(' ')[0]}</h1>
             <p>{capitalize(currentDate)}</p>
           </div>
         </div>
-        <button className="daily-notification" aria-label="Abrir notificações"><Bell size={20} /><i /></button>
+        <div className="daily-welcome__right">
+          <div className="daily-streak"><Flame size={19} /><strong>12</strong><small>dias de sequência</small></div>
+        </div>
       </header>
 
       {!data.hasAnyData && (
@@ -88,13 +85,13 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
         <div className="today-summary__copy">
           <small>RESUMO DE HOJE</small>
           <h2>{data.allGoalsCompleted ? 'Dia completo. Mandou muito bem!' : motivation(data.completion)}</h2>
-          <p>{data.insight}</p>
+          <p>Sua hidratação está abaixo do esperado. Que tal beber mais 250 ml agora?</p>
           <div className="today-summary__legend">
-            <span><i /> Metas diárias</span>
-            <b>{data.completion}% concluído</b>
+            <span className="hydration-legend"><Droplets size={15} /> {waterCurrentMl.toLocaleString('pt-BR')} ml <b>/ {waterGoalMl.toLocaleString('pt-BR')} ml</b></span>
+            <button onClick={() => onNavigate('/agua')}>Meta diária <ArrowRight size={13} /></button>
           </div>
         </div>
-        <DashboardProgressRing value={data.completion} />
+        <DashboardProgressRing value={Math.round(data.metrics.water.current / Math.max(data.metrics.water.goal, .1) * 100)} />
       </article>
 
       <div className="daily-metrics-grid">
