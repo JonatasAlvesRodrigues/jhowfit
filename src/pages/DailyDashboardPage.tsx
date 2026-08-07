@@ -48,25 +48,26 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
     )
   }
 
-  const initials = data.profile.name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   const weightDifference = data.weight.difference
 
   return (
     <section className="daily-dashboard">
       <header className="daily-welcome">
         <div className="daily-user">
-          <span className="daily-avatar">
-            {data.profile.avatarUrl
-              ? <img src={data.profile.avatarUrl} alt="" />
-              : initials}
-          </span>
           <div>
             <small>{greeting}</small>
             <h1>{data.profile.name.split(' ')[0]}</h1>
             <p>{capitalize(currentDate)}</p>
           </div>
         </div>
-        <button className="daily-notification" aria-label="Abrir notificações"><Bell size={20} /><i /></button>
+        <div className="daily-welcome__right">
+          <div className="daily-streak" aria-label={`${data.activeStreak} dias de sequência`}>
+            <Flame size={17} fill="currentColor" />
+            <strong>{data.activeStreak}</strong>
+            <small>{data.activeStreak === 1 ? 'dia de sequência' : 'dias de sequência'}</small>
+          </div>
+          <button className="daily-notification" onClick={() => onNavigate('/notificacoes')} aria-label="Abrir notificações"><Bell size={20} /><i /></button>
+        </div>
       </header>
 
       {!data.hasAnyData && (
@@ -117,11 +118,11 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           onClick={() => onNavigate('/dieta')}
         />
         <DashboardMetricCard
-          label="Proteína"
+          label="Dieta"
           icon={Salad}
-          metric={data.metrics.protein}
-          currentLabel={`${Math.round(data.metrics.protein.current)} g`}
-          goalLabel={`Meta ${Math.round(data.metrics.protein.goal)} g`}
+          metric={{ current: data.metrics.meals, goal: 3 }}
+          currentLabel={`${data.metrics.meals}/3`}
+          goalLabel={data.metrics.meals === 1 ? 'refeição registrada' : 'refeições registradas'}
           color="purple"
           onClick={() => onNavigate('/dieta')}
         />

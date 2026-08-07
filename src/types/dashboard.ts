@@ -30,6 +30,7 @@ export interface DailyDashboardData {
     protein: DashboardMetric
     water: DashboardMetric
     activeMinutes: number
+    meals: number
   }
   workout: DashboardWorkout | null
   weight: {
@@ -38,6 +39,7 @@ export interface DailyDashboardData {
     history: WeightPoint[]
   }
   completion: number
+  activeStreak: number
   insight: string
   hasAnyData: boolean
   allGoalsCompleted: boolean
