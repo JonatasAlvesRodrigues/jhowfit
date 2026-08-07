@@ -713,6 +713,74 @@ body { overflow-x: hidden; }
 .jhow-bottom-nav { position:fixed; z-index:7; right:0; bottom:0; left:0; height:78px; display:grid; grid-template-columns:repeat(5,1fr); padding:7px max(11px, calc((100vw - 480px)/2 + 11px)) max(8px, env(safe-area-inset-bottom)); border-top:1px solid rgba(115,151,163,.18); background:rgba(7,15,22,.96); backdrop-filter:blur(18px); }.jhow-bottom-nav button { padding:3px 0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; border:0; color:#a9b3b4; background:transparent; font-size:10px; cursor:pointer; }.jhow-bottom-nav svg { width:24px; height:24px; stroke-width:1.8; }.jhow-bottom-nav button.is-active { color:#22eca9; }.jhow-home-glyph { font:31px/21px sans-serif; }
 @media (min-width: 481px) { .jhow-dashboard { border-right:1px solid rgba(96,130,140,.13); border-left:1px solid rgba(96,130,140,.13); box-shadow:0 0 80px rgba(0,0,0,.42); }.jhow-bottom-nav { padding-right:calc((100vw - 480px)/2 + 11px); padding-left:calc((100vw - 480px)/2 + 11px); } }
 
+/* Shared JHOW visual language for every secondary screen. */
+:root { --jhow-bg: #050b12; --jhow-surface: #0b1820; --jhow-surface-2: #10232d; --jhow-border: rgba(112, 172, 185, .20); --jhow-muted: #9aabad; --jhow-cyan: #39caff; }
+body { background: radial-gradient(circle at 82% -12%, rgba(0, 103, 130, .20), transparent 32%), var(--jhow-bg); }
+.vita-shell:not(.reference-shell) { background: transparent; }
+.vita-shell:not(.reference-shell) .vita-sidebar { background: rgba(5, 14, 21, .97); border-color: rgba(112, 172, 185, .17); }
+.vita-shell:not(.reference-shell) .vita-header { background: rgba(5, 12, 19, .88); border-color: rgba(112, 172, 185, .17); }
+.vita-shell:not(.reference-shell) .vita-content { padding-top: 32px; }
+.vita-shell:not(.reference-shell) .page-heading { margin-bottom: 24px; }
+.vita-shell:not(.reference-shell) .page-heading p, .vita-shell:not(.reference-shell) .page-eyebrow { color: #20edae; letter-spacing: 1.5px; }
+.vita-shell:not(.reference-shell) .page-heading h1, .vita-shell:not(.reference-shell) .placeholder-hero h1, .vita-shell:not(.reference-shell) .achievement-hero__copy h1 { color: #f4f8f7; letter-spacing: -1.4px; }
+.vita-shell:not(.reference-shell) .page-heading > div > span, .vita-shell:not(.reference-shell) .placeholder-hero p { color: #a1afb0; }
+.vita-shell:not(.reference-shell) .card,
+.vita-shell:not(.reference-shell) .daily-panel,
+.vita-shell:not(.reference-shell) .nutrition-panel,
+.vita-shell:not(.reference-shell) .nutrition-section-card,
+.vita-shell:not(.reference-shell) .nutrition-summary-card,
+.vita-shell:not(.reference-shell) .water-stat,
+.vita-shell:not(.reference-shell) .water-progress-card,
+.vita-shell:not(.reference-shell) .health-connection-card,
+.vita-shell:not(.reference-shell) .health-security-card,
+.vita-shell:not(.reference-shell) .privacy-card,
+.vita-shell:not(.reference-shell) .system-card,
+.vita-shell:not(.reference-shell) .training-workout-card,
+.vita-shell:not(.reference-shell) .history-panel,
+.vita-shell:not(.reference-shell) .achievement-section,
+.vita-shell:not(.reference-shell) .achievement-history,
+.vita-shell:not(.reference-shell) .accumulated-card,
+.vita-shell:not(.reference-shell) .profile-account-card,
+.vita-shell:not(.reference-shell) .next-stage { border-color: var(--jhow-border); border-radius: 22px; background: linear-gradient(145deg, rgba(13, 34, 44, .93), rgba(7, 17, 24, .97)); box-shadow: inset 0 1px rgba(255,255,255,.035), 0 18px 48px rgba(0,0,0,.22); }
+.vita-shell:not(.reference-shell) .vita-primary-button { color: #042a22; background: #22e9aa; box-shadow: 0 12px 28px rgba(34,233,170,.16); }
+.vita-shell:not(.reference-shell) .vita-secondary-button, .vita-shell:not(.reference-shell) .training-tabs, .vita-shell:not(.reference-shell) .achievement-filters { border-color: var(--jhow-border); color: #d9e7e7; background: #0d202a; }
+.vita-shell:not(.reference-shell) input, .vita-shell:not(.reference-shell) select, .vita-shell:not(.reference-shell) textarea { border-color: var(--jhow-border); color: #f1f7f5; background: #08141c; }
+.vita-shell:not(.reference-shell) .training-workout-card, .vita-shell:not(.reference-shell) .meal-card, .vita-shell:not(.reference-shell) .nutrition-meal-card { background: linear-gradient(145deg, rgba(9, 57, 59, .78), rgba(7, 20, 26, .97)); border-color: rgba(28, 218, 180, .23); }
+.vita-shell:not(.reference-shell) .training-section-heading small, .vita-shell:not(.reference-shell) .nutrition-section-heading small, .vita-shell:not(.reference-shell) .water-page .page-heading p { color: #20edae; }
+
+@media (max-width: 720px) {
+  .vita-shell:not(.reference-shell) .vita-header { height: 72px; padding-inline: 13px; }
+  .vita-shell:not(.reference-shell) .vita-header__mobile .vita-logo__name { display: none; }
+  .vita-shell:not(.reference-shell) .vita-header__mobile .vita-logo__mark { width: 44px; height: 44px; background: transparent; box-shadow: 0 0 25px rgba(31,238,160,.20); }
+  .vita-shell:not(.reference-shell) .vita-logo__letter { font-size: 31px; }
+  .vita-shell:not(.reference-shell) .vita-header__actions .theme-status, .vita-shell:not(.reference-shell) .vita-header__actions .profile-copy { display: none; }
+  .vita-shell:not(.reference-shell) .header-menu-button, .vita-shell:not(.reference-shell) .vita-icon-button, .vita-shell:not(.reference-shell) .vita-profile .profile-avatar { width: 42px; height: 42px; border-radius: 14px; border-color: rgba(137,174,190,.20); background: linear-gradient(145deg, rgba(30,48,58,.75), rgba(12,22,29,.9)); }
+  .vita-shell:not(.reference-shell) .vita-content { padding: 22px 13px calc(96px + env(safe-area-inset-bottom)); }
+  .vita-shell:not(.reference-shell) .page-heading { align-items: flex-start; gap: 14px; margin-bottom: 18px; }
+  .vita-shell:not(.reference-shell) .page-heading h1 { font-size: 28px; }
+  .vita-shell:not(.reference-shell) .page-heading > div > span { font-size: 11px; line-height: 1.45; }
+  .vita-shell:not(.reference-shell) .card,
+  .vita-shell:not(.reference-shell) .daily-panel,
+  .vita-shell:not(.reference-shell) .nutrition-panel,
+  .vita-shell:not(.reference-shell) .nutrition-section-card,
+  .vita-shell:not(.reference-shell) .nutrition-summary-card,
+  .vita-shell:not(.reference-shell) .water-stat,
+  .vita-shell:not(.reference-shell) .water-progress-card,
+  .vita-shell:not(.reference-shell) .health-connection-card,
+  .vita-shell:not(.reference-shell) .health-security-card,
+  .vita-shell:not(.reference-shell) .privacy-card,
+  .vita-shell:not(.reference-shell) .system-card,
+  .vita-shell:not(.reference-shell) .training-workout-card,
+  .vita-shell:not(.reference-shell) .history-panel,
+  .vita-shell:not(.reference-shell) .achievement-section,
+  .vita-shell:not(.reference-shell) .achievement-history,
+  .vita-shell:not(.reference-shell) .accumulated-card,
+  .vita-shell:not(.reference-shell) .profile-account-card { border-radius: 20px; }
+  .vita-shell:not(.reference-shell) .vita-bottom-nav { border-color: rgba(112,156,169,.18); background: rgba(7,16,24,.95); }
+  .vita-shell:not(.reference-shell) .vita-bottom-nav button { min-height: 59px; color: #aeb8ba; font-size: 10px; }
+  .vita-shell:not(.reference-shell) .vita-bottom-nav button.is-active { color: #17f0b1; background: rgba(21,217,177,.08); }
+}
+
 /* Exact mobile composition from the JHOW reference. */
 @media (max-width: 720px) {
   body { background: radial-gradient(circle at 75% -12%, rgba(0, 104, 131, .20), transparent 35%), #050b12; }
