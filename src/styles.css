@@ -355,6 +355,17 @@ body { overflow-x: hidden; }
 .desktop-nav button:last-child { margin-top: 8px; color: #d17773; }
 .desktop-nav button:last-child.is-active { color: var(--vita-danger); background: rgba(255, 116, 109, .08); }
 .desktop-nav button:last-child.is-active i { background: var(--vita-danger); }
+.nav-group { display: grid; gap: 2px; }
+.desktop-nav .nav-group__toggle { width: 100%; }
+.nav-group__toggle > svg { margin-left: auto; color: #64726a; transition: transform .22s ease; }
+.nav-group.is-expanded .nav-group__toggle > svg { transform: rotate(180deg); }
+.nav-group__toggle.has-active-route { color: #b9c6bf; }
+.nav-group__items { max-height: 0; display: grid; overflow: hidden; opacity: 0; transition: max-height .26s ease, opacity .18s ease, margin .26s ease; }
+.nav-group.is-expanded .nav-group__items { max-height: 260px; margin: 1px 0 4px; opacity: 1; }
+.desktop-nav .nav-group__items button { min-height: 35px; padding-left: 27px; font-size: 10px; }
+.desktop-nav .nav-group__items .nav-icon { width: 20px; }
+.desktop-nav .nav-group__items button.is-active { color: var(--vita-green); background: rgba(39, 214, 143, .075); }
+.desktop-nav .nav-signout { margin-top: 6px; color: #d17773; }
 .sidebar-version { margin-top: auto; padding: 16px 13px 2px; border-top: 1px solid var(--vita-border); }
 .sidebar-version span, .sidebar-version small { display: block; }
 .sidebar-version span { color: #9aa69f; font: 700 10px "Manrope", sans-serif; }
