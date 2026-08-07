@@ -31,4 +31,10 @@ export const adminService = {
     const { error } = await requireClient().rpc('admin_create_broadcast', { input_title: title, input_body: body, input_audience: audience })
     if (error) throw error
   },
+  async syncExercises(query = '', limit = 50) {
+    const { data, error } = await requireClient().functions.invoke('sync-exercises', { body: { query, limit } })
+    if (error) throw new Error('Não foi possível sincronizar a biblioteca agora.')
+    if (data?.error) throw new Error(String(data.error))
+    return Number(data?.synced ?? 0)
+  },
 }
