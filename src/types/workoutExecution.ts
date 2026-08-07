@@ -27,6 +27,7 @@ export interface ExecutionExercise {
   gifUrl: string | null
   videoUrl: string | null
   thumbnailUrl: string | null
+  externalId: string | null
   skipped: boolean
   sets: ExecutionSet[]
 }

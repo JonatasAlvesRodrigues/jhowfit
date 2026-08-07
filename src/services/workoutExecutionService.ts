@@ -77,7 +77,7 @@ export const workoutExecutionService = {
     const [sessionResult, exercisesResult] = await Promise.all([
       supabase!.from('workout_sessions').select('*').eq('id', sessionId).eq('user_id', userId).single(),
       supabase!.from('workout_session_exercises')
-        .select('*,workout_session_sets(*),exercise_library:library_exercise_id(image_url,gif_url,video_url,thumbnail_url)').eq('session_id', sessionId).eq('user_id', userId).order('position'),
+        .select('*,workout_session_sets(*),exercise_library:library_exercise_id(image_url,gif_url,video_url,thumbnail_url,external_id)').eq('session_id', sessionId).eq('user_id', userId).order('position'),
     ])
     if (sessionResult.error || exercisesResult.error) throw new Error('Não foi possível recuperar o treino.')
     return {
@@ -196,7 +196,7 @@ function mapExercise(row: Record<string, any>): ExecutionExercise {
     previousWeight: numberOrNull(row.previous_weight), restSeconds: Number(row.rest_seconds),
     notes: row.notes ?? '', imageUrl: row.image_url ?? libraryMedia?.image_url ?? null,
     gifUrl: row.gif_url ?? libraryMedia?.gif_url ?? null, videoUrl: row.video_url ?? libraryMedia?.video_url ?? null,
-    thumbnailUrl: row.thumbnail_url ?? libraryMedia?.thumbnail_url ?? null, skipped: Boolean(row.skipped),
+    thumbnailUrl: row.thumbnail_url ?? libraryMedia?.thumbnail_url ?? null, externalId: libraryMedia?.external_id ?? null, skipped: Boolean(row.skipped),
     sets: (row.workout_session_sets ?? []).sort((a: any, b: any) => a.set_number - b.set_number).map((set: any): ExecutionSet => ({
       id: set.id, setNumber: Number(set.set_number), plannedRepetitions: set.planned_repetitions,
       weight: numberOrNull(set.weight), repetitions: numberOrNull(set.repetitions),

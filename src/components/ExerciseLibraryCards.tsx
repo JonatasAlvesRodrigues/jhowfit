@@ -10,7 +10,7 @@ export function ExerciseVisual({
   compact?: boolean
 }) {
   const [mediaFailed, setMediaFailed] = useState(false)
-  const mediaUrl = exercise.gifUrl || exercise.imageUrl || exercise.thumbnailUrl
+  const mediaUrl = exercise.gifUrl || exercise.imageUrl || exercise.thumbnailUrl || (exercise.externalId ? `https://static.exercisedb.dev/media/${encodeURIComponent(exercise.externalId)}.gif` : null)
   return (
     <div className={`exercise-visual ${compact ? 'is-compact' : ''}`}>
       {mediaUrl && !mediaFailed ? (
