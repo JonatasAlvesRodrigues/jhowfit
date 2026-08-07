@@ -266,6 +266,12 @@ function mapLibraryExercise(row: Record<string, unknown>): ExerciseLibraryItem {
     substitutions: array(row.substitutions),
     locations: array(row.locations) as ExerciseLocation[],
     imageUrl: row.image_url ? String(row.image_url) : null,
+    gifUrl: row.gif_url ? String(row.gif_url) : null,
+    videoUrl: row.video_url ? String(row.video_url) : null,
+    thumbnailUrl: row.thumbnail_url ? String(row.thumbnail_url) : null,
+    source: row.source ? String(row.source) : null,
+    sourceUrl: row.source_url ? String(row.source_url) : null,
+    externalId: row.external_id ? String(row.external_id) : null,
   }
 }
 

@@ -15,6 +15,12 @@ export interface ExerciseLibraryItem {
   substitutions: string[]
   locations: ExerciseLocation[]
   imageUrl: string | null
+  gifUrl: string | null
+  videoUrl: string | null
+  thumbnailUrl: string | null
+  source: string | null
+  sourceUrl: string | null
+  externalId: string | null
 }
 
 export interface ExerciseFilters {

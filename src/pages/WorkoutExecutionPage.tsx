@@ -160,7 +160,7 @@ export function WorkoutExecutionPage({ userId, workout, recoverySessionId, libra
       <div className="execution-layout">
         <main>
           <div className="execution-exercise-visual">
-            {current.imageUrl ? <img src={current.imageUrl} alt={`Demonstração de ${current.name}`} /> : <div><ImageOff size={35} /><span>Demonstração indisponível</span></div>}
+            {current.gifUrl || current.imageUrl || current.thumbnailUrl ? <img src={current.gifUrl || current.imageUrl || current.thumbnailUrl || ''} alt={`Demonstração de ${current.name}`} loading="eager" /> : current.videoUrl ? <video src={current.videoUrl} autoPlay loop muted playsInline preload="metadata" aria-label={`Demonstração de ${current.name}`} /> : <div><ImageOff size={35} /><span>Demonstração indisponível</span></div>}
             <i>{session.currentExerciseIndex + 1} / {session.exercises.length}</i>
           </div>
           <div className="execution-exercise-title">

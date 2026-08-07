@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Dumbbell, Heart, House, MapPin, Plus } from 'lucide-react'
 import type { ExerciseLibraryItem } from '../types/exerciseLibrary'
 
@@ -8,10 +9,14 @@ export function ExerciseVisual({
   exercise: ExerciseLibraryItem
   compact?: boolean
 }) {
+  const [mediaFailed, setMediaFailed] = useState(false)
+  const mediaUrl = exercise.gifUrl || exercise.imageUrl || exercise.thumbnailUrl
   return (
     <div className={`exercise-visual ${compact ? 'is-compact' : ''}`}>
-      {exercise.imageUrl ? (
-        <img src={exercise.imageUrl} alt={`Demonstração de ${exercise.name}`} />
+      {mediaUrl && !mediaFailed ? (
+        <img src={mediaUrl} alt={`Demonstração de ${exercise.name}`} loading="lazy" decoding="async" onError={() => setMediaFailed(true)} />
+      ) : exercise.videoUrl && !mediaFailed ? (
+        <video src={exercise.videoUrl} aria-label={`Demonstração de ${exercise.name}`} autoPlay loop muted playsInline preload="metadata" onError={() => setMediaFailed(true)} />
       ) : (
         <div className="exercise-placeholder">
           <span><Dumbbell size={compact ? 22 : 36} strokeWidth={1.6} /></span>

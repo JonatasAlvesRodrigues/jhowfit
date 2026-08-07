@@ -1,5 +1,6 @@
 import { supabase } from '../integrations/supabase'
 import type { ExerciseLibraryData, ExerciseLibraryItem, ExerciseLevel, ExerciseLocation, WorkoutOption } from '../types/exerciseLibrary'
+import { createExerciseProvider, normalizeProviderExercise } from './exerciseProvider'
 
 export const exerciseLibraryService = {
   async getLibrary(userId: string): Promise<ExerciseLibraryData> {
@@ -99,6 +100,18 @@ async function getExerciseCount(workoutId: string, userId: string) {
   return count ?? 0
 }
 
+// Optional adapter used by an admin/synchronization flow. User-facing screens
+// continue to consume the local Supabase library only.
+export async function searchExerciseProvider(query: string) {
+  const provider = createExerciseProvider()
+  if (!provider || !query.trim()) return []
+  return provider.search(query.trim())
+}
+
+export function normalizeExerciseProviderRow(row: Record<string, unknown>) {
+  return normalizeProviderExercise(row)
+}
+
 function mapExercise(row: Record<string, unknown>): ExerciseLibraryItem {
   return {
     id: String(row.id),
@@ -114,6 +127,12 @@ function mapExercise(row: Record<string, unknown>): ExerciseLibraryItem {
     substitutions: arrayOfStrings(row.substitutions),
     locations: arrayOfStrings(row.locations) as ExerciseLocation[],
     imageUrl: row.image_url ? String(row.image_url) : null,
+    gifUrl: row.gif_url ? String(row.gif_url) : null,
+    videoUrl: row.video_url ? String(row.video_url) : null,
+    thumbnailUrl: row.thumbnail_url ? String(row.thumbnail_url) : null,
+    source: row.source ? String(row.source) : null,
+    sourceUrl: row.source_url ? String(row.source_url) : null,
+    externalId: row.external_id ? String(row.external_id) : null,
   }
 }
 

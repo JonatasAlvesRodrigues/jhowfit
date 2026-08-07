@@ -24,6 +24,9 @@ export interface ExecutionExercise {
   restSeconds: number
   notes: string
   imageUrl: string | null
+  gifUrl: string | null
+  videoUrl: string | null
+  thumbnailUrl: string | null
   skipped: boolean
   sets: ExecutionSet[]
 }

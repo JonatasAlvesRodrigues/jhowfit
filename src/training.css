@@ -320,7 +320,7 @@
 .execution-layout > main,.execution-layout > aside > div,.next-exercise { border: 1px solid var(--vita-border); border-radius: 16px; background: #101612; }
 .execution-layout > main { overflow: hidden; }
 .execution-exercise-visual { position: relative; height: 220px; background: radial-gradient(circle at 50% 40%,#193427,#090d0b 65%); }
-.execution-exercise-visual img { width: 100%; height: 100%; object-fit: cover; }.execution-exercise-visual > div { height: 100%; display: grid; place-content: center; justify-items: center; gap: 8px; color: #526158; font-size: 8px; }
+.execution-exercise-visual :is(img, video) { width: 100%; height: 100%; object-fit: cover; display: block; }.execution-exercise-visual > div { height: 100%; display: grid; place-content: center; justify-items: center; gap: 8px; color: #526158; font-size: 8px; }
 .execution-exercise-visual i { position: absolute; right: 12px; top: 12px; padding: 6px 9px; border-radius: 8px; color: var(--vita-green); background: rgba(4,10,7,.8); font-size: 8px; font-style: normal; font-weight: 800; }
 .execution-exercise-title { padding: 16px; display: flex; align-items: center; gap: 10px; }.execution-exercise-title > div { flex: 1; }.execution-exercise-title small { color: var(--vita-green); font-size: 7px; font-weight: 800; letter-spacing: 1px; }.execution-exercise-title h2 { margin-top: 4px; font-size: 19px; }.execution-exercise-title p { margin-top: 4px; color: var(--vita-muted); font-size: 8px; }
 .execution-exercise-title button { min-height: 37px; padding: 0 11px; border: 1px solid var(--vita-border); display: flex; align-items: center; gap: 5px; border-radius: 9px; color: #849188; background: #171e1a; font-size: 8px; cursor: pointer; }

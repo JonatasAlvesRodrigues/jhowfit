@@ -50,6 +50,7 @@ export const workoutExecutionService = {
           planned_sets: exercise.sets, planned_repetitions: exercise.repetitions,
           recommended_weight: exercise.initialWeight, previous_weight: previousByName.get(exercise.name) ?? null,
           rest_seconds: exercise.restSeconds, notes: exercise.notes || null, image_url: libraryItem?.imageUrl ?? null,
+          gif_url: libraryItem?.gifUrl ?? null, video_url: libraryItem?.videoUrl ?? null, thumbnail_url: libraryItem?.thumbnailUrl ?? null,
         }
       })
       const { data: createdExercises, error: exerciseError } = await supabase!.from('workout_session_exercises')
@@ -192,7 +193,8 @@ function mapExercise(row: Record<string, any>): ExecutionExercise {
     name: row.name, position: Number(row.position), plannedSets: Number(row.planned_sets),
     plannedRepetitions: row.planned_repetitions, recommendedWeight: numberOrNull(row.recommended_weight),
     previousWeight: numberOrNull(row.previous_weight), restSeconds: Number(row.rest_seconds),
-    notes: row.notes ?? '', imageUrl: row.image_url, skipped: Boolean(row.skipped),
+    notes: row.notes ?? '', imageUrl: row.image_url, gifUrl: row.gif_url ?? null, videoUrl: row.video_url ?? null,
+    thumbnailUrl: row.thumbnail_url ?? null, skipped: Boolean(row.skipped),
     sets: (row.workout_session_sets ?? []).sort((a: any, b: any) => a.set_number - b.set_number).map((set: any): ExecutionSet => ({
       id: set.id, setNumber: Number(set.set_number), plannedRepetitions: set.planned_repetitions,
       weight: numberOrNull(set.weight), repetitions: numberOrNull(set.repetitions),
