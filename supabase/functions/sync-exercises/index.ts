@@ -10,7 +10,7 @@ Deno.serve(async (request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL'), anonKey = Deno.env.get('SUPABASE_ANON_KEY')
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'), providerUrl = Deno.env.get('EXERCISE_PROVIDER_URL')
-    const providerKey = Deno.env.get('EXERCISE_PROVIDER_API_KEY'), authorization = request.headers.get('Authorization')
+    const providerKey = Deno.env.get('EXERCISE_PROVIDER_API_KEY'), providerHost = Deno.env.get('EXERCISE_PROVIDER_HOST'), authorization = request.headers.get('Authorization')
     if (!supabaseUrl || !anonKey || !serviceKey || !providerUrl) return json({ error: 'Sincronização não configurada.' }, 503)
     if (!authorization) return json({ error: 'Sessão não encontrada.' }, 401)
     const authHeaders = { apikey: anonKey, Authorization: authorization }
@@ -24,7 +24,8 @@ Deno.serve(async (request) => {
     if (input.query) url.searchParams.set('q', String(input.query).slice(0, 80))
     url.searchParams.set('limit', String(Math.min(Math.max(Number(input.limit ?? 50), 1), 300)))
     const headers: Record<string, string> = { Accept: 'application/json' }
-    if (providerKey) headers.Authorization = `Bearer ${providerKey}`
+    if (providerKey && providerHost) { headers['X-RapidAPI-Key'] = providerKey; headers['X-RapidAPI-Host'] = providerHost }
+    else if (providerKey) headers.Authorization = `Bearer ${providerKey}`
     const providerResponse = await fetch(url, { headers })
     if (!providerResponse.ok) return json({ error: 'Não foi possível consultar o provider agora.' }, 502)
     const payload = await providerResponse.json()

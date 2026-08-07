@@ -20,6 +20,6 @@ As telas normais não consultam API externa. O método opcional `searchExerciseP
 
 Adicione `VITE_EXERCISE_PROVIDER_URL` apenas se houver um endpoint seu que faça proxy seguro do provider. Depois de aplicar a migration `20260807200000_exercise_media_provider.sql`, cadastre um exercício com `gif_url` ou `video_url`, abra Treinos > Biblioteca e inicie uma ficha que o contenha. Teste também um URL inválido: o card deve voltar ao fallback e o treino continuar utilizável.
 
-Para sincronização pelo painel administrativo, configure nas secrets da Edge Function `sync-exercises`: `EXERCISE_PROVIDER_URL`, `EXERCISE_PROVIDER_API_KEY` (se exigida) e as secrets padrão do Supabase. Moderadores e administradores verão o botão “Sincronizar exercícios” em Administração. A função valida a role, consulta o provider no backend e faz upsert sem expor a chave.
+Para sincronização pelo painel administrativo, configure nas secrets da Edge Function `sync-exercises`: `EXERCISE_PROVIDER_URL`, `EXERCISE_PROVIDER_API_KEY` e, para RapidAPI, `EXERCISE_PROVIDER_HOST`. Moderadores e administradores verão o botão “Sincronizar exercícios” em Administração. A função valida a role, consulta o provider no backend e faz upsert sem expor a chave.
 
 Antes de uso comercial, registre a atribuição exigida pelo provider escolhido e confirme por escrito a permissão para armazenar/servir a mídia no produto.
