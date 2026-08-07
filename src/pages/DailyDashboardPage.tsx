@@ -117,11 +117,11 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           onClick={() => onNavigate('/dieta')}
         />
         <DashboardMetricCard
-          label="Proteína"
+          label="Dieta"
           icon={Salad}
           metric={data.metrics.protein}
-          currentLabel={`${Math.round(data.metrics.protein.current)} g`}
-          goalLabel={`Meta ${Math.round(data.metrics.protein.goal)} g`}
+          currentLabel={`${Math.round(data.metrics.protein.current / Math.max(data.metrics.protein.goal, 1) * 3)} / 3`}
+          goalLabel="Acompanhe suas refeições"
           color="purple"
           onClick={() => onNavigate('/dieta')}
         />

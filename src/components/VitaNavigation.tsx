@@ -11,11 +11,11 @@ interface NavigationProps {
 
 export function VitaLogo({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={`vita-logo ${compact ? 'is-compact' : ''}`} aria-label="MOVELYA">
+    <div className={`vita-logo ${compact ? 'is-compact' : ''}`} aria-label="JHOW">
       <span className="vita-logo__mark" aria-hidden="true">
-        <img src={`${import.meta.env.BASE_URL}movelya-logo.png`} alt="" />
+        <span className="vita-logo__letter">M</span>
       </span>
-      <span className="vita-logo__name">MOVE<strong>LYA</strong></span>
+      <span className="vita-logo__name">JH<strong>OW</strong></span>
     </div>
   )
 }

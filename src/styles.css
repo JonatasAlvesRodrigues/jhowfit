@@ -991,6 +991,8 @@ body { background: radial-gradient(circle at 90% -10%, rgba(19, 87, 116, .16), t
 .daily-metric--orange .daily-progress i { background: #ff9d46; }
 .daily-metric--blue .daily-progress i { background: #4ca8ff; }
 .daily-metric--purple .daily-progress i { background: #af8cff; }
+.vita-logo__letter { display: block; font: 900 25px/1 "Manrope", sans-serif; letter-spacing: -5px; transform: skew(-10deg); background: linear-gradient(145deg, #8affb1, #18d9a0 58%, #816cff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.vita-logo__mark img { display: none; }
 
 .daily-details-grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: 11px; }
 .daily-panel { min-height: 268px; padding: 23px; border: 1px solid var(--vita-border); border-radius: 19px; background: linear-gradient(145deg, rgba(17,23,19,.98), rgba(12,17,14,.98)); }
@@ -1051,14 +1053,29 @@ body { background: radial-gradient(circle at 90% -10%, rgba(19, 87, 116, .16), t
 
 @media (max-width: 720px) {
   .daily-dashboard { gap: 10px; }
+  .vita-content { padding: 20px 14px calc(92px + env(safe-area-inset-bottom)); }
   .daily-welcome { min-height: 59px; }
+  .daily-user { gap: 0; }
+  .daily-avatar { display: none; }
+  .daily-user small { font-size: 9px; letter-spacing: 1.5px; }
+  .daily-user h1 { font-size: 29px; letter-spacing: -1.3px; }
+  .daily-user p { margin-top: 6px; font-size: 11px; color: #9aa59e; }
+  .daily-welcome .daily-notification { display: none; }
+  .vita-header { height: 70px; padding-inline: 13px; }
+  .vita-header__mobile { gap: 9px; }
+  .vita-header__mobile .vita-logo__name { display: none; }
+  .vita-header__mobile .vita-logo__mark { width: 38px; height: 38px; border-radius: 12px; }
+  .vita-header__actions .theme-status, .vita-header__actions .profile-copy { display: none; }
+  .vita-header__actions { margin-left: auto; gap: 8px; }
+  .vita-icon-button { width: 40px; height: 40px; border-radius: 13px; }
+  .vita-profile .profile-avatar { width: 40px; height: 40px; border-radius: 13px; }
   .daily-avatar { flex-basis: 43px; height: 43px; border-radius: 13px; }
   .daily-user h1 { font-size: 22px; }
   .daily-user p { font-size: 9px; }
   .daily-notification { width: 39px; height: 39px; }
   .dashboard-empty-banner { align-items: flex-start; }
   .dashboard-empty-banner button { display: none; }
-  .today-summary { min-height: 194px; padding: 22px 20px; gap: 10px; border-radius: 19px; }
+  .today-summary { min-height: 205px; padding: 22px 19px; gap: 10px; border-radius: 22px; }
   .today-summary__copy h2 { max-width: 230px; font-size: 19px; line-height: 1.2; }
   .today-summary__copy > p { max-width: 235px; font-size: 9px; }
   .today-summary__legend { margin-top: 17px; }
@@ -1066,7 +1083,7 @@ body { background: radial-gradient(circle at 90% -10%, rgba(19, 87, 116, .16), t
   .daily-ring { flex-basis: 105px; height: 105px; }
   .daily-ring strong { font-size: 22px; }
   .daily-metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .daily-metric { min-height: 155px; padding: 14px; flex-direction: column; gap: 8px; border-radius: 15px; }
+  .daily-metric { min-height: 151px; padding: 15px; flex-direction: column; gap: 8px; border-radius: 19px; }
   .daily-metric__icon { flex-basis: 34px; width: 34px; height: 34px; }
   .daily-metric__copy { width: 100%; }
   .daily-metric__copy > strong { margin-top: 9px; font-size: 17px; }
