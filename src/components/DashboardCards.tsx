@@ -31,7 +31,7 @@ export function DashboardProgressRing({ value }: { value: number }) {
           strokeDashoffset={offset}
         />
       </svg>
-      <div><strong>{percentage}%</strong><span>Hidratação</span></div>
+      <div><strong>{percentage}%</strong><span>concluído</span></div>
     </div>
   )
 }
