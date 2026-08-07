@@ -1619,42 +1619,42 @@ button:not(:disabled):active { transition-duration: 80ms; }
 
 /* Reference dock: this final layer intentionally overrides earlier mobile-nav variants. */
 @media (max-width: 720px) {
-  .vita-content { padding-bottom: calc(116px + env(safe-area-inset-bottom)); }
+  .vita-content { padding-bottom: calc(102px + env(safe-area-inset-bottom)); }
   .vita-bottom-nav {
     z-index: 72;
     inset: auto 12px calc(0px + env(safe-area-inset-bottom)) 12px;
     width: auto;
-    min-height: 68px;
-    height: 68px;
-    padding: 5px 7px;
+    min-height: 58px;
+    height: 58px;
+    padding: 4px 6px;
     overflow: visible;
     border: 1px solid rgba(79, 236, 166, .48);
-    border-radius: 31px;
+    border-radius: 28px;
     background: radial-gradient(ellipse at 50% 0%, rgba(111, 255, 194, .13), transparent 61%), linear-gradient(122deg, rgba(31, 45, 37, .96), rgba(10, 17, 13, .98));
     box-shadow: inset 0 2px 1px rgba(225, 255, 238, .15), inset 0 -2px 12px rgba(0,0,0,.28), 0 22px 48px rgba(0,0,0,.64), 0 0 30px rgba(26, 232, 142, .16);
     backdrop-filter: blur(28px) saturate(135%);
   }
   .vita-bottom-nav button {
-    min-height: 57px;
-    height: 57px;
-    padding: 5px 1px 4px;
+    min-height: 50px;
+    height: 50px;
+    padding: 4px 1px 3px;
     gap: 3px;
     border: 0;
     border-radius: 20px;
     color: #a0aaa5;
     background: transparent;
-    font-size: 7px;
+    font-size: 6.5px;
     font-weight: 700;
     letter-spacing: -.25px;
     text-shadow: 0 2px 9px rgba(0,0,0,.55);
   }
-  .vita-bottom-nav .bottom-icon { height: 25px; }
-  .vita-bottom-nav button .bottom-icon svg { width: 21px; height: 21px; stroke-width: 1.75; }
+  .vita-bottom-nav .bottom-icon { height: 22px; }
+  .vita-bottom-nav button .bottom-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
   .vita-bottom-nav button.is-active {
     z-index: 3;
-    height: 75px;
-    min-height: 75px;
-    transform: translateY(-10px) !important;
+    height: 64px;
+    min-height: 64px;
+    transform: translateY(-7px) !important;
     border: 1px solid rgba(68, 250, 173, .78);
     border-radius: 24px;
     color: #4cf2ad;
@@ -1667,9 +1667,9 @@ button:not(:disabled):active { transition-duration: 80ms; }
   .ai-floating-button {
     z-index: 74;
     right: 0;
-    bottom: calc(11px + env(safe-area-inset-bottom));
-    width: 48px;
-    height: 48px;
+    bottom: calc(9px + env(safe-area-inset-bottom));
+    width: 42px;
+    height: 42px;
     border: 1px solid rgba(92, 255, 188, .88);
     background: radial-gradient(circle at 28% 21%, #c1ffe3, #42f0aa 46%, #0d7048 100%);
     box-shadow: inset 0 2px 3px rgba(255,255,255,.58), 0 0 0 5px rgba(34, 234, 146, .10), 0 0 34px rgba(41, 245, 157, .56), 0 16px 29px rgba(0,0,0,.56);
