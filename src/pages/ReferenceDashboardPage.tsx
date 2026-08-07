@@ -1,9 +1,11 @@
-import { Activity, Bell, Droplets, Dumbbell, Flame, Footprints, Heart, Menu, Salad, Sparkles, UserRound } from 'lucide-react'
+import { Activity, Bell, Bot, Droplets, Dumbbell, Flame, Footprints, Heart, Menu, Salad, Sparkles, UserRound, Wifi } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 export function ReferenceDashboardPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   return (
     <section className="jhow-dashboard" aria-label="Painel inicial Jhow">
+      <div className="jhow-statusbar"><span>9:41</span><div><span className="jhow-signal">▮▮▮</span><Wifi size={15} /><span className="jhow-battery" /></div></div>
+
       <header className="jhow-topbar">
         <button onClick={() => onNavigate('/perfil')} aria-label="Abrir menu"><Menu size={25} /></button>
         <div className="jhow-mark" aria-label="Jhow"><span>M</span></div>
