@@ -9,7 +9,7 @@ Deno.serve(async (request) => {
   if (request.method !== 'POST') return json({ error: 'Método não permitido.' }, 405)
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL'), anonKey = Deno.env.get('SUPABASE_ANON_KEY')
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'), providerUrl = Deno.env.get('EXERCISE_PROVIDER_URL')
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'), providerUrl = Deno.env.get('EXERCISE_PROVIDER_URL') || 'https://oss.exercisedb.dev/api/v1/exercises'
     const providerKey = Deno.env.get('EXERCISE_PROVIDER_API_KEY'), providerHost = Deno.env.get('EXERCISE_PROVIDER_HOST'), authorization = request.headers.get('Authorization')
     if (!supabaseUrl || !anonKey || !serviceKey || !providerUrl) return json({ error: 'Sincronização não configurada.' }, 503)
     if (!authorization) return json({ error: 'Sessão não encontrada.' }, 401)
@@ -40,9 +40,10 @@ Deno.serve(async (request) => {
 
 function normalize(row: Record<string, unknown>) {
   const name = String(row.name_pt ?? row.name ?? '').trim()
-  const slug = String(row.slug ?? name).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-  return { external_id: String(row.external_id ?? row.externalId ?? row.id), source: String(row.source ?? 'exercise-provider'), slug, name, name_en: row.name_en ?? row.name ?? null, body_part: row.body_part ?? row.bodyPart ?? null, primary_muscle: row.primary_muscle ?? row.targetMuscle ?? row.bodyPart ?? 'Outro', secondary_muscles: array(row.secondary_muscles ?? row.secondaryMuscles), equipment: row.equipment_pt ?? row.equipment ?? 'Nenhum', level: normalizeLevel(row.difficulty ?? row.level), instructions: array(row.instructions_pt ?? row.instructions), common_mistakes: array(row.common_mistakes ?? row.commonMistakes), safety_tips: array(row.safety_tips ?? row.safetyTips), substitutions: array(row.substitutions), locations: ['Academia', 'Casa'], image_url: row.image_url ?? null, gif_url: row.gif_url ?? row.gifUrl ?? null, video_url: row.video_url ?? row.videoUrl ?? null, thumbnail_url: row.thumbnail_url ?? row.thumbnailUrl ?? null, source_url: row.source_url ?? row.sourceUrl ?? null }
+    const slug = String(row.slug ?? name).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  return { external_id: String(row.external_id ?? row.externalId ?? row.exerciseId ?? row.id), source: String(row.source ?? 'exercise-provider'), slug, name, name_en: row.name_en ?? row.name ?? null, body_part: first(row.body_part ?? row.bodyPart ?? row.bodyParts) ?? null, primary_muscle: row.primary_muscle ?? row.targetMuscle ?? first(row.targetMuscles) ?? first(row.bodyParts) ?? 'Outro', secondary_muscles: array(row.secondary_muscles ?? row.secondaryMuscles), equipment: row.equipment_pt ?? row.equipment ?? first(row.equipments) ?? 'Nenhum', level: normalizeLevel(row.difficulty ?? row.level), instructions: array(row.instructions_pt ?? row.instructions), common_mistakes: array(row.common_mistakes ?? row.commonMistakes), safety_tips: array(row.safety_tips ?? row.safetyTips), substitutions: array(row.substitutions), locations: ['Academia', 'Casa'], image_url: row.image_url ?? null, gif_url: row.gif_url ?? row.gifUrl ?? null, video_url: row.video_url ?? row.videoUrl ?? null, thumbnail_url: row.thumbnail_url ?? row.thumbnailUrl ?? null, source_url: row.source_url ?? row.sourceUrl ?? null }
 }
 function array(value: unknown) { return Array.isArray(value) ? value.map(String) : typeof value === 'string' && value ? [value] : [] }
+function first(value: unknown) { return Array.isArray(value) ? String(value[0] ?? '') : value ? String(value) : '' }
 function normalizeLevel(value: unknown) { const text = String(value ?? '').toLowerCase(); return text.includes('avan') ? 'Avançado' : text.includes('inter') ? 'Intermediário' : 'Iniciante' }
 function json(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }) }

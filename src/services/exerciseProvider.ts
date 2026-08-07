@@ -25,10 +25,10 @@ export function createExerciseProvider(): ExerciseProvider | null {
 
 export function normalizeProviderExercise(row: Record<string, unknown>): Partial<ExerciseLibraryItem> {
   const name = String(row.name_pt ?? row.name ?? '').trim()
-  const primaryMuscle = String(row.primary_muscle ?? row.targetMuscle ?? row.bodyPart ?? row.body_part ?? 'Outro')
-  const equipment = String(row.equipment_pt ?? row.equipment ?? 'Nenhum')
+  const primaryMuscle = String(row.primary_muscle ?? row.targetMuscle ?? first(row.targetMuscles) ?? row.bodyPart ?? first(row.bodyParts) ?? row.body_part ?? 'Outro')
+  const equipment = String(row.equipment_pt ?? row.equipment ?? first(row.equipments) ?? 'Nenhum')
   return {
-    externalId: stringOrNull(row.external_id ?? row.externalId ?? row.id),
+    externalId: stringOrNull(row.external_id ?? row.externalId ?? row.exerciseId ?? row.id),
     slug: slugify(String(row.slug ?? name)),
     name,
     primaryMuscle,
@@ -56,6 +56,7 @@ function strings(value: unknown): string[] {
 }
 
 function stringOrNull(value: unknown) { return value === null || value === undefined || value === '' ? null : String(value) }
+function first(value: unknown) { return Array.isArray(value) ? String(value[0] ?? '') : value ? String(value) : '' }
 
 function normalizeLevel(value: unknown): ExerciseLevel {
   const text = String(value ?? '').toLowerCase()

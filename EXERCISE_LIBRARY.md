@@ -20,6 +20,6 @@ As telas normais não consultam API externa. O método opcional `searchExerciseP
 
 Adicione `VITE_EXERCISE_PROVIDER_URL` apenas se houver um endpoint seu que faça proxy seguro do provider. Depois de aplicar a migration `20260807200000_exercise_media_provider.sql`, cadastre um exercício com `gif_url` ou `video_url`, abra Treinos > Biblioteca e inicie uma ficha que o contenha. Teste também um URL inválido: o card deve voltar ao fallback e o treino continuar utilizável.
 
-Para sincronização pelo painel administrativo, configure nas secrets da Edge Function `sync-exercises`: `EXERCISE_PROVIDER_URL`, `EXERCISE_PROVIDER_API_KEY` e, para RapidAPI, `EXERCISE_PROVIDER_HOST`. Moderadores e administradores verão o botão “Sincronizar exercícios” em Administração. A função valida a role, consulta o provider no backend e faz upsert sem expor a chave.
+Por padrão, a Edge Function usa o endpoint gratuito do ExerciseDB V1 (`https://oss.exercisedb.dev/api/v1/exercises`), sem chave. Moderadores e administradores verão o botão “Sincronizar exercícios” em Administração. A função valida a role, consulta o provider no backend e faz upsert sem expor a chave. Se futuramente usar RapidAPI, configure `EXERCISE_PROVIDER_URL`, `EXERCISE_PROVIDER_API_KEY` e `EXERCISE_PROVIDER_HOST` nas secrets.
 
 Antes de uso comercial, registre a atribuição exigida pelo provider escolhido e confirme por escrito a permissão para armazenar/servir a mídia no produto.
