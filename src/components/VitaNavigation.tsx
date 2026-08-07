@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { Sparkles, X } from 'lucide-react'
 import type { RouteId } from '../types/navigation'
 import { adminRoute, mobileRoutes, vitaRoutes } from '../utils/navigation'
 import { useAuth } from '../contexts/AuthContext'
@@ -84,4 +84,8 @@ export function MobileNavigation({ activeRoute, onNavigate }: NavigationProps) {
       ))}
     </nav>
   )
+}
+
+export function AIFloatingButton({ onNavigate }: { onNavigate: (path: string) => void }) {
+  return <button className="ai-floating-button" onClick={() => onNavigate('/assistente')} aria-label="Abrir assistente IA"><span><Sparkles size={20} /></span><b>IA</b></button>
 }

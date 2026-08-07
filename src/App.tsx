@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { VitaHeader } from './components/VitaHeader'
-import { MobileNavigation, VitaSidebar } from './components/VitaNavigation'
+import { AIFloatingButton, MobileNavigation, VitaSidebar } from './components/VitaNavigation'
 import { useAuth } from './contexts/AuthContext'
 import { AuthPage } from './pages/AuthPages'
 import { DailyDashboardPage } from './pages/DailyDashboardPage'
@@ -165,6 +165,7 @@ export default function App() {
         </div>
 
         <MobileNavigation activeRoute={route?.id} onNavigate={navigate} />
+        {route?.id !== 'assistente' && <AIFloatingButton onNavigate={navigate} />}
       </div>
     </AppErrorBoundary>
   )
