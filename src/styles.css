@@ -1761,3 +1761,21 @@ button:not(:disabled):active { transition-duration: 80ms; }
   .daily-metric__goal { font-size: 9px !important; }
 }
 
+/* Exact reference framing for the initial dashboard viewport */
+.daily-dashboard { gap: 16px; }
+.today-summary { position: relative; overflow: hidden; }
+.today-summary::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .35; background: radial-gradient(ellipse at 76% 82%, transparent 0 24%, rgba(76,255,192,.12) 25%, transparent 43%), radial-gradient(circle at 90% 20%, rgba(73,246,176,.25) 0 1px, transparent 2px); background-size: 100% 100%, 13px 13px; mask-image: linear-gradient(90deg, transparent 45%, #000); }
+.daily-metric { overflow: hidden; }
+.daily-metric::after { content: ''; position: absolute; width: 160px; height: 130px; right: -28px; bottom: -46px; border-radius: 50%; opacity: .35; pointer-events: none; background: radial-gradient(ellipse, currentColor 0, transparent 65%); filter: blur(20px); }
+.daily-metric--green::before { content: ''; position: absolute; width: 90px; height: 180px; right: 24px; bottom: -78px; opacity: .16; transform: rotate(-30deg); background: repeating-linear-gradient(175deg, transparent 0 12px, currentColor 13px 15px, transparent 16px 28px); filter: blur(2px); }
+.daily-metric--orange::before { content: ''; position: absolute; width: 50px; height: 150px; right: 42px; bottom: -66px; opacity: .20; transform: rotate(18deg); background: radial-gradient(ellipse, #ff9d46, transparent 68%); filter: blur(14px); }
+.daily-metric--purple::before { content: ''; position: absolute; width: 120px; height: 90px; right: 4px; bottom: -12px; opacity: .18; transform: rotate(-18deg); background: radial-gradient(ellipse, #af8cff, transparent 65%); filter: blur(10px); }
+.daily-metric--blue::before { content: ''; position: absolute; width: 150px; height: 55px; right: -12px; bottom: 8px; opacity: .18; background: radial-gradient(ellipse, #4ca8ff, transparent 65%); filter: blur(11px); }
+.daily-metric > * { position: relative; z-index: 1; }
+@media (max-width:720px) {
+  .daily-dashboard { gap: 11px; }
+  .today-summary { min-height: 224px !important; }
+  .daily-metric { min-height: 184px !important; }
+  .daily-energy { display: none; }
+}
+
