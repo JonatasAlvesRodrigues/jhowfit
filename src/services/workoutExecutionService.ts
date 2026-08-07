@@ -77,7 +77,7 @@ export const workoutExecutionService = {
     const [sessionResult, exercisesResult] = await Promise.all([
       supabase!.from('workout_sessions').select('*').eq('id', sessionId).eq('user_id', userId).single(),
       supabase!.from('workout_session_exercises')
-        .select('*,workout_session_sets(*)').eq('session_id', sessionId).eq('user_id', userId).order('position'),
+        .select('*,workout_session_sets(*),exercise_library:library_exercise_id(image_url,gif_url,video_url,thumbnail_url)').eq('session_id', sessionId).eq('user_id', userId).order('position'),
     ])
     if (sessionResult.error || exercisesResult.error) throw new Error('Não foi possível recuperar o treino.')
     return {
@@ -188,13 +188,15 @@ export const workoutExecutionService = {
 }
 
 function mapExercise(row: Record<string, any>): ExecutionExercise {
+  const libraryMedia = Array.isArray(row.exercise_library) ? row.exercise_library[0] : row.exercise_library
   return {
     id: row.id, sourceExerciseId: row.source_exercise_id, libraryExerciseId: row.library_exercise_id,
     name: row.name, position: Number(row.position), plannedSets: Number(row.planned_sets),
     plannedRepetitions: row.planned_repetitions, recommendedWeight: numberOrNull(row.recommended_weight),
     previousWeight: numberOrNull(row.previous_weight), restSeconds: Number(row.rest_seconds),
-    notes: row.notes ?? '', imageUrl: row.image_url, gifUrl: row.gif_url ?? null, videoUrl: row.video_url ?? null,
-    thumbnailUrl: row.thumbnail_url ?? null, skipped: Boolean(row.skipped),
+    notes: row.notes ?? '', imageUrl: row.image_url ?? libraryMedia?.image_url ?? null,
+    gifUrl: row.gif_url ?? libraryMedia?.gif_url ?? null, videoUrl: row.video_url ?? libraryMedia?.video_url ?? null,
+    thumbnailUrl: row.thumbnail_url ?? libraryMedia?.thumbnail_url ?? null, skipped: Boolean(row.skipped),
     sets: (row.workout_session_sets ?? []).sort((a: any, b: any) => a.set_number - b.set_number).map((set: any): ExecutionSet => ({
       id: set.id, setNumber: Number(set.set_number), plannedRepetitions: set.planned_repetitions,
       weight: numberOrNull(set.weight), repetitions: numberOrNull(set.repetitions),
