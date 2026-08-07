@@ -155,6 +155,8 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
         />
       </div>
 
+      <div className="daily-energy"><span className="daily-energy__icon"><Flame size={17} fill="currentColor" /></span><strong>Energia</strong><b>{data.metrics.activeMinutes > 0 ? 'Boa' : 'A iniciar'}</b><span>{Math.min(100, Math.round(data.metrics.activeMinutes / 30 * 100))} / 100</span><i><em style={{ width: `${Math.min(100, Math.round(data.metrics.activeMinutes / 30 * 100))}%` }} /></i></div>
+
       <div className="daily-details-grid">
         <article className="daily-panel workout-today">
           <div className="daily-panel__heading">
