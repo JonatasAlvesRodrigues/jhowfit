@@ -1617,3 +1617,63 @@ button:not(:disabled):active { transition-duration: 80ms; }
   }
 }
 
+/* Reference dock: this final layer intentionally overrides earlier mobile-nav variants. */
+@media (max-width: 720px) {
+  .vita-content { padding-bottom: calc(142px + env(safe-area-inset-bottom)); }
+  .vita-bottom-nav {
+    z-index: 72;
+    inset: auto 12px calc(10px + env(safe-area-inset-bottom)) 12px;
+    width: auto;
+    min-height: 84px;
+    height: 84px;
+    padding: 7px 11px;
+    overflow: visible;
+    border: 1px solid rgba(79, 236, 166, .48);
+    border-radius: 38px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(111, 255, 194, .13), transparent 61%), linear-gradient(122deg, rgba(31, 45, 37, .96), rgba(10, 17, 13, .98));
+    box-shadow: inset 0 2px 1px rgba(225, 255, 238, .15), inset 0 -2px 12px rgba(0,0,0,.28), 0 22px 48px rgba(0,0,0,.64), 0 0 30px rgba(26, 232, 142, .16);
+    backdrop-filter: blur(28px) saturate(135%);
+  }
+  .vita-bottom-nav button {
+    min-height: 68px;
+    height: 68px;
+    padding: 8px 1px 6px;
+    gap: 5px;
+    border: 0;
+    border-radius: 24px;
+    color: #a0aaa5;
+    background: transparent;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: -.25px;
+    text-shadow: 0 2px 9px rgba(0,0,0,.55);
+  }
+  .vita-bottom-nav .bottom-icon { height: 30px; }
+  .vita-bottom-nav button .bottom-icon svg { width: 25px; height: 25px; stroke-width: 1.65; }
+  .vita-bottom-nav button.is-active {
+    z-index: 3;
+    height: 92px;
+    min-height: 92px;
+    transform: translateY(-18px) !important;
+    border: 1px solid rgba(68, 250, 173, .78);
+    border-radius: 30px;
+    color: #4cf2ad;
+    background: radial-gradient(circle at 50% 12%, rgba(108, 255, 190, .30), transparent 43%), linear-gradient(160deg, rgba(39, 112, 76, .95), rgba(11, 42, 28, .98));
+    box-shadow: inset 0 2px 2px rgba(218, 255, 235, .25), inset 0 -18px 28px rgba(0,0,0,.2), 0 0 0 2px rgba(49, 239, 154, .11), 0 0 29px rgba(37, 239, 150, .47), 0 18px 30px rgba(0,0,0,.48);
+    text-shadow: 0 0 17px rgba(84, 255, 183, .82);
+  }
+  .vita-bottom-nav button.is-active .bottom-icon { filter: drop-shadow(0 0 10px rgba(68, 249, 173, .9)); }
+  .vita-bottom-nav button.is-active .bottom-icon::after { display: none !important; }
+  .ai-floating-button {
+    z-index: 74;
+    right: 0;
+    bottom: calc(29px + env(safe-area-inset-bottom));
+    width: 59px;
+    height: 59px;
+    border: 1px solid rgba(92, 255, 188, .88);
+    background: radial-gradient(circle at 28% 21%, #c1ffe3, #42f0aa 46%, #0d7048 100%);
+    box-shadow: inset 0 2px 3px rgba(255,255,255,.58), 0 0 0 5px rgba(34, 234, 146, .10), 0 0 34px rgba(41, 245, 157, .56), 0 16px 29px rgba(0,0,0,.56);
+  }
+  .ai-floating-button b { right: -4px; bottom: -5px; }
+}
+
