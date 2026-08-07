@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <section className={`card ${className}`}>{children}</section>
@@ -22,12 +23,16 @@ export function Progress({ value, color = 'green' }: { value: number; color?: 'g
 }
 
 export function Modal({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
-  return <div className="modal-backdrop" onMouseDown={onClose}>
+  const content = <div className="modal-backdrop" onMouseDown={onClose}>
     <div className="modal" onMouseDown={(event) => event.stopPropagation()}>
       <div className="modal__header"><h2>{title}</h2><button className="icon-button" onClick={onClose} aria-label="Fechar"><X size={20} /></button></div>
       {children}
     </div>
   </div>
+
+  // Keep dialogs outside the animated route container. Otherwise a route
+  // transition can apply its opacity/blur to the form and make it look empty.
+  return typeof document === 'undefined' ? content : createPortal(content, document.body)
 }
 
 export function LoadingState() {
