@@ -5,7 +5,7 @@ import { VitaLogo } from './VitaNavigation'
 
 export function VitaHeader({ route, onOpenMenu, onNavigate }: { route: VitaRoute | null; onOpenMenu: () => void; onNavigate: (path: string) => void }) {
   const { user } = useAuth()
-  const name = String(user?.user_metadata?.full_name || 'Jhow')
+  const name = String(user?.user_metadata?.full_name || 'Usuário MOVELYA')
   const initials = name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   return (
     <header className="vita-header">
@@ -16,7 +16,7 @@ export function VitaHeader({ route, onOpenMenu, onNavigate }: { route: VitaRoute
         <VitaLogo compact />
       </div>
       <div className="vita-breadcrumb">
-        <span>JHOW</span>
+        <span>MOVELYA</span>
         <i>/</i>
         <strong key={route?.id ?? 'not-found'}>{route?.label ?? 'Página não encontrada'}</strong>
       </div>
