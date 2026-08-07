@@ -1622,7 +1622,7 @@ button:not(:disabled):active { transition-duration: 80ms; }
   .vita-content { padding-bottom: calc(116px + env(safe-area-inset-bottom)); }
   .vita-bottom-nav {
     z-index: 72;
-    inset: auto 12px calc(10px + env(safe-area-inset-bottom)) 12px;
+    inset: auto 12px calc(3px + env(safe-area-inset-bottom)) 12px;
     width: auto;
     min-height: 68px;
     height: 68px;
@@ -1667,7 +1667,7 @@ button:not(:disabled):active { transition-duration: 80ms; }
   .ai-floating-button {
     z-index: 74;
     right: 0;
-    bottom: calc(21px + env(safe-area-inset-bottom));
+    bottom: calc(14px + env(safe-area-inset-bottom));
     width: 48px;
     height: 48px;
     border: 1px solid rgba(92, 255, 188, .88);
