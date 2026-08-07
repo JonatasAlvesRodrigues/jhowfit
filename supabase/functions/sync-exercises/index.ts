@@ -32,7 +32,7 @@ Deno.serve(async (request) => {
     const rows = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : Array.isArray(payload?.exercises) ? payload.exercises : []
     const exercises = rows.map(normalize).filter((item: Record<string, unknown>) => item.name && item.external_id)
     if (!exercises.length) return json({ synced: 0, message: 'Nenhum exercício novo retornado.' })
-    const write = await fetch(`${supabaseUrl}/rest/v1/exercise_library?on_conflict=source,external_id`, { method: 'POST', headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(exercises) })
+    const write = await fetch(`${supabaseUrl}/rest/v1/exercise_library?on_conflict=slug`, { method: 'POST', headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(exercises) })
     if (!write.ok) return json({ error: 'Os exercícios foram recebidos, mas não puderam ser salvos.' }, 502)
     return json({ synced: exercises.length })
   } catch (error) { console.error(error); return json({ error: 'Não foi possível sincronizar novos exercícios agora.' }, 500) }
