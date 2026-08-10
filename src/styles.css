@@ -1973,3 +1973,35 @@ button:not(:disabled):active { transition-duration: 80ms; }
 .daily-metric--green::before { opacity: .11 !important; }
 .daily-metric--orange::before,.daily-metric--purple::before,.daily-metric--blue::before { opacity: .14 !important; }
 
+/* Phone composition: the reference is a fixed compact card canvas, rather
+   than full-bleed dashboard tiles. `pointer: coarse` covers installed-web-app
+   viewports that report a desktop CSS width. */
+@media (max-width: 720px), (pointer: coarse) {
+  .daily-dashboard {
+    width: min(443px, 100%);
+    margin-inline: auto;
+    gap: 16px;
+  }
+  .today-summary {
+    height: 235px !important;
+    min-height: 235px !important;
+    max-height: 235px;
+    padding: 29px 30px !important;
+  }
+  .today-summary__copy h2 {
+    max-width: 210px !important;
+    font-size: 28px !important;
+  }
+  .today-summary__copy > p { max-width: 210px !important; }
+  .daily-metrics-grid {
+    grid-auto-rows: 159px;
+    gap: 11px !important;
+  }
+  .daily-metric {
+    height: 159px !important;
+    min-height: 159px !important;
+    max-height: 159px;
+  }
+  .daily-energy { display: none; }
+}
+
