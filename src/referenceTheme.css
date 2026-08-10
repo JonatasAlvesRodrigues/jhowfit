@@ -1,0 +1,156 @@
+/* Shared MOVELYA card language — loaded after route styles so every feature
+   keeps its own layout while sharing the dashboard's visual system. */
+:root {
+  --reference-surface: linear-gradient(145deg, #0d1914 0%, #070d0a 100%);
+  --reference-surface-raised: linear-gradient(145deg, #12221b 0%, #09120e 100%);
+  --reference-border: rgba(122, 172, 148, .30);
+  --reference-border-active: rgba(53, 230, 160, .54);
+  --reference-inset: rgba(231, 255, 242, .07);
+  --reference-muted: #87988f;
+  --reference-shadow: 0 14px 34px rgba(0, 0, 0, .26);
+}
+
+.vita-shell { background: radial-gradient(circle at 88% -5%, rgba(29, 185, 126, .09), transparent 28%), #060a08; }
+.vita-content { max-width: 1360px; }
+
+/* Primary content containers */
+:is(.card, [class*="-card"], [class*="-panel"], [class*="-section"],
+    .library-filters, .library-results, .workout-editor-settings,
+    .workout-exercise-editor, .modal, .library-modal) {
+  border-color: var(--reference-border) !important;
+  background: var(--reference-surface) !important;
+  box-shadow: inset 0 1px var(--reference-inset), var(--reference-shadow) !important;
+}
+
+:is(.card, [class*="-card"], [class*="-panel"], [class*="-section"],
+    .library-filters, .library-results, .workout-editor-settings,
+    .workout-exercise-editor, .modal, .library-modal) > * { position: relative; }
+
+/* Preserve meaningful metric color while retaining the same depth and border. */
+:is(.metric--orange, .nutrition-macro-card--orange, .daily-metric--orange) { border-color: rgba(235, 137, 53, .52) !important; background: radial-gradient(circle at 82% 86%, rgba(220, 97, 18, .20), transparent 39%), linear-gradient(145deg, #28190f, #100c08) !important; }
+:is(.metric--blue, .nutrition-macro-card--blue, .daily-metric--blue) { border-color: rgba(74, 166, 229, .50) !important; background: radial-gradient(circle at 82% 86%, rgba(24, 113, 181, .18), transparent 39%), linear-gradient(145deg, #0c2537, #071018) !important; }
+:is(.nutrition-macro-card--green, .daily-metric--green) { border-color: rgba(55, 211, 154, .48) !important; background: radial-gradient(circle at 82% 86%, rgba(22, 142, 96, .16), transparent 39%), linear-gradient(145deg, #0c281d, #07110d) !important; }
+
+/* Headings, captions and utility labels share the compact dashboard rhythm. */
+:is(.page-heading, .placeholder-hero, .library-heading, .report-hero,
+    .achievement-hero, .training-hero, .water-hero, .steps-hero,
+    .nutrition-hero, .body-hero, .goals-hero) h1,
+:is(.page-heading, .placeholder-hero, .library-heading, .report-hero,
+    .achievement-hero, .training-hero, .water-hero, .steps-hero,
+    .nutrition-hero, .body-hero, .goals-hero) h2 {
+  letter-spacing: -1.15px;
+}
+
+:is(.page-eyebrow, .page-heading p, .page-heading small, .library-heading small,
+    .report-hero small, .achievement-hero small, [class*="heading"] > small,
+    [class*="heading"] small:first-child) {
+  color: var(--vita-green) !important;
+  font-weight: 800;
+  letter-spacing: 1.55px;
+}
+
+/* Inputs, filter controls and secondary actions use the same quiet glass finish. */
+:is(input, select, textarea, .library-search, .library-filter-select,
+    .week-picker, .training-field > div, .nutrition-toolbar__actions button,
+    .achievement-filters button, .water-quick-actions button, .steps-quick-actions button) {
+  border-color: rgba(126, 166, 146, .28) !important;
+  background: rgba(8, 15, 11, .78) !important;
+  color: #d6e1da;
+  box-shadow: inset 0 1px rgba(255,255,255,.035);
+}
+
+:is(.vita-primary-button, .button--primary, .start-workout-button,
+    .details-add, .editor-save-top, .report-export-button, .auth-submit) {
+  border: 1px solid rgba(163, 255, 210, .28) !important;
+  background: linear-gradient(135deg, #51eaae, #20c982) !important;
+  color: #04291b !important;
+  box-shadow: 0 9px 24px rgba(31, 210, 137, .20) !important;
+}
+
+:is(button, .card, [class*="-card"], [class*="-panel"]) { transition: transform .18s ease, border-color .18s ease, filter .18s ease, background .18s ease; }
+:is(.card, [class*="-card"], [class*="-panel"]):hover { border-color: rgba(77, 208, 153, .48) !important; }
+:is(button:not(:disabled)):active { transform: scale(.985); }
+
+/* Lists and tables are grouped as individual matte tiles. */
+:is(.workout-item, .history-list article, .water-log-list article,
+    .steps-record-list article, .notification-item, .configured-exercise,
+    .food-item, .meal-item, .goal-item, .activity-recent-list > button,
+    .substitution-list button, .workout-option-list button) {
+  border-color: rgba(122, 172, 148, .22) !important;
+  background: rgba(8, 15, 11, .68) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.035);
+}
+
+@media (max-width: 720px) {
+  .vita-content { padding-inline: 16px; }
+  :is(.card, [class*="-card"], [class*="-panel"], [class*="-section"], .library-filters, .library-results) { border-radius: 19px !important; }
+}
+
+/* Light mode: designed as a calm health workspace, with tinted paper surfaces
+   and controlled green accents instead of a washed-out inversion. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --vita-bg: #eef5f0;
+  --vita-surface: #f8fcf9;
+  --vita-surface-raised: #ffffff;
+  --vita-text: #15231b;
+  --vita-muted: #64746b;
+  --vita-border: rgba(42, 91, 66, .17);
+  --vita-green: #139b67;
+  --vita-green-soft: rgba(19, 155, 103, .10);
+  --reference-surface: linear-gradient(145deg, #ffffff 0%, #f3f8f4 100%);
+  --reference-surface-raised: linear-gradient(145deg, #ffffff 0%, #edf5ef 100%);
+  --reference-border: rgba(42, 91, 66, .18);
+  --reference-border-active: rgba(19, 155, 103, .48);
+  --reference-inset: rgba(255, 255, 255, .92);
+  --reference-muted: #66776d;
+  --reference-shadow: 0 12px 30px rgba(22, 63, 39, .09);
+}
+
+:root[data-theme="light"],
+:root[data-theme="light"] body {
+  color: #15231b;
+  background: #eef5f0;
+}
+
+:root[data-theme="light"] .vita-shell {
+  background: radial-gradient(circle at 88% -6%, rgba(59, 203, 144, .20), transparent 30%), radial-gradient(circle at 8% 4%, rgba(126, 193, 157, .16), transparent 25%), #eef5f0;
+}
+:root[data-theme="light"] .vita-header,
+:root[data-theme="light"] .vita-sidebar,
+:root[data-theme="light"] .vita-bottom-nav {
+  border-color: rgba(42, 91, 66, .14);
+  background: rgba(250, 253, 250, .86);
+  box-shadow: 0 8px 26px rgba(23, 58, 37, .06);
+}
+:root[data-theme="light"] .vita-logo__mark { background: #e7f7ed; box-shadow: 0 8px 20px rgba(19,155,103,.11); }
+:root[data-theme="light"] .vita-icon-button,
+:root[data-theme="light"] .header-menu-button,
+:root[data-theme="light"] .theme-status { border-color: rgba(42, 91, 66, .18); color: #315341; background: rgba(255,255,255,.76); }
+:root[data-theme="light"] .theme-status:hover { color: #0b7a4e; border-color: rgba(19,155,103,.4); }
+
+:root[data-theme="light"] :is(.card, [class*="-card"], [class*="-panel"], [class*="-section"],
+    .library-filters, .library-results, .workout-editor-settings,
+    .workout-exercise-editor, .modal, .library-modal) {
+  color: #18271f;
+  background: var(--reference-surface) !important;
+  border-color: var(--reference-border) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.95), var(--reference-shadow) !important;
+}
+
+:root[data-theme="light"] :is(.metric--orange, .nutrition-macro-card--orange, .daily-metric--orange) { background: radial-gradient(circle at 82% 86%, rgba(249,171,87,.25), transparent 42%), linear-gradient(145deg, #fffaf4, #fff1e4) !important; border-color: rgba(213,125,36,.38) !important; }
+:root[data-theme="light"] :is(.metric--blue, .nutrition-macro-card--blue, .daily-metric--blue) { background: radial-gradient(circle at 82% 86%, rgba(96,183,238,.24), transparent 42%), linear-gradient(145deg, #f7fcff, #eaf6ff) !important; border-color: rgba(51,143,202,.33) !important; }
+:root[data-theme="light"] :is(.nutrition-macro-card--green, .daily-metric--green) { background: radial-gradient(circle at 82% 86%, rgba(74,210,148,.20), transparent 42%), linear-gradient(145deg, #f8fffa, #e7f8ee) !important; border-color: rgba(24,151,99,.35) !important; }
+
+:root[data-theme="light"] :is(input, select, textarea, .library-search, .library-filter-select, .week-picker, .training-field > div, .nutrition-toolbar__actions button, .achievement-filters button, .water-quick-actions button, .steps-quick-actions button) {
+  color: #1d3025;
+  border-color: rgba(42, 91, 66, .20) !important;
+  background: rgba(255,255,255,.82) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.96);
+}
+:root[data-theme="light"] :is(input, textarea)::placeholder { color: #84958a; }
+:root[data-theme="light"] :is(.workout-item, .history-list article, .water-log-list article, .steps-record-list article, .notification-item, .configured-exercise, .food-item, .meal-item, .goal-item, .activity-recent-list > button, .substitution-list button, .workout-option-list button) { background: rgba(255,255,255,.70) !important; border-color: rgba(42,91,66,.15) !important; }
+
+:root[data-theme="light"] :is(.daily-progress, .progress, .xp-track, .mini-progress, .nutrition-ring__meter) { background-color: rgba(47, 93, 69, .13) !important; }
+:root[data-theme="light"] :is(.daily-metric__goal, .muted, .weight-hint, .notification-feed__main p, .notification-feed__main time) { color: #6c7b72 !important; }
+:root[data-theme="light"] :is(.daily-metric__top small, .section-heading small, .daily-panel__heading small) { color: #5d6f65 !important; }

@@ -28,13 +28,26 @@ import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './page
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
 import './pwa/registerServiceWorker'
+import './referenceTheme.css'
 
 export default function App() {
   const { route, status, navigate, retry } = useVitaRoute()
   const { user, role, roleLoading, loading: authLoading, recoveryMode, logout } = useAuth()
   const onboarding = useOnboardingStatus(user?.id)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const siteOrigin = typeof window === 'undefined' ? '' : window.location.origin
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem('movelya-theme')
+    if (savedTheme === 'light' || savedTheme === 'dark') setTheme(savedTheme)
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    document.documentElement.style.colorScheme = theme
+    window.localStorage.setItem('movelya-theme', theme)
+  }, [theme])
 
   useEffect(() => {
     if (authLoading || roleLoading || onboarding.loading || status === 'booting' || status === 'transitioning') return
@@ -114,6 +127,8 @@ export default function App() {
             route={route}
             onOpenMenu={() => setSidebarOpen(true)}
             onNavigate={navigate}
+            theme={theme}
+            onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
           />
 
           <main className={`vita-main ${status === 'transitioning' ? 'is-transitioning' : ''}`}>
