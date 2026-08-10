@@ -84,6 +84,17 @@
 @media (max-width: 720px) {
   .vita-content { padding-inline: 16px; }
   :is(.card, [class*="-card"], [class*="-panel"], [class*="-section"], .library-filters, .library-results) { border-radius: 19px !important; }
+  .theme-status {
+    width: 37px;
+    height: 37px;
+    padding: 0;
+    display: grid !important;
+    place-items: center;
+    border: 1px solid var(--vita-border);
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .theme-status > span { display: none; }
 }
 
 /* Light mode: designed as a calm health workspace, with tinted paper surfaces
