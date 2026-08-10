@@ -262,3 +262,57 @@
   .details-add, .editor-save-top, .report-export-button, .auth-submit,
   [class*="-actions"] button.is-active, [class*="-tabs"] button.is-active
 ) { color: #04291b !important; border-color: rgba(18,139,91,.30) !important; background: linear-gradient(135deg, #55e9ae, #1fc77f) !important; }
+
+/* Light-mode refinement: calm layers, not dark slabs. Legacy pages used many
+   isolated hard-coded dark blocks, so their nested information rows and CTAs
+   receive the same soft paper treatment as the parent card. */
+:root[data-theme="light"] :is(.card, [class*="-card"], [class*="-panel"], [class*="-section"]) {
+  border-width: 1px !important;
+  border-radius: 18px !important;
+  box-shadow: 0 8px 22px rgba(22,63,39,.055), inset 0 1px rgba(255,255,255,.95) !important;
+}
+:root[data-theme="light"] .health-hero {
+  min-height: 0;
+  padding: 22px 20px;
+  border-radius: 18px;
+  background: radial-gradient(circle at 86% 0%, rgba(59,203,144,.18), transparent 35%), linear-gradient(135deg, #fbfffc, #edf8f1) !important;
+}
+:root[data-theme="light"] .health-hero :is(h1, p) { color: #18271f !important; }
+:root[data-theme="light"] .health-hero p { color: #6a7b71 !important; }
+:root[data-theme="light"] :is(.health-connection-meta > span, .health-permission-list article, .health-limitations > div, .health-security-card, .health-native-notice) {
+  color: #294236;
+  border-color: rgba(42,91,66,.14) !important;
+  background: rgba(247,252,248,.86) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="light"] .health-connection-meta strong,
+:root[data-theme="light"] .health-limitations strong,
+:root[data-theme="light"] .health-permission-list strong { color: #24382c !important; }
+:root[data-theme="light"] :is(.health-connection-meta small, .health-limitations p, .health-permission-list p, .health-security-card > p) { color: #708177 !important; }
+:root[data-theme="light"] .health-connection-card > header > i { color: #557064; background: #edf4ef; }
+
+:root[data-theme="light"] .daily-insight {
+  color: #183126;
+  border-color: rgba(22,151,99,.18) !important;
+  background: radial-gradient(circle at 7% 50%, rgba(44,202,137,.16), transparent 29%), linear-gradient(135deg, #fbfffc, #edf8f1) !important;
+  box-shadow: 0 8px 22px rgba(22,63,39,.055) !important;
+}
+:root[data-theme="light"] .daily-insight :is(h2, p) { color: #294236 !important; }
+:root[data-theme="light"] .daily-insight p { color: #718177 !important; }
+:root[data-theme="light"] .weight-chart-empty {
+  border-color: rgba(42,91,66,.18);
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(180deg, rgba(225,242,232,.82), rgba(250,253,251,.25));
+}
+:root[data-theme="light"] .weight-chart-empty span { background: linear-gradient(transparent, rgba(57,126,87,.16)); }
+:root[data-theme="light"] .weight-chart-empty i { border-color: #4b765d; }
+
+:root[data-theme="light"] :is(.nutrition-footer-card__actions .button, .button--secondary, .nutrition-toolbar__actions button:not(.is-active), .water-quick-actions button) {
+  color: #294236 !important;
+  border-color: rgba(42,91,66,.16) !important;
+  background: rgba(248,252,249,.92) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="light"] :is(.nutrition-footer-card, .nutrition-toolbar) { background: linear-gradient(145deg, #ffffff, #f2f8f4) !important; }
+:root[data-theme="light"] .nutrition-footer-card__actions { gap: 7px; }
+:root[data-theme="light"] .nutrition-footer-card__actions .button { min-height: 44px; border-radius: 12px; }
