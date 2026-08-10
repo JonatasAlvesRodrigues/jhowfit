@@ -1776,6 +1776,71 @@ button:not(:disabled):active { transition-duration: 80ms; }
 .daily-metric--blue .daily-metric__icon { box-shadow: 0 0 8px rgba(76,168,255,.25) !important; }
 .daily-progress i { box-shadow: 0 0 6px currentColor !important; }
 
+/* Dashboard cards — faithful compact reference composition */
+.today-summary__cta { width: max-content; min-height: 34px; margin-top: 20px; padding: 0 12px; display: inline-flex; align-items: center; gap: 9px; border: 1px solid rgba(101,154,132,.28); border-radius: 999px; color: #82958b; background: rgba(6,17,14,.58); font-size: 10px; cursor: pointer; transition: border-color .18s ease,color .18s ease,transform .18s ease; }
+.today-summary__cta svg:first-child { color: #18e2ac; filter: drop-shadow(0 0 5px rgba(24,226,172,.65)); }
+.today-summary__cta svg:last-child { margin-left: 2px; color: #73857c; }
+.today-summary__cta:hover { color: #dce9e3; border-color: rgba(80,223,167,.48); transform: translateY(-1px); }
+
+.daily-ring::before,.daily-ring::after { content: ''; position: absolute; pointer-events: none; border-radius: 50%; }
+.daily-ring::before { inset: -9px; border: 1px solid rgba(78,255,195,.2); box-shadow: 0 0 19px rgba(26,226,165,.18),inset 0 0 20px rgba(26,226,165,.08); }
+.daily-ring::after { left: -22%; right: -22%; bottom: -16px; height: 24px; background: radial-gradient(ellipse,rgba(48,255,195,.27),transparent 66%); filter: blur(7px); }
+.daily-ring__track { stroke: rgba(130,204,174,.16) !important; }
+.daily-ring__value { stroke: #10ddb0 !important; filter: drop-shadow(0 0 7px rgba(16,221,176,.68)) !important; }
+.daily-ring span { color: #16dca9 !important; letter-spacing: 1.2px !important; }
+
+.daily-metric { isolation: isolate; border-width: 1px !important; transition: transform .18s ease,filter .18s ease,border-color .18s ease !important; }
+.daily-metric:hover { transform: translateY(-2px) !important; filter: brightness(1.08); }
+.daily-metric:active { transform: scale(.985) !important; }
+.daily-metric--green { border-color: rgba(50,211,153,.46) !important; background: radial-gradient(ellipse at 72% 90%,rgba(17,132,92,.15),transparent 42%),linear-gradient(145deg,#0a211a,#07120f 72%) !important; }
+.daily-metric--orange { border-color: rgba(229,126,47,.54) !important; background: radial-gradient(ellipse at 82% 76%,rgba(212,83,14,.22),transparent 39%),linear-gradient(145deg,#281a10,#110d09 75%) !important; }
+.daily-metric--purple { border-color: rgba(148,92,222,.53) !important; background: radial-gradient(ellipse at 78% 89%,rgba(113,42,203,.25),transparent 41%),linear-gradient(145deg,#211334,#0d0918 73%) !important; }
+.daily-metric--blue { border-color: rgba(53,142,202,.51) !important; background: radial-gradient(ellipse at 78% 82%,rgba(20,103,166,.24),transparent 40%),linear-gradient(145deg,#0c2434,#07101a 74%) !important; }
+.daily-metric__icon { background: rgba(4,16,12,.42) !important; }
+.daily-metric--orange .daily-metric__icon { background: rgba(45,24,11,.62) !important; }
+.daily-metric--purple .daily-metric__icon { background: rgba(31,17,50,.65) !important; }
+.daily-metric--blue .daily-metric__icon { background: rgba(10,31,46,.65) !important; }
+.daily-metric__top i { background: rgba(17,124,88,.11); }
+.daily-metric--orange .daily-metric__top i { background: rgba(195,91,20,.11); }
+.daily-metric--purple .daily-metric__top i { background: rgba(122,67,192,.12); }
+.daily-metric--blue .daily-metric__top i { background: rgba(39,120,180,.11); }
+.daily-progress { border: 1px solid rgba(255,255,255,.025); background: rgba(119,148,135,.16) !important; }
+.daily-progress i { position: relative; }
+.daily-progress i::after { content: ''; position: absolute; inset: 0 0 0 auto; width: 9px; border-radius: 50%; background: #c8ffe8; box-shadow: 0 0 9px currentColor; }
+
+@media (max-width: 720px) {
+  .today-summary { min-height: 235px !important; padding: 30px 29px !important; border-radius: 28px !important; }
+  .today-summary__copy h2 { max-width: 220px !important; font-size: 28px !important; line-height: 1.03 !important; letter-spacing: -1.25px !important; }
+  .today-summary__copy > p { max-width: 220px !important; margin-top: 11px !important; font-size: 10px !important; line-height: 1.55 !important; }
+  .today-summary__eyebrow { font-size: 8px !important; letter-spacing: 1.5px !important; }
+  .today-summary__eyebrow > span { width: 27px !important; height: 27px !important; }
+  .today-summary__cta { min-height: 29px; margin-top: 14px; padding-inline: 10px; font-size: 8px; gap: 7px; }
+  .daily-ring { flex-basis: 136px !important; height: 136px !important; margin-right: 4px; }
+  .daily-ring strong { font-size: 35px !important; letter-spacing: -1.5px !important; }
+  .daily-ring span { display: block !important; font-size: 8px !important; }
+  .daily-metrics-grid { gap: 11px !important; }
+  .daily-metric { min-height: 159px !important; padding: 13px 16px 15px !important; border-radius: 19px !important; }
+  .daily-metric__icon { flex-basis: 38px !important; width: 38px !important; height: 38px !important; }
+  .daily-metric__icon svg { width: 19px; height: 19px; }
+  .daily-metric__top { top: 25px !important; left: 64px !important; right: 15px !important; }
+  .daily-metric__top small { font-size: 8px !important; letter-spacing: 1.25px !important; }
+  .daily-metric__top i { padding: 4px 7px !important; font-size: 8px !important; }
+  .daily-metric__copy > strong { margin-top: 16px !important; font-size: 27px !important; line-height: 1 !important; }
+  .daily-metric__goal { margin-top: 7px !important; font-size: 8px !important; }
+  .daily-progress { height: 7px !important; margin-top: auto !important; }
+}
+
+@media (max-width: 470px) {
+  .today-summary { padding-inline: 19px !important; }
+  .today-summary__copy h2 { max-width: 190px !important; font-size: 24px !important; }
+  .today-summary__copy > p { max-width: 190px !important; }
+  .daily-ring { flex-basis: 112px !important; height: 112px !important; margin-right: 0; }
+  .daily-ring strong { font-size: 29px !important; }
+  .daily-metric { padding-inline: 13px !important; }
+  .daily-metric__top { left: 58px !important; right: 12px !important; }
+  .daily-metric__copy > strong { font-size: 24px !important; }
+}
+
 /* Shared reference card system across the product.
    The dashboard reference is intentionally matte: color is reserved for
    accents, while surfaces, borders, spacing and controls stay consistent. */
@@ -1898,4 +1963,13 @@ button:not(:disabled):active { transition-duration: 80ms; }
 .daily-metric--purple .daily-metric__icon { box-shadow: 0 0 8px rgba(175,140,255,.25) !important; }
 .daily-metric--blue .daily-metric__icon { box-shadow: 0 0 8px rgba(76,168,255,.25) !important; }
 .daily-progress i { box-shadow: 0 0 6px currentColor !important; }
+
+/* Final reference dimensions override legacy dashboard rules. */
+@media (max-width:720px) {
+  .today-summary { min-height: 235px !important; }
+  .daily-metric { min-height: 159px !important; }
+}
+.daily-metric::after { opacity: .18 !important; }
+.daily-metric--green::before { opacity: .11 !important; }
+.daily-metric--orange::before,.daily-metric--purple::before,.daily-metric--blue::before { opacity: .14 !important; }
 

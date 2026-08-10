@@ -48,7 +48,7 @@ export function DashboardMetricCard({
 }: MetricCardProps) {
   const progress = metric ? Math.min(metric.current / Math.max(metric.goal, 1) * 100, 100) : 0
   return (
-    <button className={`daily-metric daily-metric--${color}`} onClick={onClick}>
+    <button className={`daily-metric daily-metric--${color}`} data-metric={label.toLowerCase()} onClick={onClick}>
       <span className="daily-metric__icon"><Icon size={20} /></span>
       <span className="daily-metric__copy">
         <span className="daily-metric__top"><small>{label}</small><i>{status ?? `${Math.round(progress)}%`}</i></span>

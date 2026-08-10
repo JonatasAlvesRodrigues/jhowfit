@@ -90,10 +90,11 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           <small className="today-summary__eyebrow"><span><Activity size={17} /></span> RESUMO DE HOJE</small>
           <h2>{data.allGoalsCompleted ? 'Dia completo. Mandou muito bem!' : motivation(data.completion)}</h2>
           <p>{data.insight}</p>
-          <div className="today-summary__legend">
-            <span><i /> Metas diárias</span>
-            <b>{data.completion}% concluído</b>
-          </div>
+          <button className="today-summary__cta" onClick={() => onNavigate('/metas')}>
+            <Droplets size={15} />
+            <span>Metas diárias</span>
+            <ArrowRight size={14} />
+          </button>
         </div>
         <DashboardProgressRing value={data.completion} />
       </article>
@@ -134,25 +135,6 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           goalLabel={`Meta pessoal ${data.metrics.water.goal.toFixed(1).replace('.', ',')} L · ver detalhes`}
           color="blue"
           onClick={() => onNavigate('/agua')}
-        />
-        <DashboardMetricCard
-          label="Minutos ativos"
-          icon={Timer}
-          currentLabel={`${data.metrics.activeMinutes} min`}
-          goalLabel="Meta diária de 30 min"
-          metric={{ current: data.metrics.activeMinutes, goal: 30 }}
-          color="green"
-          onClick={() => onNavigate('/atividades')}
-        />
-        <DashboardMetricCard
-          label="Treino"
-          icon={Dumbbell}
-          currentLabel={data.workout?.completed ? 'Concluído' : data.workout ? 'Pendente' : 'Sem treino'}
-          goalLabel={data.workout?.title ?? 'Planeje seu próximo treino'}
-          metric={{ current: data.workout?.completed ? 1 : 0, goal: 1 }}
-          status={data.workout?.completed ? 'FEITO' : 'HOJE'}
-          color="green"
-          onClick={() => onNavigate('/treinos')}
         />
       </div>
 
