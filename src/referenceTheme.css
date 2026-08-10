@@ -221,3 +221,37 @@
 :root[data-theme="light"] .chat-composer textarea { color: #1d3025; }
 :root[data-theme="light"] .chat-composer textarea::placeholder { color: #8a9b90; }
 :root[data-theme="light"] .chat-ai-avatar i { border-color: #ffffff; }
+
+/* Last-resort route coverage for legacy classes that still carry a hard-coded
+   dark fill. These are structural containers only; metric accents above keep
+   their individual colors. */
+:root[data-theme="light"] .vita-route-stage :is(
+  [class*="-hero"], [class*="-tabs"], [class*="-view"],
+  [class*="-modal"], [class*="-dialog"], [class*="-drawer"],
+  [class*="-toolbar"], [class*="-settings"], [class*="-empty"],
+  [class*="-list"] > article, [class*="-list"] > button,
+  [class*="-list"] > label, [class*="-list"] > div,
+  [class*="-form"] > div, [class*="-form"] > label
+) {
+  color: #1b2c22;
+  border-color: rgba(42,91,66,.17) !important;
+  background: rgba(255,255,255,.82) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.96), 0 8px 22px rgba(22,63,39,.06);
+}
+:root[data-theme="light"] .vita-route-stage :is(
+  [class*="-hero"] p, [class*="-empty"] p, [class*="-list"] small,
+  [class*="-list"] p, [class*="-form"] small, [class*="-form"] label
+) { color: #697b70 !important; }
+:root[data-theme="light"] .vita-route-stage :is(
+  [class*="-ring"] > div, [class*="-ring"]::before,
+  [class*="-progress"] > div
+) { background-color: #f8fcf9 !important; }
+:root[data-theme="light"] .vita-route-stage :is(
+  input, select, textarea, [class*="-search"], [class*="-filter"] button,
+  [class*="-actions"] button:not(.vita-primary-button)
+) { color: #203329; background-color: #ffffff !important; border-color: rgba(42,91,66,.18) !important; }
+:root[data-theme="light"] .vita-route-stage :is(
+  .button--primary, .start-workout-button, .start-workout-cta,
+  .details-add, .editor-save-top, .report-export-button, .auth-submit,
+  [class*="-actions"] button.is-active, [class*="-tabs"] button.is-active
+) { color: #04291b !important; border-color: rgba(18,139,91,.30) !important; background: linear-gradient(135deg, #55e9ae, #1fc77f) !important; }
