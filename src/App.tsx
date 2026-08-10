@@ -28,7 +28,6 @@ import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './page
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
 import './pwa/registerServiceWorker'
-import './referenceTheme.css'
 
 export default function App() {
   const { route, status, navigate, retry } = useVitaRoute()
