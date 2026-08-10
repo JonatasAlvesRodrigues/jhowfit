@@ -402,6 +402,11 @@ enabled = true
 verify_jwt = true
 entrypoint = "./functions/fitness-chat/index.ts"
 
+[functions.notification-dispatch]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/notification-dispatch/index.ts"
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

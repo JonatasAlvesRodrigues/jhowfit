@@ -20,6 +20,9 @@ export const defaultNotificationSettings: NotificationSettings = {
 
 let localSettings = cloneSettings(defaultNotificationSettings)
 let localNotifications: AppNotification[] = seedNotifications()
+let reminderTimer: number | undefined
+let scheduledUserId: string | undefined
+let scheduledSettings: NotificationSettings | undefined
 
 export const notificationService = {
   async load(userId: string): Promise<{ settings: NotificationSettings; notifications: AppNotification[] }> {
@@ -65,14 +68,17 @@ export const notificationService = {
     if (error) throw new Error('Não foi possível marcar todas como lidas.')
   },
 
-  async enablePush(userId: string): Promise<'enabled' | 'unsupported' | 'configured'> {
+  async enablePush(userId: string): Promise<'subscribed' | 'permission_granted' | 'unsupported'> {
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return 'unsupported'
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') return 'unsupported'
     const registration = await navigator.serviceWorker.ready
     const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
-    if (!publicKey) return 'configured'
-    const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(publicKey) })
+    if (!publicKey) {
+      await registration.showNotification('Notificações ativadas', { body: 'Os lembretes aparecerão enquanto o MOVELYA estiver aberto neste dispositivo.', icon: `${import.meta.env.BASE_URL}icon-192.png`, tag: 'movelya-permission-check' })
+      return 'permission_granted'
+    }
+    const subscription = await registration.pushManager.getSubscription() ?? await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(publicKey) })
     if (supabase) {
       const json = subscription.toJSON()
       const { error } = await supabase.from('push_subscriptions').upsert({
@@ -80,8 +86,27 @@ export const notificationService = {
       }, { onConflict: 'user_id,endpoint' })
       if (error) throw new Error('A permissão foi concedida, mas a inscrição push não pôde ser salva.')
     }
-    return 'enabled'
+    await registration.showNotification('Dispositivo pronto para push', { body: 'A permissão e a inscrição foram confirmadas.', icon: `${import.meta.env.BASE_URL}icon-192.png`, tag: 'movelya-push-check' })
+    return 'subscribed'
   },
+
+  async startReminderScheduler(userId: string) {
+    stopReminderScheduler()
+    scheduledUserId = userId
+    try {
+      scheduledSettings = (await this.load(userId)).settings
+      await runDueReminders()
+      reminderTimer = window.setInterval(() => { void runDueReminders() }, 30_000)
+    } catch {
+      // A central pode estar indisponível offline; a próxima abertura tenta novamente.
+    }
+  },
+
+  updateScheduledReminders(userId: string, settings: NotificationSettings) {
+    if (scheduledUserId === userId) scheduledSettings = cloneSettings(settings)
+  },
+
+  stopReminderScheduler,
 }
 
 export function isNotificationAllowed(settings: NotificationSettings, type: NotificationType, now = new Date(), lastSentAt?: string) {
@@ -107,6 +132,36 @@ function cloneSettings(settings: NotificationSettings): NotificationSettings { r
 function mapNotification(row: Record<string, unknown>): AppNotification { return { id: String(row.id), type: String(row.type) as NotificationType, title: String(row.title), message: String(row.message), createdAt: String(row.created_at), readAt: row.read_at ? String(row.read_at) : null, actionPath: String(row.action_path), actionLabel: String(row.action_label) } }
 function toMinutes(time: string) { const [hours, minutes] = time.split(':').map(Number); return hours * 60 + minutes }
 function urlBase64ToUint8Array(value: string) { const padding = '='.repeat((4 - value.length % 4) % 4); const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/'); return Uint8Array.from(atob(base64), (character) => character.charCodeAt(0)) }
+function stopReminderScheduler() { if (reminderTimer) window.clearInterval(reminderTimer); reminderTimer = undefined; scheduledUserId = undefined; scheduledSettings = undefined }
+async function runDueReminders() {
+  if (!scheduledUserId || !scheduledSettings || typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+  const now = new Date()
+  for (const preference of scheduledSettings.preferences) {
+    if (!isDueNow(preference, now)) continue
+    const storageKey = `movelya-reminder:${scheduledUserId}:${preference.type}`
+    const lastSentAt = window.localStorage.getItem(storageKey) ?? undefined
+    if (!preference.intervalMinutes && lastSentAt && localDay(new Date(lastSentAt)) === localDay(now)) continue
+    if (!isNotificationAllowed(scheduledSettings, preference.type, now, lastSentAt)) continue
+    await showReminder(preference.type)
+    window.localStorage.setItem(storageKey, now.toISOString())
+  }
+}
+function isDueNow(preference: NotificationPreference, now: Date) {
+  const [hour, minute] = preference.time.split(':').map(Number)
+  const currentMinute = now.getHours() * 60 + now.getMinutes()
+  const initialMinute = hour * 60 + minute
+  if (!preference.intervalMinutes) return currentMinute === initialMinute
+  return currentMinute >= initialMinute && (currentMinute - initialMinute) % preference.intervalMinutes === 0
+}
+async function showReminder(type: NotificationType) {
+  const copy: Record<NotificationType, { title: string; body: string }> = {
+    workout: { title: 'Hora do treino', body: 'Seu treino planejado está esperando por você.' }, water: { title: 'Hora de beber água', body: 'Um copo agora ajuda você a manter sua meta.' }, meal: { title: 'Registrar refeição', body: 'Registre sua refeição para manter o diário em dia.' }, walk: { title: 'Que tal caminhar?', body: 'Alguns minutos de movimento já fazem diferença.' }, weigh_in: { title: 'Lembrete de pesagem', body: 'Registre seu peso para acompanhar a evolução.' }, goal_near: { title: 'Sua meta está perto', body: 'Você está a poucos passos de concluir a meta de hoje.' }, weekly_summary: { title: 'Seu resumo semanal', body: 'Confira o que você conquistou nesta semana.' },
+  }
+  const registration = 'serviceWorker' in navigator ? await navigator.serviceWorker.ready : undefined
+  if (registration) await registration.showNotification(copy[type].title, { body: copy[type].body, icon: `${import.meta.env.BASE_URL}icon-192.png`, tag: `movelya-${type}`, data: { url: `${import.meta.env.BASE_URL}#/notificacoes` } })
+  else new Notification(copy[type].title, { body: copy[type].body })
+}
+function localDay(date: Date) { return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}` }
 function seedNotifications(): AppNotification[] { const now = Date.now(); return [
   { id: 'welcome-reminders', type: 'weekly_summary', title: 'Seus lembretes estão prontos', message: 'Revise os horários e ative somente o que ajuda na sua rotina.', createdAt: new Date(now - 35 * 60000).toISOString(), readAt: null, actionPath: '/notificacoes', actionLabel: 'Configurar' },
   { id: 'water-reminder', type: 'water', title: 'Hora de se hidratar', message: 'Um copo de água agora ajuda você a manter o ritmo da meta diária.', createdAt: new Date(now - 3 * 3600000).toISOString(), readAt: null, actionPath: '/agua', actionLabel: 'Registrar água' },

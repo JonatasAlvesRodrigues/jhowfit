@@ -27,26 +27,43 @@ import { AdminPage } from './pages/AdminPage'
 import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './pages/SystemPages'
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
+import { notificationService } from './services/notificationService'
 import './pwa/registerServiceWorker'
+
+type ThemePreference = 'light' | 'dark' | 'system'
 
 export default function App() {
   const { route, status, navigate, retry } = useVitaRoute()
   const { user, role, roleLoading, loading: authLoading, recoveryMode, logout } = useAuth()
   const onboarding = useOnboardingStatus(user?.id)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [themePreference, setThemePreference] = useState<ThemePreference>('system')
+  const [systemTheme, setSystemTheme] = useState<'dark' | 'light'>('dark')
   const siteOrigin = typeof window === 'undefined' ? '' : window.location.origin
 
   useEffect(() => {
-    const savedTheme = window.localStorage.getItem('movelya-theme')
-    if (savedTheme === 'light' || savedTheme === 'dark') setTheme(savedTheme)
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const updateSystemTheme = () => setSystemTheme(mediaQuery.matches ? 'dark' : 'light')
+    const savedTheme = window.localStorage.getItem('movelya-theme-preference') || window.localStorage.getItem('movelya-theme')
+    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') setThemePreference(savedTheme)
+    updateSystemTheme()
+    mediaQuery.addEventListener('change', updateSystemTheme)
+    return () => mediaQuery.removeEventListener('change', updateSystemTheme)
   }, [])
+
+  const theme = themePreference === 'system' ? systemTheme : themePreference
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     document.documentElement.style.colorScheme = theme
-    window.localStorage.setItem('movelya-theme', theme)
-  }, [theme])
+    window.localStorage.setItem('movelya-theme-preference', themePreference)
+  }, [theme, themePreference])
+
+  useEffect(() => {
+    if (!user) return
+    void notificationService.startReminderScheduler(user.id)
+    return () => notificationService.stopReminderScheduler()
+  }, [user?.id])
 
   useEffect(() => {
     if (authLoading || roleLoading || onboarding.loading || status === 'booting' || status === 'transitioning') return
@@ -127,7 +144,8 @@ export default function App() {
             onOpenMenu={() => setSidebarOpen(true)}
             onNavigate={navigate}
             theme={theme}
-            onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
+            themePreference={themePreference}
+            onSetTheme={setThemePreference}
           />
 
           <main className={`vita-main ${status === 'transitioning' ? 'is-transitioning' : ''}`}>

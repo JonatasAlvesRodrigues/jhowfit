@@ -71,6 +71,12 @@
 :is(.card, [class*="-card"], [class*="-panel"]):hover { border-color: rgba(77, 208, 153, .48) !important; }
 :is(button:not(:disabled)):active { transform: scale(.985); }
 
+.theme-control { position: relative; }
+.theme-picker { position: absolute; z-index: 90; top: calc(100% + 8px); right: 0; width: 146px; padding: 5px; border: 1px solid var(--reference-border); border-radius: 13px; background: var(--reference-surface-raised); box-shadow: 0 16px 36px rgba(0,0,0,.22); }
+.theme-picker button { width: 100%; min-height: 35px; padding: 0 9px; display: grid; grid-template-columns: 18px 1fr 16px; align-items: center; gap: 7px; border: 0; border-radius: 9px; color: var(--reference-muted); background: transparent; font-size: 9px; text-align: left; cursor: pointer; }
+.theme-picker button:hover, .theme-picker button.is-active { color: var(--vita-green); background: var(--vita-green-soft); }
+.theme-picker button svg:last-child { color: var(--vita-green); }
+
 /* Lists and tables are grouped as individual matte tiles. */
 :is(.workout-item, .history-list article, .water-log-list article,
     .steps-record-list article, .notification-item, .configured-exercise,
@@ -139,6 +145,7 @@
 :root[data-theme="light"] .header-menu-button,
 :root[data-theme="light"] .theme-status { border-color: rgba(42, 91, 66, .18); color: #315341; background: rgba(255,255,255,.76); }
 :root[data-theme="light"] .theme-status:hover { color: #0b7a4e; border-color: rgba(19,155,103,.4); }
+:root[data-theme="light"] .theme-picker { border-color: rgba(42,91,66,.18); background: #ffffff; box-shadow: 0 16px 36px rgba(22,63,39,.12); }
 
 :root[data-theme="light"] :is(.card, [class*="-card"], [class*="-panel"], [class*="-section"],
     .library-filters, .library-results, .workout-editor-settings,

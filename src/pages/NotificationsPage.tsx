@@ -42,7 +42,7 @@ export function NotificationsPage({ userId, onNavigate }: { userId: string; onNa
   }
   async function save() {
     setSaving(true); setError('')
-    try { await notificationService.save(userId, settings); setNotice('Preferências salvas. Seus horários já estão atualizados.') }
+    try { await notificationService.save(userId, settings); notificationService.updateScheduledReminders(userId, settings); setNotice('Preferências salvas. Seus horários já estão atualizados.') }
     catch (reason) { setError(message(reason)) }
     finally { setSaving(false) }
   }
@@ -67,7 +67,7 @@ export function NotificationsPage({ userId, onNavigate }: { userId: string; onNa
     setError('')
     try {
       const result = await notificationService.enablePush(userId)
-      setNotice(result === 'enabled' ? 'Notificações push ativadas neste dispositivo.' : result === 'configured' ? 'Permissão concedida. O envio push será ativado assim que a chave do servidor for configurada.' : 'Este navegador não permitiu notificações push.')
+      setNotice(result === 'subscribed' ? 'Permissão e inscrição push confirmadas neste dispositivo. Para receber com o app fechado ainda falta configurar o envio agendado no servidor.' : result === 'permission_granted' ? 'Permissão confirmada. Seus lembretes funcionam enquanto o MOVELYA estiver aberto; para receber com o app fechado ainda falta configurar o envio push do servidor.' : 'Este navegador não permitiu notificações push.')
     } catch (reason) { setError(message(reason)) }
   }
 
@@ -114,7 +114,7 @@ export function NotificationsPage({ userId, onNavigate }: { userId: string; onNa
           <p className="notification-center__summary">{unread ? `${unread} ${unread === 1 ? 'mensagem não lida' : 'mensagens não lidas'}` : 'Tudo em dia por aqui'}</p>
           <div className="notification-feed">{notifications.length ? notifications.map((item) => { const content = notificationContent[item.type], Icon = content.icon; return <article className={!item.readAt ? 'is-unread' : ''} key={item.id}><button className="notification-feed__main" onClick={() => void markRead(item)}><span className={`tone-${content.tone}`}><Icon size={16} /></span><div><strong>{item.title}</strong><p>{item.message}</p><time>{formatRelative(item.createdAt)}</time></div>{!item.readAt && <i />}</button><button className="notification-feed__action" onClick={() => onNavigate(item.actionPath)}>{item.actionLabel}<ChevronRight size={14} /></button></article> }) : <div className="notification-empty"><Bell size={26} /><strong>Nenhuma notificação</strong><p>Seus lembretes e resumos aparecerão aqui.</p></div>}</div>
         </Card>
-        <Card className="push-card"><span><BellRing size={20} /></span><div><small>PWA</small><h3>Receba mesmo com o app fechado</h3><p>Ative a permissão neste dispositivo. Seus horários e o período de silêncio continuarão valendo.</p><Button variant="secondary" onClick={() => void enablePush()}>Ativar push neste dispositivo</Button></div></Card>
+        <Card className="push-card"><span><BellRing size={20} /></span><div><small>PWA</small><h3>Ative e teste as notificações</h3><p>O botão confirma a permissão com uma notificação real. Para receber com o app fechado, o servidor precisa estar configurado para enviar push.</p><Button variant="secondary" onClick={() => void enablePush()}>Ativar e testar neste dispositivo</Button></div></Card>
       </aside>
     </div>
   </section>
@@ -123,4 +123,3 @@ export function NotificationsPage({ userId, onNavigate }: { userId: string; onNa
 function formatRelative(value: string) { const diff = Date.now() - new Date(value).getTime(); const hours = Math.floor(diff / 3600000); if (hours < 1) return 'Há poucos minutos'; if (hours < 24) return `Há ${hours} ${hours === 1 ? 'hora' : 'horas'}`; return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value)) }
 function formatShort(value: string) { return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value)) }
 function message(error: unknown) { return error instanceof Error ? error.message : 'Não foi possível concluir esta ação.' }
-
