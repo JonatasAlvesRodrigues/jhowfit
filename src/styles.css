@@ -2005,3 +2005,23 @@ button:not(:disabled):active { transition-duration: 80ms; }
   .daily-energy { display: none; }
 }
 
+/* The supplied reference is a 442 × 235 hero with 216 × 159 metric cards.
+   Preserve those exact ratios as the viewport changes instead of stretching
+   the cards to fill the phone width. */
+@media (min-width: 480px) and (max-width: 720px) {
+  .daily-dashboard { width: min(443px, 78.5vw); }
+  .today-summary {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none;
+    aspect-ratio: 442 / 235;
+  }
+  .daily-metrics-grid { grid-auto-rows: auto; }
+  .daily-metric {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none;
+    aspect-ratio: 216 / 159;
+  }
+}
+
