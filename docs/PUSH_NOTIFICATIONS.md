@@ -11,8 +11,12 @@ The app stores each browser subscription in `push_subscriptions`. The `notificat
 
    `supabase secrets set VAPID_SUBJECT="mailto:suporte@movelya.app" VAPID_PUBLIC_KEY="..." VAPID_PRIVATE_KEY="..." NOTIFICATION_CRON_SECRET="a-random-secret-with-at-least-24-characters"`
 
-5. Run migrations, then in the SQL Editor run:
+5. Run migrations, then in the SQL Editor run the following (replace the values):
 
-   `select public.configure_movelya_notification_cron('https://PROJECT_REF.supabase.co', 'the-same-NOTIFICATION_CRON_SECRET');`
+   `select vault.create_secret('https://PROJECT_REF.supabase.co', 'movelya_project_url');`
+
+   `select vault.create_secret('the-same-NOTIFICATION_CRON_SECRET', 'movelya_notification_cron_secret');`
+
+   `select public.configure_movelya_notification_cron();`
 
 The job can be inspected in `cron.job` and its executions in `cron.job_run_details`.
