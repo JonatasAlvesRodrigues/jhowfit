@@ -1851,6 +1851,107 @@ button:not(:disabled):active { transition-duration: 80ms; }
   --reference-card-shadow: 0 14px 32px rgba(0, 0, 0, .24);
 }
 
+/* Expressive motion layer: each interaction communicates state without
+   competing with the data. All continuous motion is disabled by the user's
+   reduced-motion preference below. */
+@media (prefers-reduced-motion: no-preference) {
+  .vita-main { isolation: isolate; }
+  .vita-main::before {
+    content: '';
+    position: fixed;
+    z-index: -1;
+    top: 20%;
+    right: -180px;
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: .32;
+    background: radial-gradient(circle, rgba(55,225,154,.13), transparent 66%);
+    filter: blur(8px);
+    animation: movelya-ambient-drift 13s ease-in-out infinite alternate;
+  }
+  .vita-route-stage :is(
+    .card, [class$="-card"], [class*="-card "],
+    [class$="-panel"], [class*="-panel "],
+    .health-native-notice, .daily-insight
+  ) { animation: movelya-card-reveal 560ms var(--ease-emphasized) both; }
+  .vita-route-stage :is(.card, [class$="-card"], [class*="-card "], [class$="-panel"], [class*="-panel "]):nth-child(2) { animation-delay: 65ms; }
+  .vita-route-stage :is(.card, [class$="-card"], [class*="-card "], [class$="-panel"], [class*="-panel "]):nth-child(3) { animation-delay: 120ms; }
+  .vita-route-stage :is(.card, [class$="-card"], [class*="-card "], [class$="-panel"], [class*="-panel "]):nth-child(4) { animation-delay: 175ms; }
+
+  :is(.daily-progress, .mini-progress, .xp-track, .progress) > :is(i, span) {
+    position: relative;
+    overflow: hidden;
+  }
+  :is(.daily-progress, .mini-progress, .xp-track, .progress) > :is(i, span)::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 -38%;
+    width: 28%;
+    transform: skewX(-22deg);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.72), transparent);
+    animation: movelya-progress-sheen 2.8s 900ms ease-in-out infinite;
+  }
+  .daily-ring::before { animation: movelya-orbit 9s linear infinite; }
+  .daily-ring::after { animation: movelya-glow-breathe 3.4s ease-in-out infinite; }
+  .daily-insight__icon, .health-hero-icon { animation: movelya-icon-float 3.8s ease-in-out infinite; }
+  .daily-metric__icon, .water-stat > span, .steps-stat > span, .nutrition-macro-card > span { animation: movelya-icon-settle 620ms var(--ease-spring) both; }
+  .notification-switch b, .health-switch b { transition: background var(--motion-base) ease, box-shadow var(--motion-base) ease; }
+  .notification-switch input:checked + b, .health-switch input:checked + b { box-shadow: 0 0 16px rgba(39,214,143,.28); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :is(.button, .vita-primary-button, .vita-secondary-button, .start-workout-button, .report-export-button, .nutrition-footer-card__actions .button) {
+    position: relative;
+    overflow: hidden;
+  }
+  :is(.button, .vita-primary-button, .vita-secondary-button, .start-workout-button, .report-export-button, .nutrition-footer-card__actions .button)::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 -42%;
+    width: 30%;
+    pointer-events: none;
+    transform: skewX(-22deg);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.36), transparent);
+    transition: transform 520ms var(--ease-emphasized);
+  }
+  :is(.button, .vita-primary-button, .vita-secondary-button, .start-workout-button, .report-export-button, .nutrition-footer-card__actions .button):hover::after { transform: translateX(520%) skewX(-22deg); }
+  .vita-content :is(.daily-metric, .nutrition-macro-card, .water-stat, .steps-stat):hover .daily-metric__icon { animation: movelya-icon-pop 380ms var(--ease-spring) both; }
+}
+
+@keyframes movelya-card-reveal {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(.985); filter: saturate(.82); }
+  65% { opacity: 1; }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes movelya-ambient-drift {
+  from { transform: translate3d(0, -18px, 0) scale(.94); opacity: .22; }
+  to { transform: translate3d(-95px, 88px, 0) scale(1.14); opacity: .42; }
+}
+@keyframes movelya-progress-sheen {
+  0%, 58% { transform: translateX(0) skewX(-22deg); opacity: 0; }
+  66% { opacity: .72; }
+  100% { transform: translateX(520%) skewX(-22deg); opacity: 0; }
+}
+@keyframes movelya-orbit { to { transform: rotate(360deg); } }
+@keyframes movelya-glow-breathe { 0%,100% { opacity: .42; transform: scale(.92); } 50% { opacity: .9; transform: scale(1.08); } }
+@keyframes movelya-icon-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes movelya-icon-settle { from { opacity: 0; transform: scale(.72) rotate(-9deg); } 70% { opacity: 1; transform: scale(1.08) rotate(2deg); } to { transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .vita-main::before,
+  .vita-route-stage :is(.card, [class$="-card"], [class*="-card "], [class$="-panel"], [class*="-panel "], .health-native-notice, .daily-insight),
+  .daily-ring::before,
+  .daily-ring::after,
+  .daily-insight__icon,
+  .health-hero-icon,
+  .daily-metric__icon,
+  .water-stat > span,
+  .steps-stat > span,
+  .nutrition-macro-card > span { animation: none !important; }
+}
+
 :is(.training-workout-card, .history-panel, .exercise-progress-panel,
     .water-progress-card, .water-stat, .water-history, .water-weekly,
     .steps-progress-card, .steps-stat, .steps-history, .steps-weekly,
