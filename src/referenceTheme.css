@@ -182,3 +182,42 @@
 :root[data-theme="light"] :is(.daily-progress, .progress, .xp-track, .mini-progress, .nutrition-ring__meter) { background-color: rgba(47, 93, 69, .13) !important; }
 :root[data-theme="light"] :is(.daily-metric__goal, .muted, .weight-hint, .notification-feed__main p, .notification-feed__main time) { color: #6c7b72 !important; }
 :root[data-theme="light"] :is(.daily-metric__top small, .section-heading small, .daily-panel__heading small) { color: #5d6f65 !important; }
+
+/* Route surfaces with their own dark canvases. */
+:root[data-theme="light"] .nutrition-hero {
+  color: #18271f;
+  background: radial-gradient(circle at 86% 0%, rgba(57, 201, 142, .22), transparent 36%), linear-gradient(135deg, #fafffc, #e8f6ed) !important;
+}
+:root[data-theme="light"] .nutrition-hero :is(h1, h2, p) { color: #18271f !important; }
+:root[data-theme="light"] .nutrition-hero p { color: #63756a !important; }
+:root[data-theme="light"] .nutrition-summary-card--progress { background: linear-gradient(145deg, #ffffff, #eef9f2) !important; border-color: rgba(24,151,99,.27) !important; }
+
+/* Fitness assistant: every layer gets an intentional light surface and dark text. */
+:root[data-theme="light"] .fitness-chat-page {
+  color: #18271f;
+  border-color: rgba(42,91,66,.20);
+  background: #f9fcfa;
+  box-shadow: 0 14px 34px rgba(22,63,39,.10);
+}
+:root[data-theme="light"] .chat-main,
+:root[data-theme="light"] .chat-messages { background: radial-gradient(circle at 50% 0, rgba(19,155,103,.09), transparent 35%), #f9fcfa; }
+:root[data-theme="light"] .chat-header,
+:root[data-theme="light"] .chat-composer,
+:root[data-theme="light"] .chat-history-panel { border-color: rgba(42,91,66,.16); background: rgba(255,255,255,.88); }
+:root[data-theme="light"] .chat-header > div strong,
+:root[data-theme="light"] .chat-welcome h1 { color: #192a20; }
+:root[data-theme="light"] .chat-header > div small,
+:root[data-theme="light"] .chat-welcome > p,
+:root[data-theme="light"] .chat-safety-line { color: #6a7c71; }
+:root[data-theme="light"] .chat-header > button,
+:root[data-theme="light"] .chat-welcome > div button,
+:root[data-theme="light"] .chat-bubble,
+:root[data-theme="light"] .chat-composer > div:last-child {
+  color: #294236;
+  border-color: rgba(42,91,66,.18);
+  background: #ffffff;
+}
+:root[data-theme="light"] .chat-welcome > div button:hover { color: #08784c; border-color: rgba(19,155,103,.38); background: #f1fbf5; }
+:root[data-theme="light"] .chat-composer textarea { color: #1d3025; }
+:root[data-theme="light"] .chat-composer textarea::placeholder { color: #8a9b90; }
+:root[data-theme="light"] .chat-ai-avatar i { border-color: #ffffff; }
