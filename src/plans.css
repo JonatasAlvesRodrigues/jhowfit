@@ -48,3 +48,62 @@
 .plan-state button { width:auto; margin-top:5px; }
 @media(max-width:900px){.plan-cards{grid-template-columns:1fr}.plan-cards>article{min-height:0}.plan-card__title p{min-height:0}.plan-quota-grid{grid-template-columns:1fr}}
 @media(max-width:620px){.plans-hero,.current-plan-card,.plan-section-heading{align-items:flex-start;flex-direction:column}.plans-hero__icon{display:none}.current-plan-card__renewal{width:100%;min-width:0}.plan-usage-panel,.plan-comparison{padding:20px 16px}.plan-cards>article{padding:20px}.plan-section-heading>p{line-height:1.5}}
+
+/* The application has a broad light-theme compatibility layer for older
+   screens. Plans contains nested "card" and "section" labels, so it needs
+   an explicit, calm hierarchy instead of inheriting those generic surfaces. */
+:root[data-theme="light"] .plans-page { color: #17261d; }
+:root[data-theme="light"] .plans-page .plans-hero {
+  color: #163424;
+  border-color: rgba(22, 133, 83, .22) !important;
+  background: radial-gradient(circle at 88% 25%, rgba(74, 218, 151, .22), transparent 34%), linear-gradient(135deg, #ffffff, #edf9f1 72%) !important;
+  box-shadow: 0 12px 28px rgba(22, 63, 39, .08) !important;
+}
+:root[data-theme="light"] .plans-page .plans-hero p { color: #63766a !important; }
+:root[data-theme="light"] .plans-page .plans-hero__icon { color: #11895a; border-color: rgba(19,155,103,.23); background: rgba(19,155,103,.09); }
+:root[data-theme="light"] .plans-page .current-plan-card {
+  color: #163424;
+  border-color: rgba(19,155,103,.28) !important;
+  background: linear-gradient(135deg, #f9fffb, #e9f8ef) !important;
+  box-shadow: 0 10px 24px rgba(22,63,39,.07) !important;
+}
+:root[data-theme="light"] .plans-page .current-plan-card p { color: #66796d !important; }
+:root[data-theme="light"] .plans-page .current-plan-card__renewal { border-color: rgba(42,91,66,.16); background: rgba(255,255,255,.76); }
+:root[data-theme="light"] .plans-page :is(.plan-usage-panel, .plan-comparison) {
+  color: #1a2d22;
+  border-color: rgba(42,91,66,.16) !important;
+  background: linear-gradient(145deg, #ffffff, #f3f9f5) !important;
+  box-shadow: 0 10px 26px rgba(22,63,39,.065) !important;
+}
+:root[data-theme="light"] .plans-page .plan-section-heading { color: inherit; background: transparent !important; border: 0 !important; box-shadow: none !important; }
+:root[data-theme="light"] .plans-page .plan-section-heading > p { color: #687b70 !important; }
+:root[data-theme="light"] .plans-page .plan-quota-grid article {
+  color: #1a3023;
+  border-color: rgba(42,91,66,.14) !important;
+  background: rgba(250,253,251,.92) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="light"] .plans-page .plan-quota-grid :is(span, small) { color: #66796d !important; }
+:root[data-theme="light"] .plans-page .plan-quota-track { background: rgba(48,97,68,.13) !important; }
+:root[data-theme="light"] .plans-page .plan-cards > article {
+  color: #1b3023;
+  border-color: rgba(42,91,66,.18) !important;
+  background: #ffffff !important;
+  box-shadow: 0 9px 22px rgba(22,63,39,.06) !important;
+}
+:root[data-theme="light"] .plans-page .plan-cards > article.is-current { background: linear-gradient(145deg, #fbfffc, #eaf8ef) !important; border-color: rgba(19,155,103,.30) !important; }
+:root[data-theme="light"] .plans-page .plan-cards > article.is-featured { border-color: rgba(19,155,103,.48) !important; box-shadow: 0 12px 30px rgba(19,155,103,.12) !important; }
+:root[data-theme="light"] .plans-page .plan-card__title { color: inherit; background: transparent !important; border: 0 !important; box-shadow: none !important; }
+:root[data-theme="light"] .plans-page .plan-card__title p,
+:root[data-theme="light"] .plans-page :is(.plan-price small, .plan-price span, .plans-payment-note) { color: #687b70 !important; }
+:root[data-theme="light"] .plans-page .plan-cards li { color: #31483a !important; }
+:root[data-theme="light"] .plans-page .plan-cards button {
+  color: #08784c !important;
+  border-color: rgba(19,155,103,.25) !important;
+  background: rgba(19,155,103,.08) !important;
+}
+@media(max-width:620px){
+  :root[data-theme="light"] .plans-page { gap: 16px; }
+  :root[data-theme="light"] .plans-page .plans-hero { padding: 23px 20px; }
+  :root[data-theme="light"] .plans-page .plan-section-heading h2 { max-width: 280px; font-size: 25px; line-height: 1.15; }
+}
