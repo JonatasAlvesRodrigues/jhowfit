@@ -1,3 +1,17 @@
+class AIUsageError extends Error { constructor(public code: string, public status: number) { super(code) } }
+async function requireAIDataPermissions(base: string, key: string, authorization: string, userId: string, categories: string[]) {
+  const response = await fetch(`${base}/rest/v1/ai_data_permissions?user_id=eq.${encodeURIComponent(userId)}&select=${categories.join(',')}`, { headers: { apikey:key, Authorization:authorization } })
+  const rows = response.ok ? await response.json().catch(() => []) : []
+  if (!response.ok || categories.some((category) => rows?.[0]?.[category] !== true)) throw new AIUsageError('ai_data_permission_required',403)
+}
+async function reserveAIUsage(base:string,key:string,authorization:string,action:string,model:string,metadata:Record<string,unknown>={}) {
+  const response=await fetch(`${base}/rest/v1/rpc/reserve_ai_usage`,{method:'POST',headers:{apikey:key,Authorization:authorization,'Content-Type':'application/json'},body:JSON.stringify({requested_action:action,requested_model:model,request_metadata:metadata,requested_id:crypto.randomUUID()})}); const body=await response.json().catch(()=>({}))
+  if(!response.ok){const raw=String(body?.message||body?.details||'');const code=['plan_upgrade_required','monthly_action_limit_reached','monthly_ai_limit_reached'].find((item)=>raw.includes(item))||'usage_validation_failed';throw new AIUsageError(code,code==='usage_validation_failed'?502:429)}
+  if(!body?.usage_id)throw new AIUsageError('usage_validation_failed',502);return String(body.usage_id)
+}
+async function finalizeAIUsage(base:string,key:string,authorization:string,usageId:string,succeeded:boolean,metadata:Record<string,unknown>={}) { const response=await fetch(`${base}/rest/v1/rpc/finalize_ai_usage`,{method:'POST',headers:{apikey:key,Authorization:authorization,'Content-Type':'application/json'},body:JSON.stringify({target_usage_id:usageId,succeeded,result_metadata:metadata})});if(!response.ok)console.error('Could not finalize AI usage',response.status) }
+function usageErrorResponse(error:unknown){if(!(error instanceof AIUsageError))return null;const messages:Record<string,string>={plan_upgrade_required:'Este recurso inteligente não está incluído no seu plano atual.',monthly_action_limit_reached:'Você utilizou sua cota mensal deste recurso.',monthly_ai_limit_reached:'Você atingiu seu limite mensal de IA. Faça upgrade para o Pro.',ai_data_permission_required:'Autorize Perfil e Alimentação na tela de Privacidade para usar este recurso.',usage_validation_failed:'Não foi possível validar seu limite de uso agora. Tente novamente.'};return{status:error.status,payload:{error:messages[error.code]||messages.usage_validation_failed,code:error.code}}}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -20,6 +34,7 @@ const schema = {
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (request.method !== 'POST') return json({ error: 'Método não permitido.' }, 405)
+  let usage: { id: string; url: string; key: string; authorization: string } | null = null
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
@@ -58,10 +73,23 @@ Deno.serve(async (request) => {
       adjustmentInstruction,
     ].filter(Boolean).join('\n\n')
 
-    const plan = await generate(geminiKey, prompt, desiredMeals)
-    if (!plan) return json({ error: 'A IA está indisponível no momento. Tente novamente em alguns minutos.' }, 502)
-    return json({ plan })
+    await requireAIDataPermissions(supabaseUrl, anonKey, authorization, user.id, ['profile', 'nutrition'])
+    const actionType = input.currentPlan ? 'full_replanning' : 'diet_generation'
+    const usageId = await reserveAIUsage(supabaseUrl, anonKey, authorization, actionType, Deno.env.get('GEMINI_MODEL') || 'gemini-flash-auto', { source: 'generate-diet-plan' })
+    usage = { id: usageId, url: supabaseUrl, key: anonKey, authorization }
+    const attempt = await generate(geminiKey, prompt, desiredMeals)
+    if (!attempt) {
+      await finalizeAIUsage(supabaseUrl, anonKey, authorization, usageId, false)
+      usage = null
+      return json({ error: 'A IA está indisponível no momento. Tente novamente em alguns minutos.' }, 502)
+    }
+    await finalizeAIUsage(supabaseUrl, anonKey, authorization, usageId, true, { model_used: attempt.model })
+    usage = null
+    return json({ plan: attempt.plan })
   } catch (error) {
+    if (usage) await finalizeAIUsage(usage.url, usage.key, usage.authorization, usage.id, false)
+    const limited = usageErrorResponse(error)
+    if (limited) return json(limited.payload, limited.status)
     console.error(error)
     return json({ error: 'Não foi possível gerar as sugestões alimentares.' }, 500)
   }
@@ -98,7 +126,7 @@ async function generate(key: string, prompt: string, mealCount: number) {
     if (!response.ok) continue
     const data = await response.json()
     const text = data?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text ?? '').join('')
-    try { if (text) return validate(JSON.parse(text), mealCount) } catch { /* tenta o próximo modelo */ }
+    try { if (text) return { plan: validate(JSON.parse(text), mealCount), model } } catch { /* tenta o próximo modelo */ }
   }
   return null
 }

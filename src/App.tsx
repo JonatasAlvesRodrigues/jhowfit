@@ -24,6 +24,7 @@ import { PwaInstallPrompt } from './components/PwaInstallPrompt'
 import { PwaUpdatePrompt } from './components/PwaUpdatePrompt'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { AdminPage } from './pages/AdminPage'
+import { PlansPage } from './pages/PlansPage'
 import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './pages/SystemPages'
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
@@ -205,6 +206,8 @@ export default function App() {
                 <TrainingHubPage userId={user.id} />
               ) : route?.id === 'perfil' ? (
                 <ProfilePage onLogout={handleLogout} />
+              ) : route?.id === 'planos' && user ? (
+                <PlansPage />
               ) : route?.id === 'configuracoes' && user ? (
                 <HealthIntegrationsPage userId={user.id} />
               ) : route?.id === 'privacidade' && user ? (

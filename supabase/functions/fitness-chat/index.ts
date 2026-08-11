@@ -1,3 +1,30 @@
+class AIUsageError extends Error {
+  constructor(public code: string, public status: number) { super(code) }
+}
+
+async function reserveAIUsage(base: string, key: string, authorization: string, action: string, model: string, metadata: Record<string, unknown> = {}) {
+  const response = await fetch(`${base}/rest/v1/rpc/reserve_ai_usage`, { method: 'POST', headers: { apikey: key, Authorization: authorization, 'Content-Type': 'application/json' }, body: JSON.stringify({ requested_action: action, requested_model: model, request_metadata: metadata, requested_id: crypto.randomUUID() }) })
+  const body = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    const raw = String(body?.message || body?.details || '')
+    const code = ['plan_upgrade_required', 'monthly_action_limit_reached', 'monthly_ai_limit_reached'].find((item) => raw.includes(item)) || 'usage_validation_failed'
+    throw new AIUsageError(code, code === 'usage_validation_failed' ? 502 : 429)
+  }
+  if (!body?.usage_id) throw new AIUsageError('usage_validation_failed', 502)
+  return String(body.usage_id)
+}
+
+async function finalizeAIUsage(base: string, key: string, authorization: string, usageId: string, succeeded: boolean, metadata: Record<string, unknown> = {}) {
+  const response = await fetch(`${base}/rest/v1/rpc/finalize_ai_usage`, { method: 'POST', headers: { apikey: key, Authorization: authorization, 'Content-Type': 'application/json' }, body: JSON.stringify({ target_usage_id: usageId, succeeded, result_metadata: metadata }) })
+  if (!response.ok) console.error('Could not finalize AI usage', response.status)
+}
+
+function usageErrorResponse(error: unknown) {
+  if (!(error instanceof AIUsageError)) return null
+  const messages: Record<string, string> = { plan_upgrade_required: 'Este recurso inteligente não está incluído no seu plano atual. Conheça os planos disponíveis.', monthly_action_limit_reached: 'Você utilizou sua cota mensal deste recurso. Faça upgrade para liberar mais recursos inteligentes.', monthly_ai_limit_reached: 'Você atingiu seu limite mensal de IA. Faça upgrade para o Pro para liberar mais recursos inteligentes.', usage_validation_failed: 'Não foi possível validar seu limite de uso agora. Tente novamente.' }
+  return { status: error.status, payload: { error: messages[error.code] || messages.usage_validation_failed, code: error.code } }
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -26,6 +53,7 @@ const responseSchema = {
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (request.method !== 'POST') return json({ error: 'Método não permitido.' }, 405)
+  let usage: { id: string; url: string; key: string; authorization: string } | null = null
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL'), anonKey = Deno.env.get('SUPABASE_ANON_KEY'), openaiKey = Deno.env.get('OPENAI_API_KEY'), geminiKey = Deno.env.get('GEMINI_API_KEY')
     const authorization = request.headers.get('Authorization')
@@ -52,12 +80,17 @@ Deno.serve(async (request) => {
     if (!historyResult.ok) return json({ error: 'Não foi possível recuperar esta conversa.' }, 502)
     const history = (historyResult.data ?? []).reverse().map((item: Record<string, unknown>) => ({ role: item.role, content: String(item.content) }))
 
+    const model = geminiKey ? (Deno.env.get('GEMINI_MODEL') || 'gemini-flash-auto') : (Deno.env.get('OPENAI_MODEL') || 'gpt-5.6')
+    const usageId = await reserveAIUsage(supabaseUrl, anonKey, authorization, 'chat_message', model, { source: 'fitness-chat', conversation_id: conversationId })
+    usage = { id: usageId, url: supabaseUrl, key: anonKey, authorization }
     const outputText = geminiKey
       ? await generateWithGemini(geminiKey, systemPrompt(permissions, context), history, message)
       : await generateWithOpenAI(openaiKey!, systemPrompt(permissions, context), history, message)
     if (!outputText) return json({ error: 'A IA não retornou uma resposta válida.' }, 502)
     const parsed = JSON.parse(outputText)
     const assistant = validateAssistant(parsed, permissions)
+    await finalizeAIUsage(supabaseUrl, anonKey, authorization, usageId, true, { model_used: model })
+    usage = null
     const userInsert = await restWrite(supabaseUrl, authHeaders, 'ai_messages', { conversation_id: conversationId, user_id: user.id, role: 'user', content: message })
     if (!userInsert.ok) return json({ error: 'Não foi possível salvar sua mensagem.' }, 502)
     const saved = await restWrite(supabaseUrl, authHeaders, 'ai_messages', {
@@ -67,7 +100,12 @@ Deno.serve(async (request) => {
     if (!saved.ok) return json({ error: 'A resposta foi criada, mas não pôde ser salva.' }, 502)
     await fetch(`${supabaseUrl}/rest/v1/ai_conversations?id=eq.${encodeURIComponent(conversationId)}&user_id=eq.${encodeURIComponent(user.id)}`, { method: 'PATCH', headers: { ...authHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify({ updated_at: new Date().toISOString() }) })
     return json({ userMessage: userInsert.data?.[0], assistantMessage: saved.data?.[0] })
-  } catch (error) { console.error(error); return json({ error: 'Não foi possível responder agora. Tente novamente.' }, 500) }
+  } catch (error) {
+    if (usage) await finalizeAIUsage(usage.url, usage.key, usage.authorization, usage.id, false)
+    const limited = usageErrorResponse(error)
+    if (limited) return json(limited.payload, limited.status)
+    console.error(error); return json({ error: 'Não foi possível responder agora. Tente novamente.' }, 500)
+  }
 })
 
 async function gatherContext(base: string, headers: Record<string,string>, userId: string, permissions: Record<string,boolean>) {

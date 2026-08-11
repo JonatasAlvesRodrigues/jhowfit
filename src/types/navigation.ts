@@ -13,6 +13,7 @@ export type RouteId =
   | 'metas'
   | 'conquistas'
   | 'perfil'
+  | 'planos'
   | 'configuracoes'
   | 'privacidade'
   | 'notificacoes'
