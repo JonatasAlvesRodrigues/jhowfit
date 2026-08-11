@@ -407,6 +407,21 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/notification-dispatch/index.ts"
 
+[functions.create-mercado-pago-subscription]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/create-mercado-pago-subscription/index.ts"
+
+[functions.cancel-mercado-pago-subscription]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/cancel-mercado-pago-subscription/index.ts"
+
+[functions.mercado-pago-webhook]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/mercado-pago-webhook/index.ts"
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

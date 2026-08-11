@@ -42,4 +42,17 @@ export const subscriptionService = {
     if (error) throw new Error('Não foi possível carregar os planos.')
     return (data ?? []) as AvailablePlan[]
   },
+
+  async startMercadoPagoCheckout(planCode: Exclude<PlanCode, 'FREE'>): Promise<string> {
+    if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
+    const { data, error } = await supabase.functions.invoke('create-mercado-pago-subscription', { body: { planCode } })
+    if (error || !data?.checkoutUrl) throw new Error(data?.error || 'Não foi possível abrir o checkout do Mercado Pago.')
+    return String(data.checkoutUrl)
+  },
+
+  async cancelMercadoPagoSubscription(): Promise<void> {
+    if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
+    const { data, error } = await supabase.functions.invoke('cancel-mercado-pago-subscription')
+    if (error || !data?.cancelled) throw new Error(data?.error || 'Não foi possível cancelar a assinatura agora.')
+  },
 }
