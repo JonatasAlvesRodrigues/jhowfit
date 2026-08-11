@@ -161,15 +161,15 @@ create or replace function public.reserve_ai_usage(
 ) returns jsonb language plpgsql security definer set search_path = public
 as $$
 declare
-  current_user uuid := auth.uid(); subscription record; plan_record record;
+  request_user_id uuid := auth.uid(); subscription record; plan_record record;
   action_cost integer; action_limit integer; credits_consumed bigint; action_count bigint; usage_id uuid;
 begin
-  if current_user is null then raise exception using errcode = '28000', message = 'authentication_required'; end if;
-  perform pg_advisory_xact_lock(hashtextextended(current_user::text, 0));
+  if request_user_id is null then raise exception using errcode = '28000', message = 'authentication_required'; end if;
+  perform pg_advisory_xact_lock(hashtextextended(request_user_id::text, 0));
   update public.ai_usage set status = 'released', completed_at = now(),
     metadata = metadata || '{"release_reason":"reservation_timeout"}'::jsonb
-  where user_id = current_user and status = 'reserved' and created_at < now() - interval '15 minutes';
-  select * into subscription from public.current_subscription_for(current_user);
+  where user_id = request_user_id and status = 'reserved' and created_at < now() - interval '15 minutes';
+  select * into subscription from public.current_subscription_for(request_user_id);
   select monthly_ai_credits into plan_record from public.subscription_plans where code = subscription.plan_code and active;
   select credits into action_cost from public.ai_credit_costs where action_type = requested_action and active;
   select monthly_limit into action_limit from public.plan_action_limits where plan_code = subscription.plan_code and action_type = requested_action;
@@ -177,16 +177,16 @@ begin
   if action_limit = 0 then raise exception using errcode = 'P0001', message = 'plan_upgrade_required'; end if;
   select coalesce(sum(credits_used), 0), count(*) filter (where action_type = requested_action)
     into credits_consumed, action_count from public.ai_usage
-    where user_id = current_user and period_start = subscription.period_start and status in ('reserved','completed');
+    where user_id = request_user_id and period_start = subscription.period_start and status in ('reserved','completed');
   if action_count >= action_limit then raise exception using errcode = 'P0001', message = 'monthly_action_limit_reached'; end if;
   if credits_consumed + action_cost > plan_record.monthly_ai_credits then raise exception using errcode = 'P0001', message = 'monthly_ai_limit_reached'; end if;
   insert into public.ai_usage(user_id, subscription_id, action_type, credits_used, model_used, request_id, period_start, period_end, metadata)
-  values (current_user, subscription.subscription_id, requested_action, action_cost, left(trim(requested_model),120), requested_id,
+  values (request_user_id, subscription.subscription_id, requested_action, action_cost, left(trim(requested_model),120), requested_id,
     subscription.period_start, subscription.period_end, coalesce(request_metadata, '{}'::jsonb))
   returning id into usage_id;
   return jsonb_build_object('usage_id', usage_id, 'request_id', requested_id);
 exception when unique_violation then
-  select id into usage_id from public.ai_usage where user_id = current_user and request_id = requested_id;
+  select id into usage_id from public.ai_usage where user_id = request_user_id and request_id = requested_id;
   return jsonb_build_object('usage_id', usage_id, 'request_id', requested_id, 'duplicate', true);
 end;
 $$;
@@ -208,10 +208,10 @@ $$;
 create or replace function public.get_my_plan_overview()
 returns jsonb language plpgsql stable security definer set search_path = public
 as $$
-declare current_user uuid := auth.uid(); subscription record; result jsonb;
+declare request_user_id uuid := auth.uid(); subscription record; result jsonb;
 begin
-  if current_user is null then raise exception using errcode = '28000', message = 'authentication_required'; end if;
-  select * into subscription from public.current_subscription_for(current_user);
+  if request_user_id is null then raise exception using errcode = '28000', message = 'authentication_required'; end if;
+  select * into subscription from public.current_subscription_for(request_user_id);
   select jsonb_build_object(
     'code', p.code, 'name', p.name, 'description', p.description, 'price_monthly_cents', p.price_monthly_cents,
     'features', p.features, 'renews_at', subscription.period_end,
@@ -219,7 +219,7 @@ begin
     'cancel_at_period_end', coalesce((select cancel_at_period_end from public.user_subscriptions where id = subscription.subscription_id), false),
     'quotas', coalesce((select jsonb_agg(jsonb_build_object(
       'action_type', limits.action_type, 'monthly_limit', limits.monthly_limit,
-      'used', (select count(*) from public.ai_usage usage where usage.user_id = current_user
+      'used', (select count(*) from public.ai_usage usage where usage.user_id = request_user_id
         and usage.period_start = subscription.period_start and usage.action_type = limits.action_type and usage.status in ('reserved','completed'))
     ) order by limits.action_type) from public.plan_action_limits limits where limits.plan_code = p.code and limits.monthly_limit > 0), '[]'::jsonb)
   ) into result from public.subscription_plans p where p.code = subscription.plan_code;
