@@ -55,9 +55,9 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
       <header className="daily-welcome">
         <div className="daily-user">
           <div>
-            <small>{greeting}</small>
-            <h1>{data.profile.name.split(' ')[0]}</h1>
-            <p>{capitalize(currentDate)}</p>
+            <small>{capitalize(currentDate)}</small>
+            <h1>{greeting}, {data.profile.name.split(' ')[0]} <span className="daily-wave" aria-hidden="true">👋</span></h1>
+            <p>Vamos buscar seus objetivos de hoje?</p>
           </div>
         </div>
         <div className="daily-welcome__right">
@@ -105,6 +105,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           icon={Footprints}
           metric={data.metrics.steps}
           currentLabel={data.metrics.steps.current.toLocaleString('pt-BR')}
+          formatCurrent={(value) => Math.round(value).toLocaleString('pt-BR')}
           goalLabel={`Meta ${data.metrics.steps.goal.toLocaleString('pt-BR')}`}
           color="green"
           onClick={() => onNavigate('/atividades')}
@@ -114,6 +115,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           icon={Flame}
           metric={data.metrics.calories}
           currentLabel={`${Math.round(data.metrics.calories.current).toLocaleString('pt-BR')} kcal`}
+          formatCurrent={(value) => `${Math.round(value).toLocaleString('pt-BR')} kcal`}
           goalLabel={`Meta ${Math.round(data.metrics.calories.goal).toLocaleString('pt-BR')} kcal`}
           color="orange"
           onClick={() => onNavigate('/dieta')}
@@ -123,6 +125,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           icon={Salad}
           metric={{ current: data.metrics.meals, goal: 3 }}
           currentLabel={`${data.metrics.meals}/3`}
+          formatCurrent={(value) => `${Math.round(value)}/3`}
           goalLabel={data.metrics.meals === 1 ? 'refeição registrada' : 'refeições registradas'}
           color="purple"
           onClick={() => onNavigate('/dieta')}
@@ -132,6 +135,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           icon={Droplets}
           metric={data.metrics.water}
           currentLabel={`${data.metrics.water.current.toFixed(2).replace('.', ',')} L`}
+          formatCurrent={(value) => `${value.toFixed(2).replace('.', ',')} L`}
           goalLabel={`Meta pessoal ${data.metrics.water.goal.toFixed(1).replace('.', ',')} L · ver detalhes`}
           color="blue"
           onClick={() => onNavigate('/agua')}

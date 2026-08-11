@@ -2074,6 +2074,51 @@ button:not(:disabled):active { transition-duration: 80ms; }
 .daily-metric--green::before { opacity: .11 !important; }
 .daily-metric--orange::before,.daily-metric--purple::before,.daily-metric--blue::before { opacity: .14 !important; }
 
+/* Viewport-aware reveals and live dashboard data */
+@media (prefers-reduced-motion: no-preference) {
+  .motion-scroll-reveal {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0) scale(.99);
+    filter: saturate(.88);
+    transition: opacity 560ms var(--ease-emphasized) var(--reveal-delay, 0ms),
+      transform 560ms var(--ease-emphasized) var(--reveal-delay, 0ms),
+      filter 560ms ease var(--reveal-delay, 0ms),
+      border-color var(--motion-base) ease,
+      box-shadow var(--motion-base) ease;
+    animation: none !important;
+    will-change: opacity, transform;
+  }
+  .motion-scroll-reveal.is-scroll-visible {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  .daily-wave {
+    display: inline-block;
+    transform-origin: 72% 78%;
+    animation: movelya-wave 720ms 420ms var(--ease-spring) both;
+  }
+  .dashboard-complete-banner svg { animation: movelya-goal-celebrate 760ms var(--ease-spring) both; }
+}
+
+.daily-ring__value {
+  transition: stroke-dashoffset 40ms linear;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+@keyframes movelya-wave {
+  0% { opacity: 0; transform: rotate(0) scale(.7); }
+  35% { opacity: 1; transform: rotate(18deg) scale(1.08); }
+  65% { transform: rotate(-10deg) scale(1); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes movelya-goal-celebrate {
+  0% { opacity: 0; transform: scale(.5) rotate(-12deg); filter: drop-shadow(0 0 0 rgba(39,214,143,0)); }
+  65% { opacity: 1; transform: scale(1.12) rotate(3deg); filter: drop-shadow(0 0 12px rgba(39,214,143,.7)); }
+  100% { transform: none; filter: drop-shadow(0 0 5px rgba(39,214,143,.35)); }
+}
+
 /* Phone composition: the reference is a fixed compact card canvas, rather
    than full-bleed dashboard tiles. `pointer: coarse` covers installed-web-app
    viewports that report a desktop CSS width. */

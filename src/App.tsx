@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { VitaHeader } from './components/VitaHeader'
 import { AIFloatingButton, MobileNavigation, VitaSidebar } from './components/VitaNavigation'
@@ -39,6 +39,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [themePreference, setThemePreference] = useState<ThemePreference>('system')
   const [systemTheme, setSystemTheme] = useState<'dark' | 'light'>('dark')
+  const routeStageRef = useRef<HTMLDivElement>(null)
   const siteOrigin = typeof window === 'undefined' ? '' : window.location.origin
 
   useEffect(() => {
@@ -64,6 +65,42 @@ export default function App() {
     void notificationService.startReminderScheduler(user.id)
     return () => notificationService.stopReminderScheduler()
   }, [user?.id])
+
+  useEffect(() => {
+    const root = routeStageRef.current
+    if (!root || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const selector = [
+      '.daily-panel', '.daily-insight', '.daily-metric', '.today-summary',
+      '[class$="-card"]', '[class*="-card "]', '[class$="-panel"]', '[class*="-panel "]',
+    ].join(',')
+    const observed = new WeakSet<Element>()
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
+        entry.target.classList.add('is-scroll-visible')
+        observer.unobserve(entry.target)
+      })
+    }, { threshold: 0.12, rootMargin: '0px 0px -24px' })
+
+    const register = () => {
+      root.querySelectorAll(selector).forEach((element, index) => {
+        if (observed.has(element)) return
+        observed.add(element)
+        element.classList.add('motion-scroll-reveal')
+        ;(element as HTMLElement).style.setProperty('--reveal-delay', `${Math.min(index % 4 * 55, 165)}ms`)
+        observer.observe(element)
+      })
+    }
+
+    register()
+    const mutationObserver = new MutationObserver(register)
+    mutationObserver.observe(root, { childList: true, subtree: true })
+    return () => {
+      observer.disconnect()
+      mutationObserver.disconnect()
+    }
+  }, [route?.id, status])
 
   useEffect(() => {
     if (authLoading || roleLoading || onboarding.loading || status === 'booting' || status === 'transitioning') return
@@ -153,7 +190,7 @@ export default function App() {
               {status === 'transitioning' && <span />}
             </div>
             <div className="vita-content" aria-live="polite">
-              <div key={route?.id ?? 'not-found'} className="vita-route-stage">
+              <div ref={routeStageRef} key={route?.id ?? 'not-found'} className="vita-route-stage">
               {route?.id === 'inicio' && (user || import.meta.env.DEV) ? (
                 <DailyDashboardPage userId={user?.id ?? '00000000-0000-0000-0000-000000000000'} onNavigate={navigate} />
               ) : route?.id === 'dieta' && user ? (
