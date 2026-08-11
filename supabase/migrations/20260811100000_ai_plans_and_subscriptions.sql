@@ -126,7 +126,9 @@ alter table public.user_subscriptions enable row level security;
 alter table public.payment_history enable row level security;
 alter table public.ai_usage enable row level security;
 
+drop policy if exists "Users read own subscriptions" on public.user_subscriptions;
 create policy "Users read own subscriptions" on public.user_subscriptions for select to authenticated using (user_id = auth.uid());
+drop policy if exists "Users read own payments" on public.payment_history;
 create policy "Users read own payments" on public.payment_history for select to authenticated using (user_id = auth.uid());
 -- O histórico bruto contém a unidade interna de custo e não é exposto ao cliente.
 revoke all on public.ai_usage from anon, authenticated;
@@ -138,9 +140,9 @@ language plpgsql security definer set search_path = public
 as $$
 declare selected_subscription public.user_subscriptions%rowtype;
 begin
-  select * into selected_subscription from public.user_subscriptions
-  where user_id = target_user and status in ('trialing','active') and current_period_end > now()
-  order by case when plan_code = 'PRO_PLUS' then 3 when plan_code = 'PRO' then 2 else 1 end desc, created_at desc limit 1;
+  select s.* into selected_subscription from public.user_subscriptions s
+  where s.user_id = target_user and s.status in ('trialing','active') and s.current_period_end > now()
+  order by case when s.plan_code = 'PRO_PLUS' then 3 when s.plan_code = 'PRO' then 2 else 1 end desc, s.created_at desc limit 1;
   if found then
     return query select selected_subscription.id, selected_subscription.plan_code,
       selected_subscription.current_period_start, selected_subscription.current_period_end;
@@ -233,5 +235,5 @@ grant execute on function public.get_my_plan_overview() to authenticated;
 create or replace function public.list_available_plans()
 returns table(code text, name text, description text, price_monthly_cents integer, features jsonb)
 language sql stable security definer set search_path = public
-as $$ select code, name, description, price_monthly_cents, features from public.subscription_plans where active order by price_monthly_cents $$;
+as $$ select p.code, p.name, p.description, p.price_monthly_cents, p.features from public.subscription_plans p where p.active order by p.price_monthly_cents $$;
 grant execute on function public.list_available_plans() to authenticated;
