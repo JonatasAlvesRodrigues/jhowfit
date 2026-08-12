@@ -30,6 +30,7 @@ export interface AvailablePlan {
 
 export interface MercadoPagoCheckout { checkoutUrl: string; sessionId: string }
 export interface CheckoutStatus { id: string; plan_code: PlanCode; status: string; amount_cents: number; original_amount_cents: number; coupon_code: string | null; trial_ends_at: string | null; last_payment_status: string | null }
+export interface PaymentRecord { id:string; status:string; amount_cents:number; currency:string; paid_at:string|null; created_at:string }
 export interface CouponPreview { valid: boolean; reason?: string; code?: string; description?: string; original_amount_cents?: number; discounted_amount_cents?: number; discount_cents?: number }
 
 export const subscriptionService = {
@@ -60,6 +61,7 @@ export const subscriptionService = {
     if (error) throw new Error('Não foi possível consultar o estado da compra.')
     return data as CheckoutStatus | null
   },
+  async paymentHistory(): Promise<PaymentRecord[]> { if(!supabase) throw new Error('A conexão com o Supabase não está configurada.'); const {data,error}=await supabase.from('payment_history').select('id,status,amount_cents,currency,paid_at,created_at').order('created_at',{ascending:false}).limit(6); if(error) throw new Error('Não foi possível carregar as cobranças.'); return (data??[]) as PaymentRecord[] },
 
   async previewCoupon(planCode: Exclude<PlanCode, 'FREE'>, couponCode: string): Promise<CouponPreview> {
     if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')

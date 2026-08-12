@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { CalendarDays, Check, Crown, LoaderCircle, ShieldCheck, Sparkles, Zap } from 'lucide-react'
+import { CalendarDays, Check, Crown, LoaderCircle, ShieldCheck, Sparkles, Zap, ReceiptText, Settings2 } from 'lucide-react'
 import { subscriptionService, type AvailablePlan, type PlanOverview } from '../services/subscriptionService'
 import '../plans.css'
+import '../subscription-details.css'
 
 const quotaLabels: Record<string, string> = {
   chat_message: 'Mensagens com o assistente',
@@ -19,10 +20,11 @@ export function PlansPage({ onNavigate }: { onNavigate: (path: string) => void }
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busyPlan, setBusyPlan] = useState<AvailablePlan['code'] | 'cancel' | null>(null)
+  const [payments, setPayments] = useState<Array<{id:string;status:string;amount_cents:number;paid_at:string|null;created_at:string}>>([])
 
   useEffect(() => {
-    Promise.all([subscriptionService.getOverview(), subscriptionService.listPlans()])
-      .then(([current, available]) => { setOverview(current); setPlans(available) })
+    Promise.all([subscriptionService.getOverview(), subscriptionService.listPlans(), subscriptionService.paymentHistory()])
+      .then(([current, available, history]) => { setOverview(current); setPlans(available); setPayments(history) })
       .catch((requestError) => setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar os planos.'))
   }, [])
 
@@ -53,7 +55,8 @@ export function PlansPage({ onNavigate }: { onNavigate: (path: string) => void }
       <div className="current-plan-card__main"><span><Sparkles size={17} /> PLANO ATUAL</span><h2>{overview.name}</h2><p>{overview.description}</p></div>
       <div className="current-plan-card__renewal"><CalendarDays size={18} /><div><small>PRÓXIMA RENOVAÇÃO</small><strong>{formatDate(overview.renews_at)}</strong></div></div>
     </article>
-    {overview.code !== 'FREE' && <div className="plans-manage"><span>{overview.cancel_at_period_end ? 'Sua assinatura está marcada para cancelamento.' : 'Assinatura recorrente gerenciada pelo Mercado Pago.'}</span>{!overview.cancel_at_period_end && <button onClick={() => void cancelSubscription()} disabled={busyPlan === 'cancel'}>{busyPlan === 'cancel' ? 'Cancelando...' : 'Cancelar assinatura'}</button>}</div>}
+    <section className="subscription-details"><div><span className="page-eyebrow">MINHA ASSINATURA</span><h2>Controle total da sua assinatura</h2><p>Seu plano é renovado automaticamente em {formatDate(overview.renews_at)}.</p></div><div className="subscription-details__benefits"><h3><Sparkles size={16}/> Benefícios incluídos</h3>{overview.features.map(feature=><span key={feature}><Check size={14}/>{feature}</span>)}</div><div className="subscription-details__billing"><h3><ReceiptText size={16}/> Cobranças recentes</h3>{payments.length?payments.map(payment=><span key={payment.id}>{payment.status==='paid'?'Pagamento confirmado':payment.status==='pending'?'Pagamento pendente':'Cobrança em análise'}<strong>{formatPrice(payment.amount_cents)}</strong></span>):<p>Nenhuma cobrança registrada ainda.</p>}</div></section>
+    {overview.code !== 'FREE' && <div className="plans-manage"><span><Settings2 size={16}/>{overview.cancel_at_period_end ? 'Sua assinatura está marcada para cancelamento.' : 'Assinatura recorrente gerenciada pelo Mercado Pago.'}</span>{!overview.cancel_at_period_end && <button onClick={() => void cancelSubscription()} disabled={busyPlan === 'cancel'}>{busyPlan === 'cancel' ? 'Cancelando...' : 'Gerenciar / cancelar'}</button>}</div>}
     {notice && <p className="plans-notice" role="status">{notice}</p>}
 
     <section className="plan-usage-panel">
