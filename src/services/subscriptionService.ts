@@ -70,9 +70,9 @@ export const subscriptionService = {
     return data as CouponPreview
   },
 
-  async cancelMercadoPagoSubscription(): Promise<void> {
+  async cancelMercadoPagoSubscription(reason: string): Promise<void> {
     if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
-    const { data, error } = await supabase.functions.invoke('cancel-mercado-pago-subscription')
+    const { data, error } = await supabase.functions.invoke('cancel-mercado-pago-subscription', { body: { reason } })
     if (error || !data?.cancelled) throw new Error(data?.error || 'Não foi possível cancelar a assinatura agora.')
   },
 }
