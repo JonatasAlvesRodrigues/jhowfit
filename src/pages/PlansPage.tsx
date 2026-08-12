@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { CalendarDays, Check, Crown, LoaderCircle, ShieldCheck, Sparkles, Zap, ReceiptText, Settings2 } from 'lucide-react'
-import { subscriptionService, type AvailablePlan, type PlanOverview } from '../services/subscriptionService'
+import { CalendarDays, Check, CircleAlert, CreditCard, Crown, LoaderCircle, ShieldCheck, Sparkles, Zap, ReceiptText, Settings2 } from 'lucide-react'
+import { subscriptionService, type AvailablePlan, type PaymentRecovery, type PlanOverview } from '../services/subscriptionService'
 import '../plans.css'
 import '../subscription-details.css'
 import '../subscription-cancel.css'
+import '../subscription-recovery.css'
 
 const quotaLabels: Record<string, string> = {
   chat_message: 'Mensagens com o assistente',
@@ -22,12 +23,13 @@ export function PlansPage({ onNavigate }: { onNavigate: (path: string) => void }
   const [notice, setNotice] = useState('')
   const [busyPlan, setBusyPlan] = useState<AvailablePlan['code'] | 'cancel' | null>(null)
   const [payments, setPayments] = useState<Array<{id:string;status:string;amount_cents:number;paid_at:string|null;created_at:string}>>([])
+  const [paymentRecovery, setPaymentRecovery] = useState<PaymentRecovery | null>(null)
   const [showCancel, setShowCancel] = useState(false)
   const [cancelReason, setCancelReason] = useState('too_expensive')
 
   useEffect(() => {
-    Promise.all([subscriptionService.getOverview(), subscriptionService.listPlans(), subscriptionService.paymentHistory()])
-      .then(([current, available, history]) => { setOverview(current); setPlans(available); setPayments(history) })
+    Promise.all([subscriptionService.getOverview(), subscriptionService.listPlans(), subscriptionService.paymentHistory(), subscriptionService.getPaymentRecovery().catch(() => null)])
+      .then(([current, available, history, recovery]) => { setOverview(current); setPlans(available); setPayments(history); setPaymentRecovery(recovery) })
       .catch((requestError) => setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar os planos.'))
   }, [])
 
@@ -57,6 +59,7 @@ export function PlansPage({ onNavigate }: { onNavigate: (path: string) => void }
       <div className="current-plan-card__main"><span><Sparkles size={17} /> PLANO ATUAL</span><h2>{overview.name}</h2><p>{overview.description}</p></div>
       <div className="current-plan-card__renewal"><CalendarDays size={18} /><div><small>PRÓXIMA RENOVAÇÃO</small><strong>{formatDate(overview.renews_at)}</strong></div></div>
     </article>
+    {paymentRecovery && <section className="subscription-recovery" aria-live="polite"><div className="subscription-recovery__icon"><CircleAlert size={21}/></div><div><span className="page-eyebrow">PAGAMENTO PRECISA DE ATENÇÃO</span><h2>Não foi possível concluir a sua cobrança.</h2><p>Atualize o meio de pagamento no Mercado Pago para regularizar sua assinatura. A alteração do plano só é confirmada pelo nosso servidor após o pagamento.</p></div><button onClick={() => window.location.assign(paymentRecovery.checkout_url)}><CreditCard size={17}/> Atualizar pagamento</button></section>}
     <section className="subscription-details"><div><span className="page-eyebrow">MINHA ASSINATURA</span><h2>Controle total da sua assinatura</h2><p>Seu plano é renovado automaticamente em {formatDate(overview.renews_at)}.</p></div><div className="subscription-details__benefits"><h3><Sparkles size={16}/> Benefícios incluídos</h3>{overview.features.map(feature=><span key={feature}><Check size={14}/>{feature}</span>)}</div><div className="subscription-details__billing"><h3><ReceiptText size={16}/> Cobranças recentes</h3>{payments.length?payments.map(payment=><span key={payment.id}>{payment.status==='paid'?'Pagamento confirmado':payment.status==='pending'?'Pagamento pendente':'Cobrança em análise'}<strong>{formatPrice(payment.amount_cents)}</strong></span>):<p>Nenhuma cobrança registrada ainda.</p>}</div></section>
     {overview.code !== 'FREE' && <div className="plans-manage"><span><Settings2 size={16}/>{overview.cancel_at_period_end ? `Sem novas cobranças. Seu acesso permanece até ${formatDate(overview.renews_at)}.` : 'Assinatura recorrente gerenciada pelo Mercado Pago.'}</span>{!overview.cancel_at_period_end && <button onClick={() => setShowCancel(true)} disabled={busyPlan === 'cancel'}>Gerenciar / cancelar</button>}</div>}
     {showCancel && <div className="subscription-modal" role="dialog" aria-modal="true"><div><span className="page-eyebrow">CANCELAR RENOVAÇÃO</span><h2>Você não será cobrado novamente.</h2><p>Seu acesso e benefícios continuam normalmente até {formatDate(overview.renews_at)}.</p><fieldset><legend>Qual o principal motivo?</legend>{[['too_expensive','Está caro para mim'],['not_using','Não estou usando o suficiente'],['missing_features','Faltam recursos que preciso'],['technical_issue','Tive um problema técnico'],['other','Outro motivo']].map(([value,label])=><button type="button" key={value} className={cancelReason===value?'is-selected':''} onClick={()=>setCancelReason(value)}><i />{label}</button>)}</fieldset><div><button className="secondary" onClick={()=>setShowCancel(false)}>Voltar</button><button onClick={()=>void cancelSubscription()} disabled={busyPlan==='cancel'}>{busyPlan==='cancel'?'Cancelando...':'Confirmar cancelamento'}</button></div></div></div>}
