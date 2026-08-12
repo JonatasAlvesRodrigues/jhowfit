@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { AlertTriangle, BarChart3, Bell, Database, ShieldCheck, Users, Utensils, Dumbbell, Crown, CreditCard, Save, BadgePercent, Pause, Archive, Play } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { adminService, type AdminAuditEvent, type AdminCoupon, type AdminCouponSummary, type AdminInternalAlert, type AdminPlanLimit, type AdminSubscription, type AdminSubscriptionSummary, type AdminSummary, type AdminUser } from '../services/adminService'
+import { adminService, type AdminAuditEvent, type AdminCancellationReason, type AdminCoupon, type AdminCouponSummary, type AdminInternalAlert, type AdminPlanLimit, type AdminSubscription, type AdminSubscriptionSummary, type AdminSummary, type AdminUser } from '../services/adminService'
 import '../admin.css'
 import '../admin-coupons.css'
+import '../admin-cancellations.css'
 
 export function AdminPage() {
   const { user, role } = useAuth()
@@ -18,6 +19,8 @@ export function AdminPage() {
   const [audit, setAudit] = useState<AdminAuditEvent[]>([])
   const [auditDays, setAuditDays] = useState(30)
   const [alerts, setAlerts] = useState<AdminInternalAlert[]>([])
+  const [cancellationReasons, setCancellationReasons] = useState<AdminCancellationReason[]>([])
+  const [cancellationDays, setCancellationDays] = useState(90)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
@@ -32,14 +35,14 @@ export function AdminPage() {
       const [nextSummary, nextUsers] = await Promise.all([adminService.summary(), adminService.users()])
       setSummary(nextSummary); setUsers(nextUsers)
       if (role === 'admin') {
-        const [nextSubscriptionSummary, nextSubscriptions, nextLimits, nextCouponSummary, nextCoupons,nextAudit,nextAlerts] = await Promise.all([adminService.subscriptionSummary(), adminService.subscriptions(), adminService.planLimits(), adminService.couponSummary(couponDays), adminService.coupons(couponDays),adminService.auditHistory(auditDays),adminService.internalAlerts()])
-        setSubscriptionSummary(nextSubscriptionSummary); setSubscriptions(nextSubscriptions); setPlanLimits(nextLimits); setCouponSummary(nextCouponSummary); setCoupons(nextCoupons);setAudit(nextAudit);setAlerts(nextAlerts)
+        const [nextSubscriptionSummary, nextSubscriptions, nextLimits, nextCouponSummary, nextCoupons,nextAudit,nextAlerts,nextReasons] = await Promise.all([adminService.subscriptionSummary(), adminService.subscriptions(), adminService.planLimits(), adminService.couponSummary(couponDays), adminService.coupons(couponDays),adminService.auditHistory(auditDays),adminService.internalAlerts(),adminService.cancellationReasons(cancellationDays)])
+        setSubscriptionSummary(nextSubscriptionSummary); setSubscriptions(nextSubscriptions); setPlanLimits(nextLimits); setCouponSummary(nextCouponSummary); setCoupons(nextCoupons);setAudit(nextAudit);setAlerts(nextAlerts);setCancellationReasons(nextReasons)
       }
     }
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Acesso administrativo não autorizado.') }
     finally { setLoading(false) }
   }
-  useEffect(() => { if (role !== 'user') void load() }, [role, couponDays,auditDays])
+  useEffect(() => { if (role !== 'user') void load() }, [role, couponDays,auditDays,cancellationDays])
 
   async function toggleSuspension(item: AdminUser) {
     try { await adminService.setSuspension(item.user_id, item.account_status === 'active'); setUsers((current) => current.map((userItem) => userItem.user_id === item.user_id ? { ...userItem, account_status: item.account_status === 'active' ? 'suspended' : 'active' } : userItem)); setToast('Status da conta atualizado.') }
@@ -73,6 +76,7 @@ export function AdminPage() {
       {role === 'admin' && couponSummary && <AdminCoupons summary={couponSummary} coupons={coupons} days={couponDays} onDaysChange={setCouponDays} onChanged={() => void load()} onError={setError} onToast={setToast} />}
       {role === 'admin' && <section className="admin-panel card"><h2>Histórico administrativo</h2><select value={auditDays} onChange={e=>setAuditDays(Number(e.target.value))}><option value={7}>Últimos 7 dias</option><option value={30}>Últimos 30 dias</option><option value={90}>Últimos 90 dias</option><option value={0}>Todo histórico</option></select><button onClick={()=>downloadAudit(audit)}>Exportar CSV</button><div className="admin-subscription-list">{audit.slice(0,20).map(item=><article key={`${item.created_at}${item.action}`}><div><strong>{item.action.split('_').join(' ')}</strong><small>{new Date(item.created_at).toLocaleString('pt-BR')} · {item.actor_name||'Admin'}</small></div></article>)}</div></section>}
       {role === 'admin' && <section className="admin-panel card"><h2>Alertas internos</h2><p>Somente dados operacionais agregados.</p><div className="admin-subscription-list">{alerts.length ? alerts.map(item=><article key={item.id}><div><strong>{item.title}</strong><small>{item.severity.toUpperCase()} · {Object.entries(item.details).map(([key,value])=>`${key}: ${value}`).join(' · ')}</small></div></article>) : <p>Nenhum alerta operacional aberto.</p>}</div></section>}
+      {role === 'admin' && <section className="admin-panel card"><div className="admin-billing__subhead"><div><h2>Motivos de cancelamento</h2><p>Ranking por plano, a partir dos motivos informados pelos assinantes.</p></div><select value={cancellationDays} onChange={e=>setCancellationDays(Number(e.target.value))}><option value={30}>30 dias</option><option value={90}>90 dias</option><option value={180}>6 meses</option><option value={0}>Todo histórico</option></select></div><div className="admin-cancellation-report">{(['PRO','PRO_PLUS'] as const).map(plan=><article key={plan}><h3>{plan === 'PRO' ? 'Movelya Pro' : 'Movelya Pro Plus'}</h3>{cancellationReasons.filter(item=>item.plan_code===plan).length?cancellationReasons.filter(item=>item.plan_code===plan).map(item=><div key={item.reason}><span>{cancellationReasonLabel(item.reason)}</span><strong>{item.cancellations} · {item.percentage}%</strong><i style={{width:`${item.percentage}%`}} /></div>):<p>Sem cancelamentos no período.</p>}</article>)}</div></section>}
       <div className="admin-layout"><div className="admin-panel card"><h2>Contas e permissões</h2><p>Somente identificadores mínimos, status e função. Senhas, e-mails, fotos, mensagens e dados clínicos ficam fora desta consulta.</p><table className="admin-table"><thead><tr><th>Usuário</th><th>Função</th><th>Status</th><th /></tr></thead><tbody>{users.map((item) => <tr key={item.user_id}><td>{item.full_name || 'Sem nome'}<br /><small>{item.user_id.slice(0, 8)}…</small></td><td>{item.role}</td><td className={`admin-status ${item.account_status === 'suspended' ? 'is-suspended' : ''}`}>{item.account_status === 'active' ? 'Ativa' : 'Suspensa'}</td><td>{role === 'admin' && item.user_id !== user?.id && <button onClick={() => void toggleSuspension(item)}>{item.account_status === 'active' ? 'Suspender' : 'Reativar'}</button>}</td></tr>)}</tbody></table></div>
         <div className="admin-panel card"><h2>Notificação geral</h2><p>Crie um rascunho para comunicação operacional. O envio em massa deve passar por revisão antes da publicação.</p><form className="admin-form" onSubmit={(event) => void createBroadcast(event)}><label>Título<input required maxLength={120} value={title} onChange={(event) => setTitle(event.target.value)} /></label><label>Mensagem<textarea required maxLength={1000} value={body} onChange={(event) => setBody(event.target.value)} /></label><label>Público<select value={audience} onChange={(event) => setAudience(event.target.value)}><option value="all">Todos</option><option value="active">Usuários ativos</option><option value="moderators">Moderadores</option></select></label>{role === 'admin' && <button type="submit"><Bell size={14} /> Salvar rascunho</button>}</form></div></div>
       <div className="admin-layout"><div className="admin-panel card"><h2>Saúde do sistema</h2><p><BarChart3 size={15} /> {summary.feature_events_30d} eventos de funcionalidade e {summary.audit_events_30d} ações auditadas nos últimos 30 dias.</p><p><Database size={15} /> Exercícios, alimentos e conquistas são administrados por operações protegidas no banco.</p><button className="admin-sync-button" onClick={() => void syncExercises()} disabled={syncingExercises}><Dumbbell size={15} /> {syncingExercises ? 'Sincronizando...' : 'Sincronizar exercícios'}</button></div><div className="admin-callout"><ShieldCheck size={18} /><span><strong>Limite de privacidade</strong><br />O painel não consulta armazenamento de fotos, conversas da IA, medidas, peso ou refeições individuais. Sinalizações usam apenas tipo, motivo e status.</span></div></div>
@@ -152,6 +156,7 @@ function AdminCoupons({ summary, coupons, days, onDaysChange, onChanged, onError
 }
 
 function money(cents: number) { return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }
+function cancellationReasonLabel(reason: string) { return ({too_expensive:'Está caro',not_using:'Não está usando',missing_features:'Faltam recursos',technical_issue:'Problema técnico',other:'Outro motivo',not_informed:'Não informado'} as Record<string,string>)[reason] || reason }
 function downloadAudit(items: AdminAuditEvent[]) { const rows=items.map(i=>[i.created_at,i.action,i.actor_name||'',i.target_user_id||'',JSON.stringify(i.metadata)].map(x=>`"${String(x).split('"').join('""')}"`).join(',')); const csv=['Data,Ação,Administrador,Usuário alvo,Detalhes',...rows].join('\n'); const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); const a=document.createElement('a');a.href=url;a.download='historico-administrativo.csv';a.click();URL.revokeObjectURL(url) }
 
 function Stat({ icon, label, value, detail }: { icon: ReactNode; label: string; value: ReactNode; detail: string }) {
