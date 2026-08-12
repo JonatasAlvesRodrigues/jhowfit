@@ -8,6 +8,7 @@ export interface AdminSubscription { user_id: string; full_name: string | null; 
 export interface AdminPlanLimit { plan_code: 'FREE' | 'PRO' | 'PRO_PLUS'; action_type: string; monthly_limit: number }
 export interface AdminCouponSummary { active_coupons: number; redemptions_total: number; discount_total_cents: number; net_revenue_cents: number }
 export interface AdminCoupon { code: string; description: string; discount_type: 'percent' | 'fixed_cents'; discount_value: number; applies_to: Array<'PRO' | 'PRO_PLUS'>; first_purchase_only: boolean; max_redemptions: number | null; redemptions_count: number; active: boolean; archived_at: string | null; expires_at: string | null; discount_total_cents: number; net_revenue_cents: number; created_at: string }
+export interface AdminAuditEvent { created_at:string; action:string; actor_name:string|null; target_user_id:string|null; metadata:Record<string,unknown> }
 
 function requireClient() { if (!supabase) throw new Error('Supabase não configurado.') ; return supabase }
 
@@ -49,6 +50,7 @@ export const adminService = {
     const { error } = await requireClient().rpc('admin_create_coupon', { input_code: input.code, input_description: input.description, input_discount_type: input.discountType, input_discount_value: input.discountValue, input_applies_to: input.appliesTo, input_max_redemptions: input.maxRedemptions, input_expires_at: null }); if (error) throw error
   },
   async setCouponStatus(code: string, action: 'activate' | 'pause' | 'archive') { const { error } = await requireClient().rpc('admin_set_coupon_status', { input_code: code, input_action: action }); if (error) throw error },
+  async auditHistory(days=30, action='') { const {data,error}=await requireClient().rpc('admin_list_audit_history',{input_days:days,input_action:action||null}); if(error)throw error; return (data??[]) as AdminAuditEvent[] },
   async updateSubscriptionPlan(planCode: 'FREE' | 'PRO' | 'PRO_PLUS', priceMonthlyCents: number) {
     const { error } = await requireClient().rpc('admin_update_subscription_plan', { input_plan_code: planCode, input_price_cents: priceMonthlyCents, input_features: null })
     if (error) throw error
