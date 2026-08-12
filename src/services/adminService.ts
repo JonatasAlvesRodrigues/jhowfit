@@ -6,6 +6,8 @@ export interface AdminUser { user_id: string; full_name: string | null; created_
 export interface AdminSubscriptionSummary { active_total: number; monthly_revenue_cents: number; cancelled_30d: number; pending_payments: number; plans: Array<{ code: 'FREE' | 'PRO' | 'PRO_PLUS'; name: string; price_monthly_cents: number; active_subscriptions: number }> }
 export interface AdminSubscription { user_id: string; full_name: string | null; plan_code: 'FREE' | 'PRO' | 'PRO_PLUS'; subscription_status: string; current_period_end: string; cancel_at_period_end: boolean; provider: string | null }
 export interface AdminPlanLimit { plan_code: 'FREE' | 'PRO' | 'PRO_PLUS'; action_type: string; monthly_limit: number }
+export interface AdminCouponSummary { active_coupons: number; redemptions_total: number; discount_total_cents: number; net_revenue_cents: number }
+export interface AdminCoupon { code: string; description: string; discount_type: 'percent' | 'fixed_cents'; discount_value: number; applies_to: Array<'PRO' | 'PRO_PLUS'>; first_purchase_only: boolean; max_redemptions: number | null; redemptions_count: number; active: boolean; archived_at: string | null; expires_at: string | null; discount_total_cents: number; net_revenue_cents: number; created_at: string }
 
 function requireClient() { if (!supabase) throw new Error('Supabase não configurado.') ; return supabase }
 
@@ -41,6 +43,12 @@ export const adminService = {
     if (error) throw error
     return (data ?? []) as AdminPlanLimit[]
   },
+  async couponSummary() { const { data, error } = await requireClient().rpc('admin_coupon_summary'); if (error) throw error; return data as AdminCouponSummary },
+  async coupons() { const { data, error } = await requireClient().rpc('admin_list_coupons'); if (error) throw error; return (data ?? []) as AdminCoupon[] },
+  async createCoupon(input: { code: string; description: string; discountType: 'percent' | 'fixed_cents'; discountValue: number; appliesTo: Array<'PRO' | 'PRO_PLUS'>; maxRedemptions: number | null }) {
+    const { error } = await requireClient().rpc('admin_create_coupon', { input_code: input.code, input_description: input.description, input_discount_type: input.discountType, input_discount_value: input.discountValue, input_applies_to: input.appliesTo, input_max_redemptions: input.maxRedemptions, input_expires_at: null }); if (error) throw error
+  },
+  async setCouponStatus(code: string, action: 'activate' | 'pause' | 'archive') { const { error } = await requireClient().rpc('admin_set_coupon_status', { input_code: code, input_action: action }); if (error) throw error },
   async updateSubscriptionPlan(planCode: 'FREE' | 'PRO' | 'PRO_PLUS', priceMonthlyCents: number) {
     const { error } = await requireClient().rpc('admin_update_subscription_plan', { input_plan_code: planCode, input_price_cents: priceMonthlyCents, input_features: null })
     if (error) throw error
