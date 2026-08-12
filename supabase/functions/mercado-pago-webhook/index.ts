@@ -53,6 +53,9 @@ Deno.serve(async (request) => {
       await fetch(`${supabaseUrl}/rest/v1/mercado_pago_checkout_sessions?id=eq.${encodeURIComponent(sessions[0].id)}`, {
         method: 'PATCH', headers: serviceHeaders(serviceKey), body: JSON.stringify({ last_payment_status: paymentStatus, recovery_attempts: ['rejected', 'failed'].includes(paymentStatus) ? 1 : 0 }),
       })
+      if (['rejected', 'failed'].includes(paymentStatus)) await fetch(`${supabaseUrl}/rest/v1/user_subscriptions?provider=eq.mercado_pago&provider_subscription_id=eq.${encodeURIComponent(preapprovalId)}`, {
+        method: 'PATCH', headers: serviceHeaders(serviceKey), body: JSON.stringify({ status: 'past_due', updated_at: new Date().toISOString() }),
+      })
     }
     return json({ received: true })
   } catch (error) { console.error('Mercado Pago webhook failed', error); return json({ error: 'Falha ao processar o webhook.' }, 500) }
