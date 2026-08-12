@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, BadgePercent, CheckCircle2, CircleAlert, CreditCard, LoaderCircle, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowLeft, BadgePercent, CheckCircle2, CircleAlert, CreditCard, LoaderCircle, RefreshCw, ShieldCheck } from 'lucide-react'
 import { subscriptionService, type AvailablePlan, type CheckoutStatus, type PlanCode } from '../services/subscriptionService'
 import '../checkout.css'
 
@@ -27,11 +27,10 @@ export function CheckoutPage({ onNavigate }: { onNavigate: (path: string) => voi
     <div className="checkout-layout">
       <div className="checkout-main"><span className="page-eyebrow">CHECKOUT SEGURO</span><h1>Quase lá. Vamos cuidar do seu ritmo.</h1><p>Você será redirecionado ao Mercado Pago para concluir a assinatura. Seus dados de pagamento não passam pelo MOVELYA.</p>
         <div className="checkout-steps"><span className="is-active">1. Revisar</span><i /><span>2. Pagamento seguro</span><i /><span>3. Confirmação</span></div>
-        <article className="checkout-trial"><Sparkles size={20} /><div><strong>7 dias para experimentar</strong><p>Nenhuma cobrança hoje. O primeiro pagamento será programado após o período de teste.</p></div></article>
         <label className="coupon-field"><span><BadgePercent size={16} /> Cupom de desconto</span><div><input value={coupon} onChange={(event) => setCoupon(event.target.value.toUpperCase())} maxLength={32} placeholder="Ex.: BEMVINDO10" /><small>Aplicado e validado com segurança no próximo passo.</small></div></label>
         {error && <p className="checkout-error" role="alert">{error}</p>}
       </div>
-      <aside className="checkout-summary"><span>RESUMO DA ASSINATURA</span>{plan ? <><h2>MOVELYA {plan.name}</h2><p>{plan.description}</p><div className="checkout-price"><small>Depois do teste</small><strong>{formatPrice(plan.price_monthly_cents)}<em>/mês</em></strong></div><ul><li><CheckCircle2 size={16} /> Cobrança mensal recorrente</li><li><CheckCircle2 size={16} /> Cancele quando quiser</li><li><ShieldCheck size={16} /> Confirmação pelo servidor</li></ul><button onClick={() => void continueToPayment()} disabled={busy}>{busy ? <><LoaderCircle className="is-spinning" size={17} /> Preparando...</> : <><CreditCard size={17} /> Continuar para pagamento</>}</button><small className="checkout-provider">Pagamento protegido pelo Mercado Pago</small></> : <LoaderCircle className="is-spinning" />}</aside>
+      <aside className="checkout-summary"><span>RESUMO DA ASSINATURA</span>{plan ? <><h2>MOVELYA {plan.name}</h2><p>{plan.description}</p><div className="checkout-price"><small>Cobrança mensal</small><strong>{formatPrice(plan.price_monthly_cents)}<em>/mês</em></strong></div><ul><li><CheckCircle2 size={16} /> Cobrança mensal recorrente</li><li><CheckCircle2 size={16} /> Cancele quando quiser</li><li><ShieldCheck size={16} /> Confirmação pelo servidor</li></ul><button onClick={() => void continueToPayment()} disabled={busy}>{busy ? <><LoaderCircle className="is-spinning" size={17} /> Preparando...</> : <><CreditCard size={17} /> Continuar para pagamento</>}</button><small className="checkout-provider">Pagamento protegido pelo Mercado Pago</small></> : <LoaderCircle className="is-spinning" />}</aside>
     </div>
   </section>
 }
@@ -49,7 +48,6 @@ export function CheckoutConfirmationPage({ onNavigate }: { onNavigate: (path: st
     <span className="page-eyebrow">{confirmed ? 'ASSINATURA CONFIRMADA' : rejected ? 'PAGAMENTO NÃO APROVADO' : 'CONFIRMANDO PAGAMENTO'}</span>
     <h1>{confirmed ? 'Tudo certo. Seu plano já está ativo.' : rejected ? 'Não foi possível concluir o pagamento.' : 'Estamos validando sua assinatura.'}</h1>
     <p>{confirmed ? 'Seu acesso foi atualizado com segurança. Aproveite os novos recursos do MOVELYA.' : rejected ? 'Seu cartão ou meio de pagamento não foi aprovado. Você pode tentar novamente com outro meio no Mercado Pago.' : 'O Mercado Pago pode levar alguns instantes para enviar a confirmação. Não é necessário pagar novamente.'}</p>
-    {checkout?.trial_ends_at && !confirmed && <div className="checkout-result__trial"><Sparkles size={16} /> Seu período de teste termina em {formatDate(checkout.trial_ends_at)}.</div>}
     {checkout?.coupon_code && <div className="checkout-result__trial"><BadgePercent size={16} /> Cupom {checkout.coupon_code} aplicado ao primeiro ciclo.</div>}
     {error && <p className="checkout-error">{error}</p>}
     <div className="checkout-result__actions">{!confirmed && <button className="secondary" onClick={load}><RefreshCw size={16} /> Atualizar status</button>}<button onClick={() => onNavigate(rejected ? `/checkout?plan=${checkout?.plan_code || 'PRO'}` : '/planos')}>{rejected ? 'Tentar novamente' : 'Ir para meus planos'}</button></div>
@@ -58,4 +56,3 @@ export function CheckoutConfirmationPage({ onNavigate }: { onNavigate: (path: st
 
 function getHashQuery(name: string) { const query = window.location.hash.split('?')[1] || ''; return new URLSearchParams(query).get(name) || '' }
 function formatPrice(cents: number) { return `R$ ${(cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` }
-function formatDate(value: string) { return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(value)) }

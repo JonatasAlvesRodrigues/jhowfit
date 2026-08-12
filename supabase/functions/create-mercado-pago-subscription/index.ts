@@ -62,10 +62,6 @@ Deno.serve(async (request) => {
       amountCents = couponAmount
     }
 
-    const trialDays = Math.max(0, Math.min(30, Number(Deno.env.get('MP_TRIAL_DAYS') || '7') || 0))
-    const trialEndsAt = trialDays > 0 ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000) : null
-    if (trialEndsAt) await fetch(`${supabaseUrl}/rest/v1/mercado_pago_checkout_sessions?id=eq.${encodeURIComponent(session.id)}`, { method: 'PATCH', headers: headers(serviceKey), body: JSON.stringify({ trial_ends_at: trialEndsAt.toISOString() }) })
-
     const baseUrl = appUrl.replace(/\/$/, '')
     const webhookUrl = `${supabaseUrl}/functions/v1/mercado-pago-webhook?token=${encodeURIComponent(webhookToken)}`
     const mercadoPagoResponse = await fetch('https://api.mercadopago.com/preapproval', {
@@ -76,7 +72,7 @@ Deno.serve(async (request) => {
         payer_email: user.email,
         back_url: `${baseUrl}/#/checkout-confirmado?session_id=${encodeURIComponent(session.id)}`,
         notification_url: webhookUrl,
-        auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: amountCents / 100, currency_id: 'BRL', ...(trialEndsAt ? { start_date: trialEndsAt.toISOString() } : {}) },
+        auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: amountCents / 100, currency_id: 'BRL' },
         status: 'pending',
       }),
     })
@@ -90,17 +86,6 @@ Deno.serve(async (request) => {
     await fetch(`${supabaseUrl}/rest/v1/mercado_pago_checkout_sessions?id=eq.${encodeURIComponent(session.id)}`, {
       method: 'PATCH', headers: headers(serviceKey), body: JSON.stringify({ provider_preapproval_id: mercadoPago.id, checkout_url: checkoutUrl, status: mercadoPago.status || 'pending' }),
     })
-    // O teste libera o plano imediatamente, sem aguardar a primeira cobrança.
-    // O webhook substitui este registro por uma assinatura ativa ao fim do teste.
-    if (trialEndsAt) {
-      const trialResponse = await fetch(`${supabaseUrl}/rest/v1/user_subscriptions`, {
-        method: 'POST', headers: headers(serviceKey), body: JSON.stringify({ user_id: user.id, plan_code: plan.code, status: 'trialing', provider: 'mercado_pago', provider_customer_id: user.email, provider_subscription_id: mercadoPago.id, current_period_start: new Date().toISOString(), current_period_end: trialEndsAt.toISOString() }),
-      })
-      if (!trialResponse.ok) {
-        console.error('could not start subscription trial', await trialResponse.text())
-        return json({ error: 'O checkout foi criado, mas não foi possível liberar o período de teste.' }, 502)
-      }
-    }
     return json({ checkoutUrl, sessionId: session.id })
   } catch (error) {
     console.error('create Mercado Pago subscription failed', error)
