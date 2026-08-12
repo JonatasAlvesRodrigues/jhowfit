@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, BadgePercent, CheckCircle2, CircleAlert, CreditCard, LoaderCircle, RefreshCw, ShieldCheck } from 'lucide-react'
-import { subscriptionService, type AvailablePlan, type CheckoutStatus, type PlanCode } from '../services/subscriptionService'
+import { subscriptionService, type AvailablePlan, type CheckoutStatus, type CouponPreview, type PlanCode } from '../services/subscriptionService'
 import '../checkout.css'
 
 const paidPlans: PlanCode[] = ['PRO', 'PRO_PLUS']
@@ -8,12 +8,23 @@ const paidPlans: PlanCode[] = ['PRO', 'PRO_PLUS']
 export function CheckoutPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   const [plans, setPlans] = useState<AvailablePlan[]>([])
   const [coupon, setCoupon] = useState('')
+  const [couponPreview, setCouponPreview] = useState<CouponPreview | null>(null)
+  const [couponLoading, setCouponLoading] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const planCode = getHashQuery('plan') as PlanCode
   const plan = useMemo(() => plans.find((item) => item.code === planCode), [plans, planCode])
 
   useEffect(() => { void subscriptionService.listPlans().then(setPlans).catch(() => setError('Não foi possível carregar os dados do checkout.')) }, [])
+  useEffect(() => {
+    const code = coupon.trim()
+    if (!code || !plan || !paidPlans.includes(plan.code)) { setCouponPreview(null); setCouponLoading(false); return }
+    setCouponLoading(true)
+    const timer = window.setTimeout(() => {
+      void subscriptionService.previewCoupon(plan.code as Exclude<PlanCode, 'FREE'>, code).then(setCouponPreview).catch(() => setCouponPreview({ valid: false, reason: 'validation_unavailable' })).finally(() => setCouponLoading(false))
+    }, 350)
+    return () => window.clearTimeout(timer)
+  }, [coupon, plan])
   async function continueToPayment() {
     if (!plan || !paidPlans.includes(plan.code)) return
     setBusy(true); setError('')
@@ -27,10 +38,10 @@ export function CheckoutPage({ onNavigate }: { onNavigate: (path: string) => voi
     <div className="checkout-layout">
       <div className="checkout-main"><span className="page-eyebrow">CHECKOUT SEGURO</span><h1>Quase lá. Vamos cuidar do seu ritmo.</h1><p>Você será redirecionado ao Mercado Pago para concluir a assinatura. Seus dados de pagamento não passam pelo MOVELYA.</p>
         <div className="checkout-steps"><span className="is-active">1. Revisar</span><i /><span>2. Pagamento seguro</span><i /><span>3. Confirmação</span></div>
-        <label className="coupon-field"><span><BadgePercent size={16} /> Cupom de desconto</span><div><input value={coupon} onChange={(event) => setCoupon(event.target.value.toUpperCase())} maxLength={32} placeholder="Ex.: BEMVINDO10" /><small>Aplicado e validado com segurança no próximo passo.</small></div></label>
+        <label className="coupon-field"><span><BadgePercent size={16} /> Cupom de desconto</span><div><input value={coupon} onChange={(event) => setCoupon(event.target.value.toUpperCase())} maxLength={32} placeholder="Ex.: BEMVINDO10" /><small>{couponLoading ? 'Validando cupom...' : couponPreview?.valid ? `✓ ${couponPreview.description}` : couponPreview && couponMessage(couponPreview.reason)}</small></div></label>
         {error && <p className="checkout-error" role="alert">{error}</p>}
       </div>
-      <aside className="checkout-summary"><span>RESUMO DA ASSINATURA</span>{plan ? <><h2>MOVELYA {plan.name}</h2><p>{plan.description}</p><div className="checkout-price"><small>Cobrança mensal</small><strong>{formatPrice(plan.price_monthly_cents)}<em>/mês</em></strong></div><ul><li><CheckCircle2 size={16} /> Cobrança mensal recorrente</li><li><CheckCircle2 size={16} /> Cancele quando quiser</li><li><ShieldCheck size={16} /> Confirmação pelo servidor</li></ul><button onClick={() => void continueToPayment()} disabled={busy}>{busy ? <><LoaderCircle className="is-spinning" size={17} /> Preparando...</> : <><CreditCard size={17} /> Continuar para pagamento</>}</button><small className="checkout-provider">Pagamento protegido pelo Mercado Pago</small></> : <LoaderCircle className="is-spinning" />}</aside>
+      <aside className="checkout-summary"><span>RESUMO DA ASSINATURA</span>{plan ? <><h2>MOVELYA {plan.name}</h2><p>{plan.description}</p><div className="checkout-price"><small>Cobrança mensal</small>{couponPreview?.valid && <del>{formatPrice(plan.price_monthly_cents)}</del>}<strong>{formatPrice(couponPreview?.valid ? couponPreview.discounted_amount_cents || plan.price_monthly_cents : plan.price_monthly_cents)}<em>/mês</em></strong>{couponPreview?.valid && <b>Você economiza {formatPrice(couponPreview.discount_cents || 0)} no primeiro ciclo</b>}</div><ul><li><CheckCircle2 size={16} /> Cobrança mensal recorrente</li><li><CheckCircle2 size={16} /> Cancele quando quiser</li><li><ShieldCheck size={16} /> Confirmação pelo servidor</li></ul><button onClick={() => void continueToPayment()} disabled={busy || Boolean(coupon && !couponPreview?.valid)}>{busy ? <><LoaderCircle className="is-spinning" size={17} /> Preparando...</> : <><CreditCard size={17} /> Continuar para pagamento</>}</button><small className="checkout-provider">Pagamento protegido pelo Mercado Pago</small></> : <LoaderCircle className="is-spinning" />}</aside>
     </div>
   </section>
 }
@@ -56,3 +67,4 @@ export function CheckoutConfirmationPage({ onNavigate }: { onNavigate: (path: st
 
 function getHashQuery(name: string) { const query = window.location.hash.split('?')[1] || ''; return new URLSearchParams(query).get(name) || '' }
 function formatPrice(cents: number) { return `R$ ${(cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` }
+function couponMessage(reason?: string) { return ({ coupon_invalid: 'Cupom inválido ou expirado.', coupon_first_purchase_only: 'Válido somente na primeira assinatura.', coupon_already_used: 'Este cupom já foi usado nesta conta.', validation_unavailable: 'Não foi possível validar o cupom agora.' } as Record<string, string>)[reason || ''] || 'Cupom não disponível para este plano.' }

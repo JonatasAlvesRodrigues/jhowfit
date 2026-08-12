@@ -30,6 +30,7 @@ export interface AvailablePlan {
 
 export interface MercadoPagoCheckout { checkoutUrl: string; sessionId: string }
 export interface CheckoutStatus { id: string; plan_code: PlanCode; status: string; amount_cents: number; original_amount_cents: number; coupon_code: string | null; trial_ends_at: string | null; last_payment_status: string | null }
+export interface CouponPreview { valid: boolean; reason?: string; code?: string; description?: string; original_amount_cents?: number; discounted_amount_cents?: number; discount_cents?: number }
 
 export const subscriptionService = {
   async getOverview(): Promise<PlanOverview> {
@@ -58,6 +59,13 @@ export const subscriptionService = {
     const { data, error } = await supabase.rpc('get_my_mercado_pago_checkout', { input_session_id: sessionId })
     if (error) throw new Error('Não foi possível consultar o estado da compra.')
     return data as CheckoutStatus | null
+  },
+
+  async previewCoupon(planCode: Exclude<PlanCode, 'FREE'>, couponCode: string): Promise<CouponPreview> {
+    if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
+    const { data, error } = await supabase.rpc('preview_subscription_coupon', { input_code: couponCode, input_plan_code: planCode })
+    if (error || !data) throw new Error('Não foi possível validar o cupom agora.')
+    return data as CouponPreview
   },
 
   async cancelMercadoPagoSubscription(): Promise<void> {
