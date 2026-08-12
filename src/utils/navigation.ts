@@ -36,5 +36,7 @@ export const onboardingRoute: VitaRoute = { id: 'configuracao-inicial', path: '/
 export const adminRoute: VitaRoute = { id: 'administracao', path: '/administracao', label: 'Administração', eyebrow: 'CONTROLE', description: 'Painel operacional protegido por função.', icon: LockKeyhole }
 export const mobileRouteIds: RouteId[] = ['inicio', 'treinos', 'dieta', 'atividades', 'perfil']
 export const mobileRoutes = mobileRouteIds.map((id) => vitaRoutes.find((route) => route.id === id)!)
-export function findRoute(pathname: string) { const normalized = pathname === '/' ? '/inicio' : pathname.replace(/\/+$/, '').toLowerCase(); return [...vitaRoutes, adminRoute, ...authRoutes, onboardingRoute].find((route) => route.path === normalized) ?? null }
+export const checkoutRoute: VitaRoute = { id: 'checkout', path: '/checkout', label: 'Finalizar assinatura', eyebrow: 'CHECKOUT', description: 'Revise seu plano antes de seguir para o pagamento seguro.', icon: Crown }
+export const checkoutConfirmationRoute: VitaRoute = { id: 'checkout-confirmado', path: '/checkout-confirmado', label: 'Confirmação de compra', eyebrow: 'ASSINATURA', description: 'Acompanhamento seguro da confirmação do seu pagamento.', icon: ShieldCheck }
+export function findRoute(pathname: string) { const normalized = (pathname === '/' ? '/inicio' : pathname.replace(/\/+$/, '').toLowerCase()).split('?')[0]; return [...vitaRoutes, adminRoute, checkoutRoute, checkoutConfirmationRoute, ...authRoutes, onboardingRoute].find((route) => route.path === normalized) ?? null }
 export function isPrivateRoute(route: VitaRoute | null) { return Boolean(route && !route.public) }

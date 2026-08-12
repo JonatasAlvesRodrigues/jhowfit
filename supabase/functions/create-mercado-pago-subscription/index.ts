@@ -27,7 +27,7 @@ Deno.serve(async (request) => {
     const user = await userResponse.json() as { id: string; email?: string }
     if (!user.email) return json({ error: 'Sua conta precisa ter um e-mail para assinar.' }, 422)
 
-    const input = await request.json().catch(() => ({})) as { planCode?: unknown }
+    const input = await request.json().catch(() => ({})) as { planCode?: unknown; couponCode?: unknown }
     const planCode = String(input.planCode || '').trim().toUpperCase()
     if (!['PRO', 'PRO_PLUS'].includes(planCode)) return json({ error: 'Escolha um plano pago válido.' }, 422)
 
@@ -42,11 +42,29 @@ Deno.serve(async (request) => {
 
     const sessionResponse = await fetch(`${supabaseUrl}/rest/v1/mercado_pago_checkout_sessions`, {
       method: 'POST', headers: { ...headers(serviceKey), Prefer: 'return=representation' },
-      body: JSON.stringify({ user_id: user.id, plan_code: plan.code, amount_cents: plan.price_monthly_cents, status: 'created', payer_email: user.email }),
+      body: JSON.stringify({ user_id: user.id, plan_code: plan.code, amount_cents: plan.price_monthly_cents, original_amount_cents: plan.price_monthly_cents, status: 'created', payer_email: user.email }),
     })
     const sessions = await sessionResponse.json().catch(() => []) as Array<{ id: string }>
     const session = sessions[0]
     if (!sessionResponse.ok || !session) return json({ error: 'Não foi possível preparar o checkout.' }, 502)
+
+    const couponCode = String(input.couponCode || '').trim().toUpperCase()
+    let amountCents = plan.price_monthly_cents
+    if (couponCode) {
+      const couponResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/reserve_subscription_coupon`, {
+        method: 'POST', headers: headers(serviceKey), body: JSON.stringify({ input_code: couponCode, input_user_id: user.id, input_plan_code: plan.code, input_session_id: session.id, input_original_amount_cents: plan.price_monthly_cents }),
+      })
+      const couponAmount = await couponResponse.json().catch(() => null)
+      if (!couponResponse.ok || typeof couponAmount !== 'number') {
+        await fetch(`${supabaseUrl}/rest/v1/mercado_pago_checkout_sessions?id=eq.${encodeURIComponent(session.id)}`, { method: 'PATCH', headers: headers(serviceKey), body: JSON.stringify({ status: 'failed' }) })
+        return json({ error: 'Cupom inválido, expirado ou já utilizado nesta conta.' }, 422)
+      }
+      amountCents = couponAmount
+    }
+
+    const trialDays = Math.max(0, Math.min(30, Number(Deno.env.get('MP_TRIAL_DAYS') || '7') || 0))
+    const trialEndsAt = trialDays > 0 ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000) : null
+    if (trialEndsAt) await fetch(`${supabaseUrl}/rest/v1/mercado_pago_checkout_sessions?id=eq.${encodeURIComponent(session.id)}`, { method: 'PATCH', headers: headers(serviceKey), body: JSON.stringify({ trial_ends_at: trialEndsAt.toISOString() }) })
 
     const baseUrl = appUrl.replace(/\/$/, '')
     const webhookUrl = `${supabaseUrl}/functions/v1/mercado-pago-webhook?token=${encodeURIComponent(webhookToken)}`
@@ -56,9 +74,9 @@ Deno.serve(async (request) => {
         reason: `MOVELYA ${plan.name}`,
         external_reference: session.id,
         payer_email: user.email,
-        back_url: `${baseUrl}/#/planos?checkout=mercado-pago`,
+        back_url: `${baseUrl}/#/checkout-confirmado?session_id=${encodeURIComponent(session.id)}`,
         notification_url: webhookUrl,
-        auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: plan.price_monthly_cents / 100, currency_id: 'BRL' },
+        auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: amountCents / 100, currency_id: 'BRL', ...(trialEndsAt ? { start_date: trialEndsAt.toISOString() } : {}) },
         status: 'pending',
       }),
     })
@@ -72,7 +90,7 @@ Deno.serve(async (request) => {
     await fetch(`${supabaseUrl}/rest/v1/mercado_pago_checkout_sessions?id=eq.${encodeURIComponent(session.id)}`, {
       method: 'PATCH', headers: headers(serviceKey), body: JSON.stringify({ provider_preapproval_id: mercadoPago.id, checkout_url: checkoutUrl, status: mercadoPago.status || 'pending' }),
     })
-    return json({ checkoutUrl })
+    return json({ checkoutUrl, sessionId: session.id })
   } catch (error) {
     console.error('create Mercado Pago subscription failed', error)
     return json({ error: 'Não foi possível iniciar o checkout agora.' }, 500)

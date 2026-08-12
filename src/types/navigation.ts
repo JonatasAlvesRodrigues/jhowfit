@@ -25,6 +25,8 @@ export type RouteId =
   | 'confirmar-email'
   | 'configuracao-inicial'
   | 'administracao'
+  | 'checkout'
+  | 'checkout-confirmado'
 
 export interface VitaRoute {
   id: RouteId

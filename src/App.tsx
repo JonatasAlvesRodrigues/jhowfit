@@ -25,6 +25,7 @@ import { PwaUpdatePrompt } from './components/PwaUpdatePrompt'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { AdminPage } from './pages/AdminPage'
 import { PlansPage } from './pages/PlansPage'
+import { CheckoutConfirmationPage, CheckoutPage } from './pages/CheckoutPages'
 import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './pages/SystemPages'
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
@@ -207,7 +208,11 @@ export default function App() {
               ) : route?.id === 'perfil' ? (
                 <ProfilePage onLogout={handleLogout} />
               ) : route?.id === 'planos' && user ? (
-                <PlansPage />
+                <PlansPage onNavigate={navigate} />
+              ) : route?.id === 'checkout' && user ? (
+                <CheckoutPage onNavigate={navigate} />
+              ) : route?.id === 'checkout-confirmado' && user ? (
+                <CheckoutConfirmationPage onNavigate={navigate} />
               ) : route?.id === 'configuracoes' && user ? (
                 <HealthIntegrationsPage userId={user.id} />
               ) : route?.id === 'privacidade' && user ? (

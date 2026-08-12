@@ -13,7 +13,7 @@ const quotaLabels: Record<string, string> = {
   full_replanning: 'Replanejamentos completos',
 }
 
-export function PlansPage() {
+export function PlansPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   const [overview, setOverview] = useState<PlanOverview | null>(null)
   const [plans, setPlans] = useState<AvailablePlan[]>([])
   const [error, setError] = useState('')
@@ -30,12 +30,7 @@ export function PlansPage() {
     if (new URLSearchParams(window.location.search).get('checkout') === 'mercado-pago') setNotice('Recebemos seu retorno do Mercado Pago. A confirmação do pagamento pode levar alguns instantes; atualize esta página em breve.')
   }, [])
 
-  async function startCheckout(planCode: Exclude<AvailablePlan['code'], 'FREE'>) {
-    setNotice(''); setBusyPlan(planCode)
-    try { window.location.assign(await subscriptionService.startMercadoPagoCheckout(planCode)) }
-    catch (checkoutError) { setNotice(checkoutError instanceof Error ? checkoutError.message : 'Não foi possível abrir o checkout.') }
-    finally { setBusyPlan(null) }
-  }
+  function startCheckout(planCode: Exclude<AvailablePlan['code'], 'FREE'>) { onNavigate(`/checkout?plan=${planCode}`) }
 
   async function cancelSubscription() {
     if (!window.confirm('Deseja cancelar sua assinatura do Mercado Pago?')) return
@@ -83,7 +78,7 @@ export function PlansPage() {
           <div className="plan-card__title"><h3>{plan.name}</h3><p>{plan.description}</p></div>
           <div className="plan-price">{plan.price_monthly_cents === 0 ? <strong>Grátis</strong> : <><small>R$</small><strong>{formatPrice(plan.price_monthly_cents)}</strong><span>/mês</span></>}</div>
           <ul>{plan.features.map((feature) => <li key={feature}><Check size={16} />{feature}</li>)}</ul>
-          <button disabled={current || plan.code === 'FREE' || busyPlan === plan.code} onClick={() => plan.code !== 'FREE' && void startCheckout(plan.code)}>{current ? 'Seu plano atual' : plan.code === 'FREE' ? 'Plano gratuito' : busyPlan === plan.code ? 'Abrindo checkout...' : 'Assinar com Mercado Pago'}</button>
+          <button disabled={current || plan.code === 'FREE' || busyPlan === plan.code} onClick={() => plan.code !== 'FREE' && startCheckout(plan.code)}>{current ? 'Seu plano atual' : plan.code === 'FREE' ? 'Plano gratuito' : 'Assinar com Mercado Pago'}</button>
         </article>
       })}</div>
       <p className="plans-payment-note"><ShieldCheck size={16} /> Pagamentos recorrentes processados com segurança pelo Mercado Pago. A confirmação do plano é feita pelo servidor.</p>

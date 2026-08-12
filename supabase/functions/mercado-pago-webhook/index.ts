@@ -48,6 +48,12 @@ Deno.serve(async (request) => {
       }),
     })
     if (!rpcResponse.ok) { console.error('Mercado Pago RPC failed', await rpcResponse.text()); return json({ error: 'Não foi possível aplicar o evento.' }, 502) }
+    if (payment) {
+      const paymentStatus = stringValue(payment.status) || 'pending'
+      await fetch(`${supabaseUrl}/rest/v1/mercado_pago_checkout_sessions?id=eq.${encodeURIComponent(sessions[0].id)}`, {
+        method: 'PATCH', headers: serviceHeaders(serviceKey), body: JSON.stringify({ last_payment_status: paymentStatus, recovery_attempts: ['rejected', 'failed'].includes(paymentStatus) ? 1 : 0 }),
+      })
+    }
     return json({ received: true })
   } catch (error) { console.error('Mercado Pago webhook failed', error); return json({ error: 'Falha ao processar o webhook.' }, 500) }
 })

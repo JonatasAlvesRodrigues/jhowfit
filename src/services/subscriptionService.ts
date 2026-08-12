@@ -28,6 +28,9 @@ export interface AvailablePlan {
   features: string[]
 }
 
+export interface MercadoPagoCheckout { checkoutUrl: string; sessionId: string }
+export interface CheckoutStatus { id: string; plan_code: PlanCode; status: string; amount_cents: number; original_amount_cents: number; coupon_code: string | null; trial_ends_at: string | null; last_payment_status: string | null }
+
 export const subscriptionService = {
   async getOverview(): Promise<PlanOverview> {
     if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
@@ -43,11 +46,18 @@ export const subscriptionService = {
     return (data ?? []) as AvailablePlan[]
   },
 
-  async startMercadoPagoCheckout(planCode: Exclude<PlanCode, 'FREE'>): Promise<string> {
+  async startMercadoPagoCheckout(planCode: Exclude<PlanCode, 'FREE'>, couponCode = ''): Promise<MercadoPagoCheckout> {
     if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
-    const { data, error } = await supabase.functions.invoke('create-mercado-pago-subscription', { body: { planCode } })
+    const { data, error } = await supabase.functions.invoke('create-mercado-pago-subscription', { body: { planCode, couponCode } })
     if (error || !data?.checkoutUrl) throw new Error(data?.error || 'Não foi possível abrir o checkout do Mercado Pago.')
-    return String(data.checkoutUrl)
+    return { checkoutUrl: String(data.checkoutUrl), sessionId: String(data.sessionId) }
+  },
+
+  async getCheckoutStatus(sessionId: string): Promise<CheckoutStatus | null> {
+    if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
+    const { data, error } = await supabase.rpc('get_my_mercado_pago_checkout', { input_session_id: sessionId })
+    if (error) throw new Error('Não foi possível consultar o estado da compra.')
+    return data as CheckoutStatus | null
   },
 
   async cancelMercadoPagoSubscription(): Promise<void> {
