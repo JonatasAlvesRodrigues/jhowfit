@@ -150,7 +150,7 @@ function AdminCoupons({ summary, coupons, days, onDaysChange, onChanged, onError
 }
 
 function money(cents: number) { return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }
-function downloadAudit(items: AdminAuditEvent[]) { const csv=['Data,Ação,Administrador,Usuário alvo,Detalhes',...items.map(i=>[i.created_at,i.action,i.actor_name||'',i.target_user_id||'',JSON.stringify(i.metadata)].map(v=>v.map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join('\n')].join('\n'); const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); const a=document.createElement('a');a.href=url;a.download='historico-administrativo.csv';a.click();URL.revokeObjectURL(url) }
+function downloadAudit(items: AdminAuditEvent[]) { const rows=items.map(i=>[i.created_at,i.action,i.actor_name||'',i.target_user_id||'',JSON.stringify(i.metadata)].map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')); const csv=['Data,Ação,Administrador,Usuário alvo,Detalhes',...rows].join('\n'); const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); const a=document.createElement('a');a.href=url;a.download='historico-administrativo.csv';a.click();URL.revokeObjectURL(url) }
 
 function Stat({ icon, label, value, detail }: { icon: ReactNode; label: string; value: ReactNode; detail: string }) {
   return <div className="admin-stat card">{icon}<small>{label}</small><strong>{value}</strong><span>{detail}</span></div>
