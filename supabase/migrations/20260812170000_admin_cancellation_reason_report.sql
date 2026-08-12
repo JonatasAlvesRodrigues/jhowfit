@@ -10,7 +10,7 @@ begin
     select checkout.plan_code, coalesce(nullif(checkout.metadata->>'cancellation_reason',''),'not_informed') as reason
     from public.mercado_pago_checkout_sessions checkout
     where checkout.status='cancelled' and (since_at is null or checkout.updated_at>=since_at)
-  ), totals as (select plan_code,count(*) as total from events group by plan_code)
+  ), totals as (select events.plan_code,count(*) as total from events group by events.plan_code)
   select events.plan_code,events.reason,count(*)::bigint,
     round(count(*)::numeric*100/nullif(totals.total,0),1)
   from events join totals on totals.plan_code=events.plan_code
