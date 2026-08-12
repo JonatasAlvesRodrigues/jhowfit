@@ -43,8 +43,8 @@ export const adminService = {
     if (error) throw error
     return (data ?? []) as AdminPlanLimit[]
   },
-  async couponSummary() { const { data, error } = await requireClient().rpc('admin_coupon_summary'); if (error) throw error; return data as AdminCouponSummary },
-  async coupons() { const { data, error } = await requireClient().rpc('admin_list_coupons'); if (error) throw error; return (data ?? []) as AdminCoupon[] },
+  async couponSummary(days = 0) { const { data, error } = await requireClient().rpc('admin_coupon_summary', { input_days: days }); if (error) throw error; return data as AdminCouponSummary },
+  async coupons(days = 0) { const { data, error } = await requireClient().rpc('admin_list_coupons', { input_days: days }); if (error) throw error; return (data ?? []) as AdminCoupon[] },
   async createCoupon(input: { code: string; description: string; discountType: 'percent' | 'fixed_cents'; discountValue: number; appliesTo: Array<'PRO' | 'PRO_PLUS'>; maxRedemptions: number | null }) {
     const { error } = await requireClient().rpc('admin_create_coupon', { input_code: input.code, input_description: input.description, input_discount_type: input.discountType, input_discount_value: input.discountValue, input_applies_to: input.appliesTo, input_max_redemptions: input.maxRedemptions, input_expires_at: null }); if (error) throw error
   },
