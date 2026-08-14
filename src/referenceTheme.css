@@ -14,7 +14,7 @@
 .vita-content { max-width: 1360px; }
 
 /* Primary content containers */
-:is(.card, [class*="-card"], [class*="-panel"], [class*="-section"],
+:is(.card, [class*="-card"]:not([class*="__"]), [class*="-panel"]:not([class*="__"]),
     .library-filters, .library-results, .workout-editor-settings,
     .workout-exercise-editor, .modal, .library-modal) {
   border-color: var(--reference-border) !important;
@@ -22,7 +22,7 @@
   box-shadow: inset 0 1px var(--reference-inset), var(--reference-shadow) !important;
 }
 
-:is(.card, [class*="-card"], [class*="-panel"], [class*="-section"],
+:is(.card, [class*="-card"]:not([class*="__"]), [class*="-panel"]:not([class*="__"]),
     .library-filters, .library-results, .workout-editor-settings,
     .workout-exercise-editor, .modal, .library-modal) > * { position: relative; }
 
@@ -67,8 +67,8 @@
   box-shadow: 0 9px 24px rgba(31, 210, 137, .20) !important;
 }
 
-:is(button, .card, [class*="-card"], [class*="-panel"]) { transition: transform .18s ease, border-color .18s ease, filter .18s ease, background .18s ease; }
-:is(.card, [class*="-card"], [class*="-panel"]):hover { border-color: rgba(77, 208, 153, .48) !important; }
+:is(button, .card, [class*="-card"]:not([class*="__"]), [class*="-panel"]:not([class*="__"])) { transition: transform .18s ease, border-color .18s ease, filter .18s ease, background .18s ease; }
+:is(.card, [class*="-card"]:not([class*="__"]), [class*="-panel"]:not([class*="__"])):hover { border-color: rgba(77, 208, 153, .48) !important; }
 :is(button:not(:disabled)):active { transform: scale(.985); }
 
 .theme-control { position: relative; }
@@ -147,7 +147,7 @@
 :root[data-theme="light"] .theme-status:hover { color: #0b7a4e; border-color: rgba(19,155,103,.4); }
 :root[data-theme="light"] .theme-picker { border-color: rgba(42,91,66,.18); background: #ffffff; box-shadow: 0 16px 36px rgba(22,63,39,.12); }
 
-:root[data-theme="light"] :is(.card, [class*="-card"], [class*="-panel"], [class*="-section"],
+:root[data-theme="light"] :is(.card, [class*="-card"]:not([class*="__"]), [class*="-panel"]:not([class*="__"]),
     .library-filters, .library-results, .workout-editor-settings,
     .workout-exercise-editor, .modal, .library-modal) {
   color: #18271f;
@@ -303,7 +303,7 @@
 /* Light-mode refinement: calm layers, not dark slabs. Legacy pages used many
    isolated hard-coded dark blocks, so their nested information rows and CTAs
    receive the same soft paper treatment as the parent card. */
-:root[data-theme="light"] :is(.card, [class*="-card"], [class*="-panel"], [class*="-section"]) {
+:root[data-theme="light"] :is(.card, [class*="-card"]:not([class*="__"]), [class*="-panel"]:not([class*="__"])) {
   border-width: 1px !important;
   border-radius: 18px !important;
   box-shadow: 0 8px 22px rgba(22,63,39,.055), inset 0 1px rgba(255,255,255,.95) !important;
@@ -364,6 +364,11 @@
   border-color: rgba(42,91,66,.17) !important;
   background: radial-gradient(circle at 86% 8%, rgba(59,203,144,.12), transparent 34%), linear-gradient(145deg, #ffffff, #eff7f2) !important;
   box-shadow: 0 10px 26px rgba(22,63,39,.07) !important;
+}
+:root[data-theme="light"] .vita-route-stage :is([class*="-hero"], [class*="-empty"], [class*="-state"]):not(.daily-dashboard) {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 20px;
 }
 :root[data-theme="light"] .vita-route-stage :is([class*="-hero"], [class*="-empty"], [class*="-state"]) :is(h1, h2, h3, strong) { color: #1c3025 !important; }
 :root[data-theme="light"] .vita-route-stage :is([class*="-hero"], [class*="-empty"], [class*="-state"]) :is(p, small, span) { color: #677a6e; }
