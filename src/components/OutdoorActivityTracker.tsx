@@ -114,9 +114,13 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
           const increment = previous ? distanceBetween(previous, point) : 0
           const secondsSincePrevious = previous ? Math.max((point.recordedAt - previous.recordedAt) / 1000, 1) : 1
           const measuredSpeed = increment / (secondsSincePrevious / 3600)
-          const minimumMovement = previous ? Math.max(.003, Math.min(Math.max(previous.accuracy, point.accuracy) / 1000 * .35, .012)) : 0
+          // A posição do GPS oscila mesmo com o telefone parado. Só aceitamos um
+          // deslocamento que seja maior que a incerteza combinada das duas leituras
+          // (e nunca menor que 10 m); assim, a oscilação não vira distância.
+          const combinedAccuracyKm = previous ? Math.hypot(previous.accuracy, point.accuracy) / 1000 : 0
+          const minimumMovement = previous ? Math.max(.01, combinedAccuracyKm) : 0
           const maximumSpeed = current.type === 'bike' ? 75 : current.type === 'run' ? 32 : 16
-          const accurate = point.accuracy <= 65
+          const accurate = point.accuracy <= 25
           const plausible = !previous || measuredSpeed <= maximumSpeed
           const moved = !previous || increment >= minimumMovement
           if (!accurate || !plausible || !moved) return { ...current, gpsStatus: accurate ? 'active' : 'searching' }
@@ -307,7 +311,7 @@ function MapPreview({ route, gpsStatus, live = false }: { route: RoutePoint[]; g
 
   const latest = route[route.length - 1]
   return <div className={`activity-map ${route.length ? 'has-route' : ''}`}>
-    {route.length ? <div ref={container} className="activity-map-canvas" /> : <><div className="activity-map-grid" /><div className="activity-map-empty"><Map size={26} /><strong>{gpsStatus === 'not_required' ? 'Atividade sem percurso GPS' : gpsStatus === 'denied' ? 'Localização não permitida' : gpsStatus === 'disabled' ? 'GPS indisponível ou desativado' : 'Aguardando localização precisa'}</strong><p>{gpsStatus === 'denied' ? 'Permita a localização nas configurações do navegador para registrar o próximo mapa.' : 'O primeiro ponto aparece quando a precisão estiver melhor que 65 metros.'}</p></div></>}
+    {route.length ? <div ref={container} className="activity-map-canvas" /> : <><div className="activity-map-grid" /><div className="activity-map-empty"><Map size={26} /><strong>{gpsStatus === 'not_required' ? 'Atividade sem percurso GPS' : gpsStatus === 'denied' ? 'Localização não permitida' : gpsStatus === 'disabled' ? 'GPS indisponível ou desativado' : 'Aguardando localização precisa'}</strong><p>{gpsStatus === 'denied' ? 'Permita a localização nas configurações do navegador para registrar o próximo mapa.' : 'O primeiro ponto aparece quando a precisão estiver melhor que 25 metros.'}</p></div></>}
     <span><MapPin size={12} /> {live ? 'Mapa ao vivo' : 'Mapa do percurso'}{latest && ` · precisão ±${Math.round(latest.accuracy)} m`}</span>
     {route.length > 0 && <button className="activity-map-recenter" type="button" onClick={recenter} aria-label="Centralizar na localização atual"><Crosshair size={15} /></button>}
   </div>
