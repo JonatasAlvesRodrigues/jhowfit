@@ -175,6 +175,7 @@
 
 :root[data-theme="light"] :is(.metric--orange, .nutrition-macro-card--orange, .daily-metric--orange) { background: radial-gradient(circle at 82% 86%, rgba(249,171,87,.25), transparent 42%), linear-gradient(145deg, #fffaf4, #fff1e4) !important; border-color: rgba(213,125,36,.38) !important; }
 :root[data-theme="light"] :is(.metric--blue, .nutrition-macro-card--blue, .daily-metric--blue) { background: radial-gradient(circle at 82% 86%, rgba(96,183,238,.24), transparent 42%), linear-gradient(145deg, #f7fcff, #eaf6ff) !important; border-color: rgba(51,143,202,.33) !important; }
+:root[data-theme="light"] :is(.metric--purple, .nutrition-macro-card--purple, .daily-metric--purple) { background: radial-gradient(circle at 82% 86%, rgba(175,140,255,.20), transparent 42%), linear-gradient(145deg, #fcfaff, #f3efff) !important; border-color: rgba(133,96,205,.32) !important; }
 :root[data-theme="light"] :is(.nutrition-macro-card--green, .daily-metric--green) { background: radial-gradient(circle at 82% 86%, rgba(74,210,148,.20), transparent 42%), linear-gradient(145deg, #f8fffa, #e7f8ee) !important; border-color: rgba(24,151,99,.35) !important; }
 
 :root[data-theme="light"] :is(input, select, textarea, .library-search, .library-filter-select, .week-picker, .training-field > div, .nutrition-toolbar__actions button, .achievement-filters button, .water-quick-actions button, .steps-quick-actions button) {
