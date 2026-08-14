@@ -401,3 +401,30 @@
 }
 :root[data-theme="light"] .vita-route-stage :is(table thead, .table-head) { color: #476355; background: #edf5ef !important; }
 :root[data-theme="light"] .vita-route-stage :is(table tr, .table-row) { border-color: rgba(42,91,66,.11) !important; }
+
+/* Achievements: replace the legacy dark gallery with calm, readable surfaces. */
+:root[data-theme="light"] :is(.achievement-section, .achievement-history) {
+  color: #1d3025;
+  border-color: rgba(42,91,66,.17) !important;
+  background: linear-gradient(145deg, #ffffff, #f2f8f4) !important;
+}
+:root[data-theme="light"] .medal-grid { padding: 2px; border-radius: 16px; background: transparent; }
+:root[data-theme="light"] .medal-card {
+  color: #20352a;
+  border-color: rgba(42,91,66,.16);
+  background: #fbfdfb;
+  box-shadow: 0 7px 18px rgba(22,63,39,.045);
+  opacity: 1;
+}
+:root[data-theme="light"] .medal-card.is-unlocked {
+  border-color: rgba(219,159,64,.32);
+  background: radial-gradient(circle at 0 0, rgba(255,190,101,.16), transparent 48%), #fffdf8;
+}
+:root[data-theme="light"] .medal-icon { color: #718178; background: #edf3ef; box-shadow: inset 0 0 0 4px #f8fbf9; }
+:root[data-theme="light"] .is-unlocked .medal-icon { color: #c7832f; background: #fff2d9; box-shadow: inset 0 0 0 4px #fffaf0, 0 6px 16px rgba(200,130,47,.10); }
+:root[data-theme="light"] .medal-card__top i.is-locked { color: #6d7d73; background: #edf2ee; }
+:root[data-theme="light"] .medal-card > small { color: #a7702d; }
+:root[data-theme="light"] .medal-card p,
+:root[data-theme="light"] .medal-card time,
+:root[data-theme="light"] .history-list small { color: #6b7d72; }
+:root[data-theme="light"] .history-list article { border-color: rgba(42,91,66,.12); background: transparent !important; }
