@@ -200,6 +200,42 @@
 :root[data-theme="light"] .nutrition-hero p { color: #63756a !important; }
 :root[data-theme="light"] .nutrition-summary-card--progress { background: linear-gradient(145deg, #ffffff, #eef9f2) !important; border-color: rgba(24,151,99,.27) !important; }
 
+/* Activities: the tracker and its dialogs must follow the selected light theme. */
+:root[data-theme="light"] .modal__header { color: #18271f; background: var(--reference-surface) !important; }
+:root[data-theme="light"] .activity-type-grid > button,
+:root[data-theme="light"] .activity-finish-summary > span,
+:root[data-theme="light"] .activity-observation,
+:root[data-theme="light"] .activity-comparison,
+:root[data-theme="light"] .activity-difficulty button { color: #21352a; border-color: rgba(42,91,66,.16); background: rgba(255,255,255,.76); }
+:root[data-theme="light"] .activity-type-grid > button:hover,
+:root[data-theme="light"] .activity-difficulty button.is-selected { color: #08784c; border-color: rgba(19,155,103,.36); background: rgba(19,155,103,.10); }
+:root[data-theme="light"] .activity-type-grid small,
+:root[data-theme="light"] .activity-finish-summary small,
+:root[data-theme="light"] .activity-difficulty button { color: #64766b; }
+:root[data-theme="light"] .activity-type-grid i,
+:root[data-theme="light"] .activity-gps-note { color: #39755a; }
+:root[data-theme="light"] .activity-gps-note { border: 1px solid rgba(19,155,103,.13); background: rgba(19,155,103,.07); }
+:root[data-theme="light"] .activity-gps-note strong { color: #1f563d; }
+:root[data-theme="light"] .activity-live { color: #18271f; background: radial-gradient(circle at 50% 18%, rgba(54,199,139,.16), transparent 34%), #f4faf6; }
+:root[data-theme="light"] .activity-live__glow { background: linear-gradient(180deg, rgba(19,155,103,.035), transparent 30%); }
+:root[data-theme="light"] .activity-live > header,
+:root[data-theme="light"] .activity-live > footer { border-color: rgba(42,91,66,.16); background: rgba(250,253,251,.90); }
+:root[data-theme="light"] .activity-live-warning { border-color: rgba(198,138,52,.30); color: #9b651f; background: #fff9ef; }
+:root[data-theme="light"] .activity-live-warning p { color: #80643d; }
+:root[data-theme="light"] .activity-live-time small,
+:root[data-theme="light"] .activity-live-time span,
+:root[data-theme="light"] .activity-live-metrics small { color: #687a70; }
+:root[data-theme="light"] .activity-live-metrics > div { border-color: rgba(42,91,66,.16); background: rgba(255,255,255,.80); box-shadow: 0 8px 20px rgba(22,63,39,.05); }
+:root[data-theme="light"] .activity-live-metrics > div:first-child,
+:root[data-theme="light"] .activity-live-metrics > div:nth-child(2) { border-color: rgba(19,155,103,.22); background: linear-gradient(145deg, #f6fffa, #eaf8f0); }
+:root[data-theme="light"] .activity-distance-adjust button { color: #315341; border-color: rgba(42,91,66,.18); background: #ffffff; }
+:root[data-theme="light"] .activity-map { border-color: rgba(42,91,66,.18); background: #eef6f1; }
+:root[data-theme="light"] .activity-map-grid { opacity: .55; }
+:root[data-theme="light"] .activity-map-empty { color: #547365; }
+:root[data-theme="light"] .activity-map-empty strong { color: #365c49; }
+:root[data-theme="light"] .activity-map-empty p { color: #6c8074; }
+:root[data-theme="light"] .activity-map > span { color: #4a6d5b; background: rgba(255,255,255,.88); }
+
 /* Fitness assistant: every layer gets an intentional light surface and dark text. */
 :root[data-theme="light"] .fitness-chat-page {
   color: #18271f;
