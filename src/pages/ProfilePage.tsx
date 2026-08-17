@@ -1,6 +1,8 @@
-import { useState } from 'react'
-import { Bell, ChevronRight, CircleHelp, Crown, Download, FileText, Goal, LockKeyhole, LogOut, Mail, Settings2, ShieldCheck, Sparkles, UserRound } from 'lucide-react'
+import { FormEvent, useState } from 'react'
+import { Bell, ChevronRight, CircleHelp, Crown, Download, FileText, Goal, LockKeyhole, LogOut, Mail, Settings2, ShieldCheck, Sparkles, UserRound, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../integrations/supabase'
+import { privacyService } from '../services/privacyService'
 
 type ProfileAction = { icon: typeof UserRound; title: string; description: string }
 
@@ -11,10 +13,13 @@ const accountActions: ProfileAction[] = [
   { icon: LockKeyhole, title: 'Privacidade e dados', description: 'Permissões, exportação e segurança' },
 ]
 
-export function ProfilePage({ onLogout }: { onLogout: () => void }) {
+export function ProfilePage({ userId, onLogout, onNavigate }: { userId: string; onLogout: () => void; onNavigate: (path: string) => void }) {
   const { user } = useAuth()
   const [notice, setNotice] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
   const name = String(user?.user_metadata?.full_name || 'Usuário MOVELYA')
+  const [fullName, setFullName] = useState(name)
   const initials = name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   const memberSince = user?.created_at
     ? new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(user.created_at))
@@ -23,6 +28,38 @@ export function ProfilePage({ onLogout }: { onLogout: () => void }) {
   const showNotice = (message: string) => {
     setNotice(message)
     window.setTimeout(() => setNotice(''), 3500)
+  }
+
+  async function savePersonalData(event: FormEvent) {
+    event.preventDefault()
+    const cleanName = fullName.trim()
+    if (cleanName.length < 2) return showNotice('Informe seu nome completo para salvar.')
+    if (!supabase) return showNotice('A conexão com sua conta ainda não está disponível.')
+    setSaving(true)
+    try {
+      const authResult = await supabase.auth.updateUser({ data: { full_name: cleanName } })
+      if (authResult?.error) throw authResult.error
+      const profileResult = await supabase.from('profiles').upsert({ id: userId, full_name: cleanName, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+      if (profileResult?.error) throw profileResult.error
+      setEditing(false)
+      showNotice('Dados pessoais atualizados.')
+    } catch (error) {
+      showNotice(error instanceof Error ? error.message : 'Não foi possível salvar seus dados agora.')
+    } finally { setSaving(false) }
+  }
+
+  async function downloadData() {
+    try {
+      const payload = await privacyService.exportData(userId)
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = window.document.createElement('a')
+      link.href = url
+      link.download = `movelya-dados-${new Date().toISOString().slice(0, 10)}.json`
+      link.click()
+      URL.revokeObjectURL(url)
+      showNotice('Seu arquivo está sendo baixado.')
+    } catch (error) { showNotice(error instanceof Error ? error.message : 'Não foi possível preparar o download.') }
   }
 
   return (
@@ -43,7 +80,7 @@ export function ProfilePage({ onLogout }: { onLogout: () => void }) {
             <div className="profile-plan-card__top"><div className="profile-plan-card__symbol"><Crown size={20} /></div><span>SEU PLANO</span></div>
             <div className="profile-plan-card__content">
               <div><h2>MOVELYA Plus</h2><p>Planos inteligentes, acompanhamento e recomendações personalizadas para sua rotina.</p></div>
-              <button className="profile-plan-card__button" onClick={() => showNotice('Em breve você poderá gerenciar sua assinatura por aqui.')}>Gerenciar assinatura <ChevronRight size={17} /></button>
+              <button className="profile-plan-card__button" onClick={() => onNavigate('/planos')}>Gerenciar assinatura <ChevronRight size={17} /></button>
             </div>
             <div className="profile-plan-card__footer"><span><Sparkles size={15} /> Período de teste ativo</span><small>Renovação em 17 de setembro</small></div>
           </section>
@@ -51,8 +88,8 @@ export function ProfilePage({ onLogout }: { onLogout: () => void }) {
           <section className="profile-section">
             <div className="profile-section__heading"><div><span className="page-eyebrow">PREFERÊNCIAS</span><h2>Sua experiência</h2></div><Settings2 size={19} /></div>
             <div className="profile-action-list">
-              {accountActions.map(({ icon: Icon, title, description }) => (
-                <button key={title} className="profile-action" onClick={() => showNotice(`${title}: edição disponível em breve.`)}>
+              {accountActions.map(({ icon: Icon, title, description }, index) => (
+                <button key={title} className="profile-action" onClick={() => index === 0 ? setEditing(true) : onNavigate(index === 1 ? '/metas' : index === 2 ? '/notificacoes' : '/privacidade')}>
                   <span className="profile-action__icon"><Icon size={18} /></span><span><strong>{title}</strong><small>{description}</small></span><ChevronRight size={18} />
                 </button>
               ))}
@@ -68,12 +105,21 @@ export function ProfilePage({ onLogout }: { onLogout: () => void }) {
           </section>
           <section className="profile-support-card">
             <div className="profile-support-card__title"><CircleHelp size={18} /><h2>Precisa de ajuda?</h2></div>
-            <button onClick={() => showNotice('Central de ajuda disponível em breve.')}><FileText size={16} /> Central de ajuda <ChevronRight size={16} /></button>
-            <button onClick={() => showNotice('Vamos preparar seu arquivo para download.')}><Download size={16} /> Baixar meus dados <ChevronRight size={16} /></button>
+            <button onClick={() => window.location.assign('mailto:suporte@movelya.com.br?subject=Ajuda%20com%20o%20MOVELYA')}><FileText size={16} /> Falar com o suporte <ChevronRight size={16} /></button>
+            <button onClick={() => void downloadData()}><Download size={16} /> Baixar meus dados <ChevronRight size={16} /></button>
           </section>
           <button className="profile-logout-button" onClick={onLogout}><LogOut size={18} /><span><strong>Sair da conta</strong><small>Encerra a sessão neste dispositivo</small></span></button>
         </aside>
       </div>
+      {editing && <div className="profile-modal-backdrop" onMouseDown={() => setEditing(false)}>
+        <form className="profile-edit-modal" onSubmit={savePersonalData} onMouseDown={(event) => event.stopPropagation()}>
+          <button type="button" className="profile-edit-modal__close" onClick={() => setEditing(false)} aria-label="Fechar"><X size={18} /></button>
+          <span className="page-eyebrow">DADOS PESSOAIS</span><h2>Como podemos chamar você?</h2><p>Seu nome aparece nos resumos e recomendações do MOVELYA.</p>
+          <label>Nome completo<input value={fullName} onChange={(event) => setFullName(event.target.value)} autoFocus autoComplete="name" /></label>
+          <label>E-mail<input value={user?.email || ''} disabled /></label>
+          <div className="profile-edit-modal__actions"><button type="button" onClick={() => setEditing(false)}>Cancelar</button><button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Salvar alterações'}</button></div>
+        </form>
+      </div>}
     </section>
   )
 }

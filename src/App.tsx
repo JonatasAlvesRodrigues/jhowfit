@@ -207,7 +207,7 @@ export default function App() {
               ) : route?.id === 'treinos' && user ? (
                 <TrainingHubPage userId={user.id} />
               ) : route?.id === 'perfil' ? (
-                <ProfilePage onLogout={handleLogout} />
+                <ProfilePage userId={user?.id ?? ''} onLogout={handleLogout} onNavigate={navigate} />
               ) : route?.id === 'planos' && user ? (
                 <PlansPage onNavigate={navigate} />
               ) : route?.id === 'checkout' && user ? (
