@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { VitaHeader } from './components/VitaHeader'
-import { AIFloatingButton, MobileNavigation, VitaSidebar } from './components/VitaNavigation'
+import { MobileNavigation, VitaSidebar } from './components/VitaNavigation'
 import { useAuth } from './contexts/AuthContext'
 import { AuthPage } from './pages/AuthPages'
 import { DailyDashboardPage } from './pages/DailyDashboardPage'
@@ -31,6 +31,7 @@ import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
 import { notificationService } from './services/notificationService'
 import './pwa/registerServiceWorker'
+import './productTheme.css'
 
 type ThemePreference = 'light' | 'dark' | 'system'
 
@@ -39,8 +40,8 @@ export default function App() {
   const { user, role, roleLoading, loading: authLoading, recoveryMode, logout } = useAuth()
   const onboarding = useOnboardingStatus(user?.id)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [themePreference, setThemePreference] = useState<ThemePreference>('system')
-  const [systemTheme, setSystemTheme] = useState<'dark' | 'light'>('dark')
+  const [themePreference, setThemePreference] = useState<ThemePreference>('light')
+  const [systemTheme, setSystemTheme] = useState<'dark' | 'light'>('light')
   const routeStageRef = useRef<HTMLDivElement>(null)
   const siteOrigin = typeof window === 'undefined' ? '' : window.location.origin
 
@@ -242,7 +243,6 @@ export default function App() {
         </div>
 
         <MobileNavigation activeRoute={route?.id} onNavigate={navigate} />
-        {route?.id !== 'assistente' && route?.id !== 'treinos' && <AIFloatingButton onNavigate={navigate} />}
       </div>
     </AppErrorBoundary>
   )

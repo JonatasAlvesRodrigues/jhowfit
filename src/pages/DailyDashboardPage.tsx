@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import {
   Activity,
   ArrowRight,
-  Bell,
   CircleCheck,
   Droplets,
   Dumbbell,
@@ -49,6 +48,8 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
   }
 
   const weightDifference = data.weight.difference
+  const nextAction = getNextAction(data)
+  const NextActionIcon = nextAction.icon
 
   return (
     <section className="daily-dashboard">
@@ -66,9 +67,18 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
             <strong>{data.activeStreak}</strong>
             <small>{data.activeStreak === 1 ? 'dia de sequência' : 'dias de sequência'}</small>
           </div>
-          <button className="daily-notification" onClick={() => onNavigate('/notificacoes')} aria-label="Abrir notificações"><Bell size={20} /><i /></button>
         </div>
       </header>
+
+      <article className="daily-next-action">
+        <span className="daily-next-action__icon"><NextActionIcon size={20} /></span>
+        <div>
+          <small>PRÓXIMA AÇÃO</small>
+          <strong>{nextAction.title}</strong>
+          <p>{nextAction.description}</p>
+        </div>
+        <button onClick={() => onNavigate(nextAction.path)}>{nextAction.action} <ArrowRight size={16} /></button>
+      </article>
 
       {!data.hasAnyData && (
         <div className="dashboard-empty-banner">
@@ -231,5 +241,46 @@ function motivation(completion: number) {
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function getNextAction(data: import('../types/dashboard').DailyDashboardData) {
+  if (data.allGoalsCompleted) return {
+    icon: CircleCheck,
+    title: 'Seu dia está completo',
+    description: 'Revise sua evolução e mantenha o ritmo de hoje.',
+    action: 'Ver progresso',
+    path: '/relatorios',
+  }
+  if (data.metrics.water.current < data.metrics.water.goal) {
+    const remaining = Math.max(data.metrics.water.goal - data.metrics.water.current, 0)
+    return {
+      icon: Droplets,
+      title: 'Cuide da sua hidratação',
+      description: `Faltam ${remaining.toFixed(2).replace('.', ',')} L para sua meta de hoje.`,
+      action: 'Registrar água',
+      path: '/agua',
+    }
+  }
+  if (data.metrics.meals < 3) return {
+    icon: Salad,
+    title: 'Registre sua próxima refeição',
+    description: `${data.metrics.meals} de 3 refeições foram registradas hoje.`,
+    action: 'Abrir dieta',
+    path: '/dieta',
+  }
+  if (data.workout && !data.workout.completed) return {
+    icon: Dumbbell,
+    title: data.workout.title,
+    description: `${data.workout.duration} min para concluir o treino planejado.`,
+    action: 'Iniciar treino',
+    path: '/treinos',
+  }
+  return {
+    icon: Footprints,
+    title: 'Movimente-se um pouco mais',
+    description: 'Uma caminhada curta já ajuda a aproximar você da meta diária.',
+    action: 'Ver atividades',
+    path: '/atividades',
+  }
 }
 

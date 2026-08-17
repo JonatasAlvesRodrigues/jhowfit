@@ -34,7 +34,7 @@ export const authRoutes: VitaRoute[] = [
 
 export const onboardingRoute: VitaRoute = { id: 'configuracao-inicial', path: '/configuracao-inicial', label: 'Configuração inicial', eyebrow: 'PERSONALIZAÇÃO', description: 'Conte-nos um pouco sobre você.', icon: UserRound }
 export const adminRoute: VitaRoute = { id: 'administracao', path: '/administracao', label: 'Administração', eyebrow: 'CONTROLE', description: 'Painel operacional protegido por função.', icon: LockKeyhole }
-export const mobileRouteIds: RouteId[] = ['inicio', 'treinos', 'dieta', 'atividades', 'perfil']
+export const mobileRouteIds: RouteId[] = ['inicio', 'treinos', 'assistente', 'atividades', 'perfil']
 export const mobileRoutes = mobileRouteIds.map((id) => vitaRoutes.find((route) => route.id === id)!)
 export const checkoutRoute: VitaRoute = { id: 'checkout', path: '/checkout', label: 'Finalizar assinatura', eyebrow: 'CHECKOUT', description: 'Revise seu plano antes de seguir para o pagamento seguro.', icon: Crown }
 export const checkoutConfirmationRoute: VitaRoute = { id: 'checkout-confirmado', path: '/checkout-confirmado', label: 'Confirmação de compra', eyebrow: 'ASSINATURA', description: 'Acompanhamento seguro da confirmação do seu pagamento.', icon: ShieldCheck }

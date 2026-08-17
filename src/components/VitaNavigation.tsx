@@ -101,7 +101,7 @@ export function VitaSidebar({
         </nav>
         <div className="sidebar-version">
           <span>MOVELYA</span>
-          <small>Versão inicial · Estrutura visual</small>
+          <small>Saúde em movimento</small>
         </div>
       </aside>
     </>
