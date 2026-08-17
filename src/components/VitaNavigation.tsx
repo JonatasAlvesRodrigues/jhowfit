@@ -1,4 +1,4 @@
-import { Apple, Bot, ChevronDown, ChartNoAxesCombined, Sparkles, UserRound, X } from 'lucide-react'
+import { Apple, ChevronDown, ChartNoAxesCombined, UserRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { RouteId } from '../types/navigation'
 import { adminRoute, mobileRoutes, vitaRoutes } from '../utils/navigation'
@@ -74,6 +74,7 @@ export function VitaSidebar({
           {directRoutes.map(({ id, path, label, icon: Icon }) => (
             <button
               key={id}
+              data-route={id}
               className={activeRoute === id ? 'is-active' : ''}
               onClick={() => navigateTo(path)}
               aria-current={activeRoute === id ? 'page' : undefined}
@@ -92,7 +93,7 @@ export function VitaSidebar({
                 <span className="nav-icon"><Icon size={19} /></span><span>{label}</span><ChevronDown size={16} />
               </button>
               <div className="nav-group__items">
-                {groupRoutes.map(({ id: routeId, path, label: routeLabel, icon: RouteIcon }) => <button key={routeId} className={activeRoute === routeId ? 'is-active' : ''} onClick={() => navigateTo(path)} aria-current={activeRoute === routeId ? 'page' : undefined}><span className="nav-icon"><RouteIcon size={17} /></span><span>{routeLabel}</span></button>)}
+                {groupRoutes.map(({ id: routeId, path, label: routeLabel, icon: RouteIcon }) => <button key={routeId} data-route={routeId} className={activeRoute === routeId ? 'is-active' : ''} onClick={() => navigateTo(path)} aria-current={activeRoute === routeId ? 'page' : undefined}><span className="nav-icon"><RouteIcon size={17} /></span><span>{routeLabel}</span></button>)}
               </div>
             </div>
           })}
@@ -121,6 +122,7 @@ export function MobileNavigation({ activeRoute, onNavigate }: NavigationProps) {
       {mobileRoutes.map(({ id, path, label, mobileLabel, icon: Icon }) => (
         <button
           key={id}
+          data-route={id}
           className={activeRoute === id ? 'is-active' : ''}
           onClick={() => onNavigate(path)}
           aria-current={activeRoute === id ? 'page' : undefined}
@@ -131,8 +133,4 @@ export function MobileNavigation({ activeRoute, onNavigate }: NavigationProps) {
       ))}
     </nav>
   )
-}
-
-export function AIFloatingButton({ onNavigate }: { onNavigate: (path: string) => void }) {
-  return <button className="ai-floating-button" onClick={() => onNavigate('/assistente')} aria-label="Abrir assistente IA"><span><Sparkles size={20} /></span><b>IA</b></button>
 }

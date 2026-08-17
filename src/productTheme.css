@@ -97,48 +97,60 @@ textarea:focus-visible {
   background: var(--product-bg) !important;
 }
 
-.vita-app { margin-left: 232px; }
+.vita-app { margin-left: 244px; }
 
 .vita-sidebar {
-  width: 232px;
-  padding: 24px 16px 18px;
+  width: 244px;
+  padding: 14px 13px 14px;
   color: var(--product-text);
   border-right: 1px solid var(--product-line) !important;
-  background: color-mix(in srgb, var(--product-surface) 97%, transparent) !important;
-  box-shadow: none !important;
+  background: color-mix(in srgb, var(--product-surface-soft) 96%, transparent) !important;
+  box-shadow: 12px 0 34px rgba(38, 67, 50, .035) !important;
   backdrop-filter: blur(18px);
 }
 
-.vita-sidebar__top { padding: 0 8px 20px; }
+.vita-sidebar__top {
+  min-height: 66px;
+  padding: 10px 11px !important;
+  border: 1px solid var(--product-line);
+  border-radius: 17px;
+  background: var(--product-surface);
+  box-shadow: var(--product-shadow);
+}
 .vita-logo { gap: 10px; }
 .vita-logo__mark {
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--product-line);
-  border-radius: 11px !important;
-  background: var(--product-surface-soft) !important;
-  box-shadow: none !important;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #c9dfd2;
+  border-radius: 13px !important;
+  background: var(--product-primary-soft) !important;
+  box-shadow: 0 7px 16px rgba(18, 130, 90, .10) !important;
 }
-.vita-logo__name { color: var(--product-text); font-size: 17px; letter-spacing: -.7px; }
+.vita-logo__name { color: var(--product-text); font-size: 17px; letter-spacing: -.8px; }
 .vita-logo__name strong { color: var(--product-primary); }
 .nav-section-label {
-  margin: 11px 10px 8px !important;
+  margin: 22px 12px 9px !important;
   color: var(--product-subtle) !important;
-  font-size: 9px !important;
-  letter-spacing: 1.35px !important;
+  font-size: 8px !important;
+  letter-spacing: 1.55px !important;
 }
 
-.desktop-nav { gap: 3px !important; }
+.desktop-nav {
+  gap: 4px !important;
+  padding: 0 2px 8px 0 !important;
+  scrollbar-color: var(--product-line-strong) transparent !important;
+}
 .desktop-nav > button,
 .nav-group__toggle,
 .nav-group__items button {
-  min-height: 42px !important;
-  padding: 0 10px !important;
-  border: 0 !important;
-  border-radius: var(--product-radius-sm) !important;
+  min-height: 46px !important;
+  padding: 0 11px 0 8px !important;
+  border: 1px solid transparent !important;
+  border-radius: 13px !important;
   color: var(--product-muted) !important;
   background: transparent !important;
   box-shadow: none !important;
+  gap: 10px !important;
   font-size: 11px !important;
   font-weight: 650 !important;
 }
@@ -146,36 +158,93 @@ textarea:focus-visible {
 .nav-group__toggle:hover,
 .nav-group__items button:hover {
   color: var(--product-text) !important;
-  background: var(--product-surface-tint) !important;
+  border-color: var(--product-line) !important;
+  background: var(--product-surface) !important;
+  transform: translateX(2px);
 }
 .desktop-nav button.is-active,
-.nav-group__items button.is-active,
-.nav-group__toggle.has-active-route {
+.nav-group__items button.is-active {
+  position: relative;
   color: var(--product-primary) !important;
-  background: var(--product-primary-soft) !important;
+  border-color: #cfe3d7 !important;
+  background: var(--product-surface) !important;
+  box-shadow: 0 8px 20px rgba(30, 75, 49, .075) !important;
 }
 .desktop-nav button.is-active::before,
+.nav-group__items button.is-active::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: var(--product-primary);
+}
+.nav-group__toggle.has-active-route {
+  color: var(--product-primary) !important;
+  border-color: color-mix(in srgb, var(--product-primary) 14%, var(--product-line)) !important;
+  background: var(--product-primary-soft) !important;
+}
 .desktop-nav button.is-active::after,
 .desktop-nav button.is-active > i { display: none !important; }
 .nav-icon {
+  flex: 0 0 32px;
+  width: 32px !important;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
   color: currentColor !important;
-  background: transparent !important;
+  background: color-mix(in srgb, var(--product-line) 32%, transparent) !important;
   box-shadow: none !important;
 }
-.nav-group__items {
-  margin: 2px 0 4px 20px !important;
-  padding-left: 8px !important;
-  border-left: 1px solid var(--product-line) !important;
+.desktop-nav button.is-active .nav-icon,
+.nav-group__toggle.has-active-route .nav-icon {
+  color: #fff !important;
+  background: var(--product-primary) !important;
+  box-shadow: 0 6px 13px rgba(18, 130, 90, .17) !important;
 }
-.nav-group__items button { min-height: 36px !important; font-size: 10px !important; }
-.nav-signout { margin-top: 7px !important; color: #a45252 !important; }
+.nav-group__items {
+  margin: 3px 0 5px 16px !important;
+  padding: 3px 0 3px 12px !important;
+  border-left: 1px dashed var(--product-line-strong) !important;
+}
+.nav-group__items button { min-height: 39px !important; padding-left: 6px !important; font-size: 10px !important; }
+.nav-group__items .nav-icon { flex-basis: 27px; width: 27px !important; height: 27px; border-radius: 8px; }
+.nav-group__toggle > svg { color: var(--product-subtle) !important; }
+.nav-signout {
+  margin-top: 10px !important;
+  color: #a45252 !important;
+  border-top: 1px solid var(--product-line) !important;
+  border-radius: 0 0 13px 13px !important;
+}
+.nav-signout .nav-icon { color: #a45252 !important; background: #f9ecec !important; }
+:root[data-theme="dark"] .nav-signout .nav-icon { background: rgba(164, 82, 82, .14) !important; }
 .sidebar-version {
   margin-top: auto;
-  padding: 15px 10px 2px !important;
-  border-top: 1px solid var(--product-line) !important;
+  padding: 12px 13px !important;
+  border: 1px solid var(--product-line) !important;
+  border-radius: 14px;
+  background: var(--product-surface);
 }
-.sidebar-version span { color: var(--product-text) !important; }
-.sidebar-version small { color: var(--product-subtle) !important; }
+.sidebar-version span {
+  position: relative;
+  padding-left: 12px;
+  color: var(--product-text) !important;
+}
+.sidebar-version span::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--product-primary);
+  transform: translateY(-50%);
+}
+.sidebar-version small { margin-left: 12px; color: var(--product-subtle) !important; }
 
 .vita-header {
   height: 64px;
@@ -748,37 +817,88 @@ textarea:focus-visible {
 
   .vita-bottom-nav {
     z-index: 72;
-    inset: auto 10px calc(9px + env(safe-area-inset-bottom));
-    min-height: 66px;
-    padding: 6px;
+    left: 50%;
+    right: auto;
+    bottom: calc(9px + env(safe-area-inset-bottom));
+    width: min(calc(100% - 24px), 440px);
+    min-height: 70px;
+    padding: 7px 8px 6px;
+    overflow: visible;
     border: 1px solid var(--product-line) !important;
-    border-radius: 18px !important;
-    background: color-mix(in srgb, var(--product-surface) 94%, transparent) !important;
-    box-shadow: var(--product-shadow-raised) !important;
+    border-radius: 22px !important;
+    background: color-mix(in srgb, var(--product-surface) 96%, transparent) !important;
+    box-shadow: 0 16px 40px rgba(24, 57, 38, .14), inset 0 1px rgba(255,255,255,.9) !important;
     backdrop-filter: blur(20px);
+    transform: translateX(-50%);
   }
   .vita-bottom-nav button {
-    min-height: 52px !important;
+    position: relative;
+    min-height: 56px !important;
     margin: 0 !important;
-    padding: 5px 2px !important;
-    gap: 3px;
+    padding: 4px 2px 3px !important;
+    gap: 4px;
     border: 0 !important;
-    border-radius: 13px !important;
+    border-radius: 15px !important;
     color: var(--product-muted) !important;
     background: transparent !important;
     box-shadow: none !important;
     text-shadow: none !important;
-    font-size: 8px;
+    font-size: 8.5px;
+    font-weight: 700;
   }
-  .vita-bottom-nav button.is-active {
-    min-height: 52px !important;
+  .vita-bottom-nav .bottom-icon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    transition: color .18s ease, background .18s ease, transform .18s ease;
+  }
+  .vita-bottom-nav button:not([data-route="assistente"]).is-active {
+    min-height: 56px !important;
     color: var(--product-primary) !important;
-    background: var(--product-primary-soft) !important;
+    background: transparent !important;
     box-shadow: none !important;
     text-shadow: none !important;
   }
-  .vita-bottom-nav button.is-active .bottom-icon { filter: none !important; }
-  .vita-bottom-nav button.is-active .bottom-icon::after { display: block; background: var(--product-primary); }
+  .vita-bottom-nav button:not([data-route="assistente"]).is-active .bottom-icon {
+    color: #fff;
+    background: var(--product-primary);
+    box-shadow: 0 7px 15px rgba(18, 130, 90, .20);
+    filter: none !important;
+    transform: translateY(-1px);
+  }
+  .vita-bottom-nav button:not([data-route="assistente"]).is-active::after {
+    content: '';
+    position: absolute;
+    bottom: 1px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--product-primary);
+  }
+  .vita-bottom-nav button[data-route="assistente"] {
+    min-height: 62px !important;
+    margin-top: -18px !important;
+    color: var(--product-primary) !important;
+    background: transparent !important;
+  }
+  .vita-bottom-nav button[data-route="assistente"] .bottom-icon {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--product-surface);
+    border-radius: 17px;
+    color: #fff;
+    background: linear-gradient(145deg, #159368, #0b6848);
+    box-shadow: 0 10px 22px rgba(18, 130, 90, .26);
+    transform: rotate(-3deg);
+  }
+  .vita-bottom-nav button[data-route="assistente"] .bottom-icon svg { width: 22px; height: 22px; transform: rotate(3deg); }
+  .vita-bottom-nav button[data-route="assistente"].is-active .bottom-icon {
+    outline: 3px solid var(--product-primary-soft);
+    box-shadow: 0 11px 25px rgba(18, 130, 90, .34);
+  }
+  .vita-bottom-nav button.is-active .bottom-icon::after { display: none !important; }
   .ai-floating-button { display: none !important; }
 
   .auth-card,
