@@ -125,10 +125,10 @@ export function OnboardingPage({ userId, initialName, onComplete }: { userId: st
             </div>
 
             <footer className="onboarding-actions">
-              <button className="onboarding-back" onClick={back} disabled={currentStep === 0 || saving}><ArrowLeft size={17} /> Voltar</button>
+              <button type="button" className="onboarding-back" onClick={back} disabled={currentStep === 0 || saving}><ArrowLeft size={17} /> Voltar</button>
               {currentStep < steps.length - 1
-                ? <button className="onboarding-next" onClick={next}>Continuar <ArrowRight size={17} /></button>
-                : <button className="onboarding-next" onClick={finish} disabled={saving}>{saving ? <><LoaderCircle className="spin" size={18} /> Salvando...</> : <>Concluir configuração <Check size={17} /></>}</button>}
+                ? <button type="button" className="onboarding-next" onClick={next}>Continuar <ArrowRight size={17} /></button>
+                : <button type="button" className="onboarding-next" onClick={finish} disabled={saving}>{saving ? <><LoaderCircle className="spin" size={18} /> Salvando...</> : <>Concluir configuração <Check size={17} /></>}</button>}
             </footer>
           </section>
         </main>
@@ -160,15 +160,15 @@ function BasicStep({ data, update }: { data: OnboardingData; update: Update }) {
 }
 
 function ChoiceCards({ value, onChange, options }: { value: string; onChange: (value: string) => void; options: readonly (readonly [string, string, string])[] }) {
-  return <div className="onboarding-choice-cards">{options.map(([id, title, description]) => <button key={id} className={value === id ? 'is-selected' : ''} onClick={() => onChange(id)}><span className="choice-radio">{value === id && <i />}</span><div><strong>{title}</strong><small>{description}</small></div></button>)}</div>
+  return <div className="onboarding-choice-cards">{options.map(([id, title, description]) => <button type="button" key={id} className={value === id ? 'is-selected' : ''} onClick={() => onChange(id)}><span className="choice-radio">{value === id && <i />}</span><div><strong>{title}</strong><small>{description}</small></div></button>)}</div>
 }
 
 function AvailabilityStep({ data, update, toggle }: { data: OnboardingData; update: Update; toggle: (value: string) => void }) {
   return <div className="onboarding-form-grid">
     <OnboardingField label="Dias de treino por semana"><select value={data.trainingDaysPerWeek} onChange={(event) => update('trainingDaysPerWeek', event.target.value)}><option value="">Selecione</option>{[1,2,3,4,5,6,7].map((value) => <option key={value} value={value}>{value} {value === 1 ? 'dia' : 'dias'}</option>)}</select></OnboardingField>
     <OnboardingField label="Duração média"><select value={data.averageDurationMinutes} onChange={(event) => update('averageDurationMinutes', event.target.value)}><option value="">Selecione</option><option value="20">20 minutos</option><option value="30">30 minutos</option><option value="45">45 minutos</option><option value="60">1 hora</option><option value="90">1h30</option><option value="120">2 horas</option></select></OnboardingField>
-    <OnboardingField label="Horário preferido" className="is-wide"><div className="onboarding-segments">{[['morning','Manhã'],['afternoon','Tarde'],['evening','Noite'],['flexible','Flexível']].map(([id,label]) => <button key={id} className={data.preferredTime === id ? 'is-selected' : ''} onClick={() => update('preferredTime', id)}>{label}</button>)}</div></OnboardingField>
-    <OnboardingField label="Dias disponíveis" className="is-wide"><div className="weekday-picker">{weekDays.map(([id,label]) => <button key={id} className={data.availableDays.includes(id) ? 'is-selected' : ''} onClick={() => toggle(id)}>{label}</button>)}</div></OnboardingField>
+    <OnboardingField label="Horário preferido" className="is-wide"><div className="onboarding-segments">{[['morning','Manhã'],['afternoon','Tarde'],['evening','Noite'],['flexible','Flexível']].map(([id,label]) => <button type="button" key={id} className={data.preferredTime === id ? 'is-selected' : ''} onClick={() => update('preferredTime', id)}>{label}</button>)}</div></OnboardingField>
+    <OnboardingField label="Dias disponíveis" className="is-wide"><div className="weekday-picker">{weekDays.map(([id,label]) => <button type="button" key={id} className={data.availableDays.includes(id) ? 'is-selected' : ''} onClick={() => toggle(id)}>{label}</button>)}</div></OnboardingField>
   </div>
 }
 

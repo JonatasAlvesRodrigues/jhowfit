@@ -976,6 +976,13 @@ body { background: radial-gradient(circle at 90% -10%, rgba(19, 87, 116, .16), t
 .onboarding-segments { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
 .onboarding-segments button, .selection-grid button { min-height: 42px; border: 1px solid var(--vita-border); border-radius: 10px; color: #7d8b82; background: #0c110e; font-size: 9px; font-weight: 600; cursor: pointer; }
 .onboarding-segments button.is-selected, .selection-grid button.is-selected { color: var(--vita-green); border-color: rgba(39,214,143,.45); background: var(--vita-green-soft); }
+.onboarding-choice-cards > button.is-selected,
+.onboarding-segments button.is-selected,
+.selection-grid button.is-selected,
+.weekday-picker button.is-selected,
+.chip-picker button.is-selected,
+.yes-no button.is-selected { color: var(--vita-green) !important; border-color: rgba(39,214,143,.52) !important; background: var(--vita-green-soft) !important; }
+.weekday-picker button.is-selected { color: #052719 !important; border-color: var(--vita-green) !important; background: var(--vita-green) !important; }
 .weekday-picker { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; }
 .weekday-picker button { aspect-ratio: 1; max-height: 48px; border: 1px solid var(--vita-border); border-radius: 10px; color: #718078; background: #0c110e; font-size: 9px; cursor: pointer; }
 .weekday-picker button.is-selected { color: #052719; border-color: var(--vita-green); background: var(--vita-green); font-weight: 800; }
