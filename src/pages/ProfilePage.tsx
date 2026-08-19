@@ -1,8 +1,9 @@
-import { FormEvent, useState } from 'react'
-import { Bell, ChevronRight, CircleHelp, Crown, Download, FileText, Goal, LockKeyhole, LogOut, Mail, Settings2, ShieldCheck, Sparkles, UserRound, X } from 'lucide-react'
+import { FormEvent, useEffect, useState } from 'react'
+import { Bell, ChevronRight, CircleAlert, CircleHelp, Crown, Download, FileText, Goal, LoaderCircle, LockKeyhole, LogOut, Mail, Settings2, ShieldCheck, Sparkles, UserRound, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../integrations/supabase'
 import { privacyService } from '../services/privacyService'
+import { subscriptionService, type PlanOverview } from '../services/subscriptionService'
 
 type ProfileAction = { icon: typeof UserRound; title: string; description: string }
 
@@ -18,12 +19,18 @@ export function ProfilePage({ userId, onLogout, onNavigate }: { userId: string; 
   const [notice, setNotice] = useState('')
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [plan, setPlan] = useState<PlanOverview | null>(null)
+  const [planError, setPlanError] = useState('')
   const name = String(user?.user_metadata?.full_name || 'Usuário MOVELYA')
   const [fullName, setFullName] = useState(name)
   const initials = name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   const memberSince = user?.created_at
     ? new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(user.created_at))
     : 'agosto de 2026'
+
+  useEffect(() => {
+    void subscriptionService.getOverview().then(setPlan).catch(() => setPlanError('Não foi possível carregar sua assinatura agora.'))
+  }, [])
 
   const showNotice = (message: string) => {
     setNotice(message)
@@ -77,6 +84,7 @@ export function ProfilePage({ userId, onLogout, onNavigate }: { userId: string; 
       <div className="profile-hub__grid">
         <div className="profile-hub__main">
           <section className="profile-plan-card">
+            {plan ? <CurrentPlanCard plan={plan} onNavigate={onNavigate} /> : planError ? <div className="profile-plan-card__unavailable"><CircleAlert size={20} /><div><strong>Assinatura indisponível</strong><span>{planError}</span></div><button onClick={() => onNavigate('/planos')}>Ver planos <ChevronRight size={16} /></button></div> : <div className="profile-plan-card__loading"><LoaderCircle className="is-spinning" size={21} /> Carregando seu plano...</div>}
             <div className="profile-plan-card__top"><div className="profile-plan-card__symbol"><Crown size={20} /></div><span>SEU PLANO</span></div>
             <div className="profile-plan-card__content">
               <div><h2>MOVELYA Plus</h2><p>Planos inteligentes, acompanhamento e recomendações personalizadas para sua rotina.</p></div>
@@ -123,3 +131,16 @@ export function ProfilePage({ userId, onLogout, onNavigate }: { userId: string; 
     </section>
   )
 }
+
+function CurrentPlanCard({ plan, onNavigate }: { plan: PlanOverview; onNavigate: (path: string) => void }) {
+  const isFree = plan.code === 'FREE'
+  const status = isFree ? 'Plano gratuito ativo' : plan.cancel_at_period_end ? 'Cancelamento agendado' : 'Assinatura ativa'
+  const renewal = isFree ? 'Você pode fazer upgrade quando quiser' : `Renovação em ${formatPlanDate(plan.renews_at)}`
+  return <div className={`profile-plan-card__loaded is-${plan.code.toLowerCase()}`}>
+    <div className="profile-plan-card__top"><div className="profile-plan-card__symbol"><Crown size={20} /></div><span>SEU PLANO ATUAL</span></div>
+    <div className="profile-plan-card__content"><div><h2>MOVELYA {plan.name}</h2><p>{plan.description}</p></div><button className="profile-plan-card__button" onClick={() => onNavigate('/planos')}>{isFree ? 'Conhecer planos' : 'Gerenciar assinatura'} <ChevronRight size={17} /></button></div>
+    <div className="profile-plan-card__footer"><span><Sparkles size={15} /> {status}</span><small>{renewal}</small></div>
+  </div>
+}
+
+function formatPlanDate(value: string) { return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long' }).format(new Date(value)) }

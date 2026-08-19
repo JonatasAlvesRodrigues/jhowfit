@@ -1102,6 +1102,18 @@ textarea:focus-visible {
 .profile-hub__grid { display: grid; grid-template-columns: minmax(0, 1fr) 286px; gap: 24px; margin-top: 28px; }
 .profile-hub__main, .profile-hub__aside { min-width: 0; }
 .profile-plan-card { overflow: hidden; border: 1px solid #17332b; border-radius: 18px; color: #fff; background: #17332b; }
+.profile-plan-card:has(.profile-plan-card__loaded, .profile-plan-card__unavailable, .profile-plan-card__loading) > :not(.profile-plan-card__loaded, .profile-plan-card__unavailable, .profile-plan-card__loading) { display: none; }
+.profile-plan-card__loaded { min-height: 270px; display: flex; flex-direction: column; }
+.profile-plan-card__loaded.is-free { color: var(--product-text); border-color: var(--product-line); background: linear-gradient(135deg, var(--product-surface), var(--product-primary-soft)); }
+.profile-plan-card__loaded.is-free .profile-plan-card__top { color: var(--product-primary); }
+.profile-plan-card__loaded.is-free .profile-plan-card__symbol { color: var(--product-primary); background: var(--product-surface); }
+.profile-plan-card__loaded.is-free h2 { color: var(--product-text); }
+.profile-plan-card__loaded.is-free p, .profile-plan-card__loaded.is-free .profile-plan-card__footer { color: var(--product-muted); }
+.profile-plan-card__loaded.is-free .profile-plan-card__button { color: #fff; background: var(--product-primary); }
+.profile-plan-card__loaded.is-free .profile-plan-card__footer { border-color: var(--product-line); }
+.profile-plan-card__loaded.is-free .profile-plan-card__footer span { color: var(--product-primary); }
+.profile-plan-card__unavailable, .profile-plan-card__loading { min-height: 270px; padding: 28px; display: flex; align-items: center; justify-content: center; gap: 12px; color: #c7d8d1; }
+.profile-plan-card__unavailable { align-items: flex-start; }.profile-plan-card__unavailable svg { flex: 0 0 auto; color: #f5bb74; }.profile-plan-card__unavailable strong, .profile-plan-card__unavailable span { display: block; }.profile-plan-card__unavailable span { margin-top: 4px; color: #b9cbc4; font-size: 11px; line-height: 1.45; }.profile-plan-card__unavailable button { margin-left: auto; padding: 9px 11px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(255,255,255,.22); border-radius: 9px; color: #fff; background: transparent; font: 700 11px inherit; cursor: pointer; }
 .profile-plan-card__top { display: flex; align-items: center; gap: 10px; padding: 18px 22px 0; color: #a9d9c7; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
 .profile-plan-card__symbol { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; color: #d8ff70; background: rgba(216, 255, 112, .12); }
 .profile-plan-card__content { padding: 18px 22px 23px; display: flex; align-items: end; justify-content: space-between; gap: 24px; }
