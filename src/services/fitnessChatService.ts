@@ -32,7 +32,19 @@ export const fitnessChatService = {
   },
   async send(conversationId: string, message: string): Promise<{ userMessage: AiMessage; assistantMessage: AiMessage }> {
     requireClient()
-    const { data, error } = await supabase!.functions.invoke('fitness-chat', { body: { conversationId, message } })
+    const { data: sessionData, error: sessionError } = await supabase!.auth.getSession()
+    let session = sessionData.session
+    if (sessionError || !session) throw new Error('Sua sessão expirou. Entre novamente para continuar usando o assistente.')
+    if (session.expires_at && session.expires_at * 1000 < Date.now() + 60_000) {
+      const { data: refreshed, error: refreshError } = await supabase!.auth.refreshSession()
+      if (refreshError || !refreshed.session) throw new Error('Sua sessão expirou. Entre novamente para continuar usando o assistente.')
+      session = refreshed.session
+    }
+    let { data, error } = await supabase!.functions.invoke('fitness-chat', { body: { conversationId, message }, headers: { Authorization: `Bearer ${session.access_token}` } })
+    if (error && (error as { context?: Response }).context?.status === 401) {
+      const { data: refreshed, error: refreshError } = await supabase!.auth.refreshSession()
+      if (!refreshError && refreshed.session) ({ data, error } = await supabase!.functions.invoke('fitness-chat', { body: { conversationId, message }, headers: { Authorization: `Bearer ${refreshed.session.access_token}` } }))
+    }
     if (error) { const context = (error as { context?: Response }).context; const response = context ? await context.clone().json().catch(() => null) : null; throw new Error(response?.error || 'Não foi possível falar com o assistente.') }
     if (!data?.userMessage || !data?.assistantMessage) throw new Error(data?.error || 'A IA não retornou uma resposta válida.')
     return { userMessage: mapMessage(data.userMessage), assistantMessage: mapMessage(data.assistantMessage) }
