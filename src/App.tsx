@@ -31,6 +31,7 @@ import { ErrorPage, LoadingScreen, NotFoundPage, RoutePlaceholder } from './page
 import { useVitaRoute } from './hooks/useVitaRoute'
 import { isPrivateRoute } from './utils/navigation'
 import { notificationService } from './services/notificationService'
+import { subscriptionService } from './services/subscriptionService'
 import './pwa/registerServiceWorker'
 import './productTheme.css'
 
@@ -44,6 +45,7 @@ export default function App() {
   const [themePreference, setThemePreference] = useState<ThemePreference>('light')
   const [systemTheme, setSystemTheme] = useState<'dark' | 'light'>('light')
   const [showPlanWelcome, setShowPlanWelcome] = useState(false)
+  const [showQuotaUpgrade, setShowQuotaUpgrade] = useState(false)
   const routeStageRef = useRef<HTMLDivElement>(null)
   const siteOrigin = typeof window === 'undefined' ? '' : window.location.origin
 
@@ -72,15 +74,31 @@ export default function App() {
   }, [user?.id])
 
   useEffect(() => {
-    if (!user || !onboarding.completed || onboarding.loading || !route || ['configuracao-inicial', 'checkout', 'checkout-confirmado'].includes(route.id)) return
+    if (!user || showPlanWelcome || !onboarding.completed || onboarding.loading || !route || ['configuracao-inicial', 'checkout', 'checkout-confirmado'].includes(route.id)) return
     const key = `MOVELYA.plan-welcome.v1.${user.id}`
     if (!window.localStorage.getItem(key)) setShowPlanWelcome(true)
+  }, [user, showPlanWelcome, onboarding.completed, onboarding.loading, route])
+
+  useEffect(() => {
+    if (!user || !onboarding.completed || onboarding.loading || !route || ['configuracao-inicial', 'checkout', 'checkout-confirmado'].includes(route.id)) return
+    const welcomeKey = `MOVELYA.plan-welcome.v1.${user.id}`
+    if (!window.localStorage.getItem(welcomeKey)) return
+    void subscriptionService.getOverview().then((overview) => {
+      const nearLimit = overview.code === 'FREE' && overview.quotas.some((quota) => quota.monthly_limit > 0 && quota.used / quota.monthly_limit >= .8)
+      const quotaKey = `MOVELYA.quota-upgrade.v1.${user.id}.${overview.renews_at}`
+      if (nearLimit && !window.localStorage.getItem(quotaKey)) {
+        window.localStorage.setItem(quotaKey, 'shown')
+        setShowQuotaUpgrade(true)
+      }
+    }).catch(() => undefined)
   }, [user, onboarding.completed, onboarding.loading, route])
 
   function closePlanWelcome() {
     if (user) window.localStorage.setItem(`MOVELYA.plan-welcome.v1.${user.id}`, 'seen')
     setShowPlanWelcome(false)
   }
+
+  function closeQuotaUpgrade() { setShowQuotaUpgrade(false) }
 
   useEffect(() => {
     const root = routeStageRef.current
@@ -170,7 +188,7 @@ export default function App() {
     <AppErrorBoundary>
       <PwaInstallPrompt />
       <PwaUpdatePrompt />
-      {showPlanWelcome && <PlanWelcomeModal onChooseFree={closePlanWelcome} onChoosePaid={(planCode) => { closePlanWelcome(); navigate(`/checkout?plan=${planCode}`) }} />}
+      {showPlanWelcome ? <PlanWelcomeModal onChooseFree={closePlanWelcome} onChoosePaid={(planCode) => { closePlanWelcome(); navigate(`/checkout?plan=${planCode}`) }} /> : showQuotaUpgrade && <PlanWelcomeModal mode="quota-warning" onChooseFree={closeQuotaUpgrade} onChoosePaid={(planCode) => { closeQuotaUpgrade(); navigate(`/checkout?plan=${planCode}`) }} />}
       <title>MOVELYA — Saúde em movimento</title>
       <link rel="manifest" href={`${import.meta.env.BASE_URL}manifest.webmanifest`} />
       <meta name="description" content="Treinos, nutrição, hidratação e passos reunidos para acompanhar sua evolução no MOVELYA." />

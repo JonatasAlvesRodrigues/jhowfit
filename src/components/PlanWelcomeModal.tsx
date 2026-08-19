@@ -3,7 +3,7 @@ import { Check, Crown, LoaderCircle, Sparkles, Zap } from 'lucide-react'
 import { subscriptionService, type AvailablePlan } from '../services/subscriptionService'
 import '../plan-welcome-modal.css'
 
-export function PlanWelcomeModal({ onChooseFree, onChoosePaid }: { onChooseFree: () => void; onChoosePaid: (planCode: Exclude<AvailablePlan['code'], 'FREE'>) => void }) {
+export function PlanWelcomeModal({ onChooseFree, onChoosePaid, mode = 'first-access' }: { onChooseFree: () => void; onChoosePaid: (planCode: Exclude<AvailablePlan['code'], 'FREE'>) => void; mode?: 'first-access' | 'quota-warning' }) {
   const [plans, setPlans] = useState<AvailablePlan[]>([])
   const [error, setError] = useState('')
 
@@ -15,7 +15,7 @@ export function PlanWelcomeModal({ onChooseFree, onChoosePaid }: { onChooseFree:
     <section className="plan-welcome-modal__card">
       <header>
         <span className="plan-welcome-modal__icon"><Sparkles size={22} /></span>
-        <div><small>SEU PRÓXIMO PASSO</small><h1 id="plan-welcome-title">Escolha como quer evoluir</h1><p>Comece gratuitamente com o essencial ou escolha mais recursos e personalização para a sua jornada.</p></div>
+        <div><small>{mode === 'quota-warning' ? 'VOCÊ ESTÁ EVOLUINDO' : 'SEU PRÓXIMO PASSO'}</small><h1 id="plan-welcome-title">{mode === 'quota-warning' ? 'Sua cota Free está quase no limite' : 'Escolha como quer evoluir'}</h1><p>{mode === 'quota-warning' ? 'Você está aproveitando bastante os recursos inteligentes. Escolha o Pro para ter mais espaço para treinos, dietas e acompanhamento.' : 'Comece gratuitamente com o essencial ou escolha mais recursos e personalização para a sua jornada.'}</p></div>
       </header>
       {error && <p className="plan-welcome-modal__error">{error}</p>}
       {!plans.length && !error ? <div className="plan-welcome-modal__loading"><LoaderCircle className="is-spinning" size={22} /> Carregando planos...</div> : <div className="plan-welcome-modal__plans">
@@ -27,7 +27,7 @@ export function PlanWelcomeModal({ onChooseFree, onChoosePaid }: { onChooseFree:
             <div className="plan-welcome-modal__plan-title"><h2>{plan.name}</h2><p>{plan.description}</p></div>
             <strong className="plan-welcome-modal__price">{isFree ? 'Grátis' : `R$ ${(plan.price_monthly_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}<small>{isFree ? '' : '/mês'}</small></strong>
             <ul>{plan.features.map((feature) => <li key={feature}><Check size={15} />{feature}</li>)}</ul>
-            <button type="button" onClick={() => isFree ? onChooseFree() : onChoosePaid(plan.code as Exclude<AvailablePlan['code'], 'FREE'>)}>{isFree ? 'Começar com Free' : <><Crown size={15} /> Escolher {plan.name}</>}</button>
+            <button type="button" onClick={() => isFree ? onChooseFree() : onChoosePaid(plan.code as Exclude<AvailablePlan['code'], 'FREE'>)}>{isFree ? mode === 'quota-warning' ? 'Continuar no Free' : 'Começar com Free' : <><Crown size={15} /> Escolher {plan.name}</>}</button>
           </article>
         })}
       </div>}
