@@ -760,6 +760,14 @@ textarea:focus-visible {
 .onboarding-steps nav > div.is-active { color: var(--product-text) !important; background: var(--product-primary-soft) !important; }
 .onboarding-next { color: #fff !important; background: var(--product-primary) !important; box-shadow: none !important; }
 .onboarding-back { color: var(--product-muted) !important; border-color: var(--product-line) !important; background: var(--product-surface) !important; }
+.medical-notice { border-color: #f7dfbf !important; color: #bd741e !important; background: #fff8ee !important; }
+.medical-notice strong { color: #b66f1b !important; }
+.medical-notice span { color: #8d7357 !important; }
+.safety-question { border-color: var(--product-line) !important; background: var(--product-surface-soft) !important; }
+.safety-question strong { color: var(--product-text) !important; }
+.yes-no button { border-color: var(--product-line) !important; color: var(--product-muted) !important; background: var(--product-surface) !important; }
+.yes-no button.is-selected { border-color: var(--product-primary) !important; color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+.safety-question textarea { border-color: var(--product-line) !important; color: var(--product-text) !important; background: var(--product-surface) !important; }
 
 @media (max-width: 980px) {
   .vita-app { margin-left: 0; }
