@@ -1316,3 +1316,45 @@ textarea:focus-visible {
   .ai-review-heading::before,
   .profile-plan-card::before { animation: none !important; }
 }
+
+/* Workout execution is a product flow as well: do not leave dark controls in the light theme. */
+:root[data-theme="light"] .workout-execution { color: #183025; }
+:root[data-theme="light"] .workout-execution :is(.execution-layout > main, .execution-layout > aside > div, .next-exercise) {
+  border-color: rgba(35, 93, 62, .17) !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 26px rgba(25, 74, 47, .07) !important;
+}
+:root[data-theme="light"] .execution-exercise-visual { background: radial-gradient(circle at 50% 30%, #d7f1df, #edf6f0 68%) !important; }
+:root[data-theme="light"] .execution-header > button,
+:root[data-theme="light"] .execution-clock,
+:root[data-theme="light"] .execution-exercise-title button,
+:root[data-theme="light"] .rest-timer button,
+:root[data-theme="light"] .execution-controls button,
+:root[data-theme="light"] .execution-set-row,
+:root[data-theme="light"] .execution-weight-history span {
+  color: #315544 !important;
+  border-color: rgba(35, 93, 62, .18) !important;
+  background: #f8fbf9 !important;
+}
+:root[data-theme="light"] .execution-header h1,
+:root[data-theme="light"] .execution-exercise-title h2,
+:root[data-theme="light"] .execution-weight-history strong,
+:root[data-theme="light"] .rest-timer strong,
+:root[data-theme="light"] .next-exercise strong { color: #163424 !important; }
+:root[data-theme="light"] .execution-exercise-title p,
+:root[data-theme="light"] .execution-weight-history small,
+:root[data-theme="light"] .rest-timer small,
+:root[data-theme="light"] .execution-set-head,
+:root[data-theme="light"] .next-exercise small { color: #60786a !important; }
+:root[data-theme="light"] .rest-timer > svg { color: #0d8758 !important; }
+:root[data-theme="light"] .rest-timer strong { font-size: 34px !important; letter-spacing: -.05em; }
+:root[data-theme="light"] .rest-timer button:hover,
+:root[data-theme="light"] .execution-controls button:hover { color: #08784c !important; border-color: rgba(19, 155, 103, .42) !important; background: #eff9f2 !important; }
+:root[data-theme="light"] .execution-controls button:last-child { color: #c2504b !important; border-color: rgba(201, 85, 79, .22) !important; background: #fff9f8 !important; }
+:root[data-theme="light"] .execution-set-row input { color: #183025 !important; border-color: rgba(35, 93, 62, .20) !important; background: #ffffff !important; }
+:root[data-theme="light"] .execution-set-row label span { color: #647b6e !important; }
+:root[data-theme="light"] .execution-set-row > strong { color: #08784c !important; background: #e7f7ed !important; }
+:root[data-theme="light"] .execution-set-row button { color: #ffffff !important; background: #0f8a5d !important; }
+:root[data-theme="light"] .execution-set-row button:disabled { color: #08784c !important; background: #e4f6eb !important; }
+:root[data-theme="light"] .execution-notes { color: #714f2a; background: #fff9ef !important; }
+:root[data-theme="light"] .execution-notes p { color: #7c6543 !important; }
