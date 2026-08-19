@@ -26,6 +26,7 @@ export function PlansPage({ onNavigate }: { onNavigate: (path: string) => void }
   const [paymentRecovery, setPaymentRecovery] = useState<PaymentRecovery | null>(null)
   const [showCancel, setShowCancel] = useState(false)
   const [cancelReason, setCancelReason] = useState('too_expensive')
+  const isWelcomeOffer = new URLSearchParams(window.location.search).get('boas-vindas') === '1'
 
   useEffect(() => {
     Promise.all([subscriptionService.getOverview(), subscriptionService.listPlans(), subscriptionService.paymentHistory(), subscriptionService.getPaymentRecovery().catch(() => null)])
@@ -50,6 +51,15 @@ export function PlansPage({ onNavigate }: { onNavigate: (path: string) => void }
   if (!overview) return <section className="plans-page"><div className="plan-state"><LoaderCircle className="is-spinning" /><p>Preparando os detalhes do seu plano...</p></div></section>
 
   return <section className="plans-page">
+    {isWelcomeOffer && <section className="plans-welcome" aria-labelledby="plans-welcome-title">
+      <div className="plans-welcome__icon"><Sparkles size={22} /></div>
+      <div>
+        <span className="page-eyebrow">PERFIL CONCLUÍDO</span>
+        <h1 id="plans-welcome-title">Seu plano está pronto. Como quer evoluir?</h1>
+        <p>Você pode começar no Free, com os recursos essenciais e cotas mensais reduzidas, ou ter mais personalização e acompanhamento escolhendo um plano pago.</p>
+      </div>
+      <button className="plans-welcome__free" onClick={() => onNavigate('/inicio')}>Começar com Free</button>
+    </section>}
     <header className="plans-hero">
       <div><span className="page-eyebrow">ASSINATURA MOVELYA</span><h1>Seu ritmo, seu plano</h1><p>Escolha o nível de acompanhamento que combina com sua rotina. Seus recursos essenciais continuam disponíveis no Free.</p></div>
       <div className="plans-hero__icon"><Crown /></div>
@@ -87,7 +97,7 @@ export function PlansPage({ onNavigate }: { onNavigate: (path: string) => void }
           <div className="plan-card__title"><h3>{plan.name}</h3><p>{plan.description}</p></div>
           <div className="plan-price">{plan.price_monthly_cents === 0 ? <strong>Grátis</strong> : <><small>R$</small><strong>{formatPrice(plan.price_monthly_cents)}</strong><span>/mês</span></>}</div>
           <ul>{plan.features.map((feature) => <li key={feature}><Check size={16} />{feature}</li>)}</ul>
-          <button disabled={current || plan.code === 'FREE' || busyPlan === plan.code} onClick={() => plan.code !== 'FREE' && startCheckout(plan.code)}>{current ? 'Seu plano atual' : plan.code === 'FREE' ? 'Plano gratuito' : 'Assinar com Mercado Pago'}</button>
+          <button disabled={(current && !(isWelcomeOffer && plan.code === 'FREE')) || (plan.code === 'FREE' && !isWelcomeOffer) || busyPlan === plan.code} onClick={() => plan.code === 'FREE' ? onNavigate('/inicio') : startCheckout(plan.code)}>{isWelcomeOffer && plan.code === 'FREE' ? 'Começar com Free' : current ? 'Seu plano atual' : plan.code === 'FREE' ? 'Plano gratuito' : 'Assinar com Mercado Pago'}</button>
         </article>
       })}</div>
       <p className="plans-payment-note"><ShieldCheck size={16} /> Pagamentos recorrentes processados com segurança pelo Mercado Pago. A confirmação do plano é feita pelo servidor.</p>

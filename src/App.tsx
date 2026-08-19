@@ -148,7 +148,7 @@ export default function App() {
       initialName={String(user.user_metadata?.full_name ?? '')}
       onComplete={() => {
         onboarding.markCompleted()
-        navigate('/inicio')
+        navigate('/planos?boas-vindas=1')
       }}
     />
   }

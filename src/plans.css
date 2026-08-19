@@ -1,4 +1,9 @@
 .plans-page { display: grid; gap: 20px; }
+.plans-welcome { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:18px; padding:22px 24px; border:1px solid rgba(54,214,148,.42); border-radius:20px; background:linear-gradient(115deg,rgba(39,214,143,.15),rgba(13,29,23,.96) 42%,rgba(8,16,13,.96)); }
+.plans-welcome__icon { width:48px; height:48px; display:grid; place-items:center; border-radius:14px; color:var(--green); background:rgba(39,214,143,.12); }
+.plans-welcome h1 { margin-top:5px; font-size:23px; letter-spacing:-.8px; }
+.plans-welcome p { max-width:720px; margin-top:7px; color:var(--muted); font-size:12px; line-height:1.55; }
+.plans-welcome__free { min-height:42px; padding:0 15px; border:1px solid rgba(54,214,148,.32); border-radius:11px; color:#062619; background:var(--green); font-size:11px; font-weight:800; white-space:nowrap; cursor:pointer; }
 .plans-hero { display:flex; justify-content:space-between; align-items:center; gap:24px; padding:28px 30px; border:1px solid rgba(54,214,148,.28); border-radius:24px; background:radial-gradient(circle at 88% 30%,rgba(39,214,143,.16),transparent 30%),linear-gradient(135deg,#0d1d17,#08100d); }
 .plans-hero h1 { margin-top:8px; font-size:clamp(28px,4vw,44px); letter-spacing:-1.5px; }
 .plans-hero p { max-width:680px; margin-top:10px; color:var(--muted); line-height:1.65; }
@@ -51,7 +56,7 @@
 .plan-state svg { color:var(--green); }
 .plan-state button { width:auto; margin-top:5px; }
 @media(max-width:900px){.plan-cards{grid-template-columns:1fr}.plan-cards>article{min-height:0}.plan-card__title p{min-height:0}.plan-quota-grid{grid-template-columns:1fr}}
-@media(max-width:620px){.plans-hero,.current-plan-card,.plan-section-heading{align-items:flex-start;flex-direction:column}.plans-hero__icon{display:none}.current-plan-card__renewal{width:100%;min-width:0}.plan-usage-panel,.plan-comparison{padding:20px 16px}.plan-cards>article{padding:20px}.plan-section-heading>p{line-height:1.5}}
+@media(max-width:620px){.plans-welcome{grid-template-columns:auto 1fr;padding:19px}.plans-welcome__free{grid-column:1/-1;width:100%}.plans-hero,.current-plan-card,.plan-section-heading{align-items:flex-start;flex-direction:column}.plans-hero__icon{display:none}.current-plan-card__renewal{width:100%;min-width:0}.plan-usage-panel,.plan-comparison{padding:20px 16px}.plan-cards>article{padding:20px}.plan-section-heading>p{line-height:1.5}}
 
 /* The application has a broad light-theme compatibility layer for older
    screens. Plans contains nested "card" and "section" labels, so it needs
