@@ -1136,6 +1136,29 @@ textarea:focus-visible {
 .profile-plan-card__footer { padding: 13px 22px; display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid rgba(255,255,255,.12); color: #c7d8d1; font-size: 11px; }
 .profile-plan-card__footer span { display: inline-flex; align-items: center; gap: 6px; color: #d8ff70; font-weight: 700; }
 .profile-plan-card__footer small { font-size: 11px; }
+
+/* Keep subscription information readable in the light interface. */
+:root[data-theme="light"] .profile-plan-card {
+  color: #163424;
+  border-color: rgba(19, 137, 90, .28);
+  background: linear-gradient(135deg, #ffffff 8%, #eefaf3 64%, #e2f6ea) !important;
+  box-shadow: 0 14px 30px rgba(14, 83, 51, .10) !important;
+}
+:root[data-theme="light"] .profile-plan-card__loaded:not(.is-free) {
+  color: #163424;
+  background: transparent;
+}
+:root[data-theme="light"] .profile-plan-card__top { color: #087a4d; }
+:root[data-theme="light"] .profile-plan-card__symbol { color: #087a4d; background: #ffffff; box-shadow: inset 0 0 0 1px rgba(19, 137, 90, .13); }
+:root[data-theme="light"] .profile-plan-card h2 { color: #112b1c; }
+:root[data-theme="light"] .profile-plan-card p { color: #476556; }
+:root[data-theme="light"] .profile-plan-card__button { color: #ffffff; background: #087a4d; box-shadow: 0 8px 16px rgba(8, 122, 77, .18); }
+:root[data-theme="light"] .profile-plan-card__footer { border-color: rgba(25, 94, 59, .14); color: #587264; }
+:root[data-theme="light"] .profile-plan-card__footer span { color: #087a4d; }
+:root[data-theme="light"] .profile-plan-card__unavailable,
+:root[data-theme="light"] .profile-plan-card__loading { color: #476556; }
+:root[data-theme="light"] .profile-plan-card__unavailable span { color: #587264; }
+:root[data-theme="light"] .profile-plan-card__unavailable button { color: #087a4d; border-color: rgba(19, 137, 90, .26); background: #ffffff; }
 .profile-section { margin-top: 26px; }
 .profile-section__heading { margin-bottom: 12px; display: flex; align-items: flex-end; justify-content: space-between; color: var(--product-muted); }
 .profile-section__heading h2, .profile-summary-card h2, .profile-support-card h2 { margin: 4px 0 0; color: var(--product-ink); font-size: 18px; letter-spacing: -.035em; }
