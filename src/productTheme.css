@@ -760,6 +760,19 @@ textarea:focus-visible {
 .onboarding-steps nav > div.is-active { color: var(--product-text) !important; background: var(--product-primary-soft) !important; }
 .onboarding-next { color: #fff !important; background: var(--product-primary) !important; box-shadow: none !important; }
 .onboarding-back { color: var(--product-muted) !important; border-color: var(--product-line) !important; background: var(--product-surface) !important; }
+.ai-setup-hero, .ai-review-heading { border-color: var(--product-line) !important; background: linear-gradient(115deg, var(--product-primary-soft), var(--product-surface) 42%) !important; }
+.ai-setup-hero > span, .ai-review-heading > span { color: #fff !important; background: var(--product-primary) !important; box-shadow: none !important; }
+.ai-setup-hero h1, .ai-review-heading h1 { color: var(--product-text) !important; }.ai-setup-hero p, .ai-review-heading p { color: var(--product-muted) !important; }
+.ai-profile-preview, .ai-extra-preferences, .ai-review-meta, .ai-generated-workouts > article { border-color: var(--product-line) !important; background: var(--product-surface) !important; }
+.ai-profile-grid > div, .ai-weekly-split span, .ai-exercise-review { border-color: var(--product-line) !important; background: var(--product-surface-soft) !important; }
+.ai-profile-grid small, .ai-priority-picker > span, .training-field > span, .ai-review-meta label > span, .ai-workout-fields label > span, .ai-exercise-review label > span { color: var(--product-muted) !important; }
+.ai-profile-grid strong { color: var(--product-text) !important; }
+.ai-priority-picker button { border-color: var(--product-line) !important; color: var(--product-muted) !important; background: var(--product-surface) !important; }
+.ai-priority-picker button.is-selected { border-color: var(--product-primary) !important; color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+.training-field input, .training-field select, .training-field textarea, .ai-review-meta input, .ai-review-meta textarea, .ai-workout-fields input, .ai-workout-fields textarea, .ai-exercise-review input, .ai-exercise-review select, .ai-exercise-review textarea { border-color: var(--product-line) !important; color: var(--product-text) !important; background: var(--product-surface) !important; }
+.ai-privacy-note { border-color: #cbe0e8 !important; color: var(--product-blue) !important; background: var(--product-blue-soft) !important; }.ai-privacy-note p { color: var(--product-muted) !important; }
+.ai-generate-button { color: #fff !important; background: var(--product-primary) !important; }.ai-medical-warning, .ai-safety-result { border-color: #f4d6b0 !important; color: var(--product-orange) !important; background: var(--product-orange-soft) !important; }.ai-medical-warning p, .ai-safety-result p { color: #8c6b4c !important; }
+.ai-workout-edit { border-color: var(--product-line) !important; background: var(--product-surface-soft) !important; }.ai-workout-toggle { color: var(--product-text) !important; }.ai-workout-toggle small, .ai-workout-toggle > svg { color: var(--product-muted) !important; }
 .medical-notice { border-color: #f7dfbf !important; color: #bd741e !important; background: #fff8ee !important; }
 .medical-notice strong { color: #b66f1b !important; }
 .medical-notice span { color: #8d7357 !important; }
