@@ -17,6 +17,8 @@ interface LiveSession {
   interrupted: boolean
 }
 
+type ShareCardStyle = 'transparent' | 'aurora' | 'midnight'
+
 const activityTypes: Array<{ id: ActivityType; label: string; description: string; outdoor: boolean; icon: ComponentType<{ size?: number }> }> = [
   { id: 'walk', label: 'Caminhada', description: 'Ritmo leve ao ar livre', outdoor: true, icon: Footprints },
   { id: 'run', label: 'Corrida', description: 'Ritmo e percurso por GPS', outdoor: true, icon: Activity },
@@ -39,6 +41,8 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState<ActivityRecord | null>(null)
   const [details, setDetails] = useState<ActivityRecord | null>(null)
+  const [shareTarget, setShareTarget] = useState<ActivityRecord | null>(null)
+  const [shareStyle, setShareStyle] = useState<ShareCardStyle>('aurora')
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine)
@@ -199,9 +203,9 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
   }
   function discardRecovery() { localStorage.removeItem(storageKey(userId)); setRecovery(null) }
 
-  async function share(activity: ActivityRecord) {
+  async function share(activity: ActivityRecord, style: ShareCardStyle) {
     try {
-      const blob = await createShareCard(activity)
+      const blob = await createSocialShareCard(activity, style)
       const file = new File([blob], `movelya-${activity.id}.png`, { type: 'image/png' })
       if (navigator.share && navigator.canShare?.({ files: [file] })) await navigator.share({ title: 'Minha atividade no MOVELYA', text: shareText(activity), files: [file] })
       else {
@@ -251,7 +255,8 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
 
     {finishing && session && <Modal title="Finalizar atividade" onClose={cancelFinish}><form className="activity-finish-form" onSubmit={saveActivity}><div className="activity-finish-summary"><span><Clock3 /> <small>Tempo</small><strong>{formatDuration(elapsed(session, Date.now()))}</strong></span><span><Route /> <small>Distância</small><strong>{formatDistance(Number(distanceDraft))}</strong></span><span><Sparkles /> <small>Estimativa</small><strong>{Math.round(elapsed(session, Date.now()) / 60 * calorieRate[session.type])} kcal</strong></span></div><label className="field"><span>Distância final (km)</span><input required type="number" min="0" max="1000" step="0.01" value={distanceDraft} onChange={(event) => setDistanceDraft(event.target.value)} /></label><label className="activity-textarea"><span>Observação</span><textarea maxLength={1000} value={observation} onChange={(event) => setObservation(event.target.value)} placeholder="Como foi a atividade? Clima, terreno, sensação…" /></label><fieldset className="activity-difficulty"><legend>Dificuldade percebida</legend><div>{[1,2,3,4,5].map((value) => <button type="button" key={value} className={difficulty === value ? 'is-selected' : ''} onClick={() => setDifficulty(value)}><b>{value}</b><small>{difficultyLabel(value)}</small></button>)}</div></fieldset><MapPreview route={session.route} gpsStatus={session.gpsStatus} /><div className="nutrition-modal-actions"><Button variant="secondary" type="button" onClick={cancelFinish}>Voltar à atividade</Button><Button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Salvar atividade'}</Button></div></form></Modal>}
 
-    {(saved || details) && <ActivityDetails activity={(saved ?? details)!} previous={previousComparable((saved ?? details)!, activities)} onClose={() => { setSaved(null); setDetails(null) }} onShare={() => void share((saved ?? details)!)} justSaved={Boolean(saved)} />}
+    {(saved || details) && <ActivityDetails activity={(saved ?? details)!} previous={previousComparable((saved ?? details)!, activities)} onClose={() => { setSaved(null); setDetails(null) }} onShare={() => setShareTarget((saved ?? details)!)} justSaved={Boolean(saved)} />}
+    {shareTarget && <ActivityShareModal activity={shareTarget} style={shareStyle} onStyleChange={setShareStyle} onClose={() => setShareTarget(null)} onShare={() => { void share(shareTarget, shareStyle); setShareTarget(null) }} />}
   </>
 }
 
@@ -259,6 +264,32 @@ function LiveMetric({ icon: Icon, label, value }: { icon: ComponentType<{ size?:
 
 function ActivityDetails({ activity, previous, onClose, onShare, justSaved }: { activity: ActivityRecord; previous: ActivityRecord | null; onClose: () => void; onShare: () => void; justSaved: boolean }) {
   return <Modal title={justSaved ? 'Atividade salva!' : 'Detalhes da atividade'} onClose={onClose}><div className="activity-details">{justSaved && <div className="activity-saved-title"><span><Check size={22} /></span><div><small>TUDO CERTO</small><h3>{configFor(activity.type).label} concluída</h3></div></div>}<div className="activity-share-card"><small>MOVELYA · {configFor(activity.type).label.toUpperCase()}</small><h3>{formatDistance(activity.distanceKm)}</h3><div><span><b>{formatDuration(activity.durationSeconds)}</b><small>tempo</small></span><span><b>{formatPace(activity.averagePaceSeconds)}</b><small>ritmo</small></span><span><b>{activity.calories} kcal</b><small>estimativa</small></span></div></div><MapPreview route={activity.route} gpsStatus={activity.gpsStatus} />{activity.observation && <div className="activity-observation"><small>SUA OBSERVAÇÃO</small><p>{activity.observation}</p></div>}<div className="activity-detail-meta"><span>Dificuldade <b>{activity.difficulty}/5 · {difficultyLabel(activity.difficulty)}</b></span>{activity.interrupted && <span>Esta atividade foi recuperada após uma interrupção.</span>}</div><Comparison current={activity} previous={previous} /><div className="nutrition-modal-actions"><Button variant="secondary" onClick={onClose}>Fechar</Button><Button onClick={onShare}><Share2 size={15} /> Compartilhar card</Button></div></div></Modal>
+}
+
+function ActivityShareModal({ activity, style, onStyleChange, onClose, onShare }: { activity: ActivityRecord; style: ShareCardStyle; onStyleChange: (style: ShareCardStyle) => void; onClose: () => void; onShare: () => void }) {
+  const labels: Array<{ id: ShareCardStyle; title: string; description: string }> = [
+    { id: 'transparent', title: 'Sem fundo', description: 'PNG transparente' },
+    { id: 'aurora', title: 'Aura', description: 'Claro e vibrante' },
+    { id: 'midnight', title: 'Noturno', description: 'Escuro e elegante' },
+  ]
+  const config = configFor(activity.type)
+  return <Modal title="Compartilhar atividade" onClose={onClose}>
+    <div className="activity-share-builder">
+      <div className={`activity-share-preview is-${style}`}>
+        <small>{config.label.toUpperCase()} CONCLUÍDA</small>
+        <strong>{formatDistance(activity.distanceKm)}</strong>
+        <span>{formatShareDate(activity.startedAt)}</span>
+        <div className="activity-share-preview__route"><Route size={22} /><b>{activity.route.length > 1 ? 'Percurso registrado' : 'Sem percurso GPS'}</b></div>
+        <div className="activity-share-preview__stats"><span><b>{formatDuration(activity.durationSeconds)}</b><small>tempo</small></span><span><b>{activity.type === 'bike' ? formatSpeed(activity.averageSpeedKmh) : formatPace(activity.averagePaceSeconds)}</b><small>{activity.type === 'bike' ? 'velocidade média' : 'ritmo médio'}</small></span><span><b>{Math.round(activity.calories)} kcal</b><small>calorias</small></span><span><b>{activity.difficulty}/5</b><small>dificuldade</small></span></div>
+        <em>MOVELYA</em>
+      </div>
+      <div className="activity-share-style-picker" role="group" aria-label="Escolher visual do card">
+        {labels.map((item) => <button type="button" key={item.id} className={style === item.id ? 'is-selected' : ''} onClick={() => onStyleChange(item.id)}><i className={`is-${item.id}`} /><span><b>{item.title}</b><small>{item.description}</small></span></button>)}
+      </div>
+      <p className="activity-share-hint">O card usa apenas os dados registrados nesta atividade. Se houver GPS, o percurso real também é incluído na imagem.</p>
+      <div className="nutrition-modal-actions"><Button variant="secondary" onClick={onClose}>Voltar</Button><Button onClick={onShare}><Share2 size={15} /> Gerar e compartilhar</Button></div>
+    </div>
+  </Modal>
 }
 
 function Comparison({ current, previous }: { current: ActivityRecord; previous: ActivityRecord | null }) {
@@ -339,6 +370,8 @@ function formatDistance(value: number) { return `${value.toLocaleString('pt-BR',
 function formatDuration(seconds: number) { const hours = Math.floor(seconds / 3600); const minutes = Math.floor(seconds % 3600 / 60); const rest = Math.floor(seconds % 60); return hours ? `${hours}h ${minutes.toString().padStart(2, '0')}min` : `${minutes}min ${rest.toString().padStart(2, '0')}s` }
 function formatClock(seconds: number) { const hours = Math.floor(seconds / 3600); const minutes = Math.floor(seconds % 3600 / 60); const rest = Math.floor(seconds % 60); return [hours, minutes, rest].map((value) => value.toString().padStart(2, '0')).join(':') }
 function formatPace(seconds: number | null) { if (!seconds || !Number.isFinite(seconds)) return '—'; const minutes = Math.floor(seconds / 60); const rest = Math.round(seconds % 60); return `${minutes}:${rest.toString().padStart(2, '0')} /km` }
+function formatSpeed(value: number) { return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km/h` }
+function formatShareDate(value: string) { return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(value)) }
 function formatDateTime(value: string) { return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value)).replace('.', '') }
 function difficultyLabel(value: number) { return ['Muito leve', 'Leve', 'Moderada', 'Difícil', 'Máxima'][value - 1] }
 function percentageDelta(current: number, previous: number) { return previous > 0 ? Math.round((current - previous) / previous * 100) : 0 }
@@ -350,6 +383,71 @@ function gpsMessage(status: GpsStatus) { if (status === 'active' || status === '
 function distanceBetween(a: RoutePoint, b: RoutePoint) { const radius = 6371; const lat = degrees(b.latitude - a.latitude); const lon = degrees(b.longitude - a.longitude); const value = Math.sin(lat / 2) ** 2 + Math.cos(degrees(a.latitude)) * Math.cos(degrees(b.latitude)) * Math.sin(lon / 2) ** 2; return radius * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value)) }
 function degrees(value: number) { return value * Math.PI / 180 }
 function shareText(activity: ActivityRecord) { return `${configFor(activity.type).label} no MOVELYA · ${formatDistance(activity.distanceKm)} · ${formatDuration(activity.durationSeconds)} · ${formatPace(activity.averagePaceSeconds)}` }
+
+async function createSocialShareCard(activity: ActivityRecord, style: ShareCardStyle) {
+  const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1920
+  const context = canvas.getContext('2d'); if (!context) throw new Error('Canvas indisponível')
+  const palette = style === 'midnight'
+    ? { text: '#f7fbf8', muted: '#aec5b7', line: 'rgba(255,255,255,.20)', accent: '#c7ff3a', surface: 'rgba(255,255,255,.06)' }
+    : style === 'transparent'
+      ? { text: '#12251a', muted: '#476354', line: 'rgba(18,37,26,.22)', accent: '#168757', surface: 'rgba(255,255,255,.74)' }
+      : { text: '#13261b', muted: '#496858', line: 'rgba(19,38,27,.18)', accent: '#a6d800', surface: 'rgba(255,255,255,.58)' }
+
+  if (style === 'midnight') {
+    const gradient = context.createLinearGradient(0, 0, 1080, 1920); gradient.addColorStop(0, '#07110c'); gradient.addColorStop(.55, '#16281d'); gradient.addColorStop(1, '#0b130e'); context.fillStyle = gradient; context.fillRect(0, 0, 1080, 1920)
+  } else if (style === 'aurora') {
+    const gradient = context.createLinearGradient(0, 0, 1080, 1920); gradient.addColorStop(0, '#eef6ec'); gradient.addColorStop(.44, '#dce9de'); gradient.addColorStop(1, '#aeb7ae'); context.fillStyle = gradient; context.fillRect(0, 0, 1080, 1920)
+    const glow = context.createRadialGradient(540, 920, 20, 540, 920, 720); glow.addColorStop(0, 'rgba(221,247,66,.46)'); glow.addColorStop(1, 'rgba(221,247,66,0)'); context.fillStyle = glow; context.fillRect(0, 300, 1080, 1150)
+  }
+
+  context.textAlign = 'center'; context.textBaseline = 'middle'
+  context.strokeStyle = palette.line; context.lineWidth = 2; context.beginPath(); context.moveTo(150, 118); context.lineTo(328, 118); context.moveTo(752, 118); context.lineTo(930, 118); context.stroke()
+  context.fillStyle = palette.text; context.font = '700 37px Arial, sans-serif'; context.fillText(`${configFor(activity.type).label.toUpperCase()} CONCLUÍDA`, 540, 118)
+  context.fillStyle = palette.text; context.font = '800 150px Arial, sans-serif'; context.fillText(formatDistance(activity.distanceKm), 540, 275)
+  context.fillStyle = palette.muted; context.font = '500 35px Arial, sans-serif'; context.fillText(formatShareDate(activity.startedAt), 540, 372)
+
+  context.strokeStyle = palette.line; context.beginPath(); context.moveTo(238, 475); context.lineTo(402, 475); context.moveTo(678, 475); context.lineTo(842, 475); context.stroke()
+  context.fillStyle = palette.text; context.font = '600 34px Arial, sans-serif'; context.fillText('Percurso', 540, 475)
+  drawSocialRoute(context, activity.route, palette, style)
+
+  const metricTop = 1180
+  const metrics = [
+    ['TEMPO', formatDuration(activity.durationSeconds)],
+    [activity.type === 'bike' ? 'VELOCIDADE MÉDIA' : 'RITMO MÉDIO', activity.type === 'bike' ? formatSpeed(activity.averageSpeedKmh) : formatPace(activity.averagePaceSeconds)],
+    ['CALORIAS', `${Math.round(activity.calories)} kcal`],
+    ['DIFICULDADE', `${activity.difficulty}/5`],
+  ]
+  metrics.forEach(([label, value], index) => {
+    const column = index % 2; const row = Math.floor(index / 2); const x = column ? 735 : 345; const y = metricTop + row * 174
+    context.fillStyle = palette.muted; context.font = '700 22px Arial, sans-serif'; context.fillText(label, x, y)
+    context.fillStyle = palette.text; context.font = '700 48px Arial, sans-serif'; context.fillText(value, x, y + 58)
+  })
+  context.strokeStyle = palette.line; context.beginPath(); context.moveTo(540, metricTop - 42); context.lineTo(540, metricTop + 260); context.moveTo(175, metricTop + 130); context.lineTo(905, metricTop + 130); context.stroke()
+  context.strokeStyle = palette.line; context.beginPath(); context.moveTo(165, 1620); context.lineTo(360, 1620); context.moveTo(720, 1620); context.lineTo(915, 1620); context.stroke()
+  context.fillStyle = palette.text; context.font = '600 31px Arial, sans-serif'; context.fillText('Seu movimento, no seu ritmo.', 540, 1620)
+  context.fillStyle = palette.accent; context.font = '800 28px Arial, sans-serif'; context.fillText('MOVELYA', 540, 1782)
+  context.textAlign = 'left'
+  return await new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Falha ao gerar imagem')), 'image/png'))
+}
+
+function drawSocialRoute(context: CanvasRenderingContext2D, route: RoutePoint[], palette: { text: string; muted: string; line: string; accent: string; surface: string }, style: ShareCardStyle) {
+  const left = 130; const top = 550; const width = 820; const height = 500
+  context.fillStyle = palette.surface; context.fillRect(left, top, width, height)
+  context.strokeStyle = palette.line; context.lineWidth = 1
+  for (let x = left; x <= left + width; x += 74) { context.beginPath(); context.moveTo(x, top); context.lineTo(x - 85, top + height); context.stroke() }
+  for (let y = top; y <= top + height; y += 64) { context.beginPath(); context.moveTo(left, y); context.lineTo(left + width, y + 34); context.stroke() }
+  if (route.length < 2) {
+    context.fillStyle = palette.muted; context.textAlign = 'center'; context.font = '600 29px Arial, sans-serif'; context.fillText('Percurso GPS não registrado', 540, 800); return
+  }
+  const lats = route.map((point) => point.latitude); const lons = route.map((point) => point.longitude)
+  const minLat = Math.min(...lats); const maxLat = Math.max(...lats); const minLon = Math.min(...lons); const maxLon = Math.max(...lons)
+  const latSpan = Math.max(maxLat - minLat, .00001); const lonSpan = Math.max(maxLon - minLon, .00001)
+  const points = route.map((point) => ({ x: left + 55 + (point.longitude - minLon) / lonSpan * (width - 110), y: top + 55 + (maxLat - point.latitude) / latSpan * (height - 110) }))
+  context.save(); context.shadowColor = style === 'transparent' ? 'rgba(22,135,87,.25)' : 'rgba(214,255,69,.55)'; context.shadowBlur = 22; context.strokeStyle = palette.accent; context.lineWidth = 12; context.lineCap = 'round'; context.lineJoin = 'round'; context.beginPath(); points.forEach((point, index) => index ? context.lineTo(point.x, point.y) : context.moveTo(point.x, point.y)); context.stroke(); context.restore()
+  const first = points[0]; const last = points[points.length - 1]
+  context.fillStyle = palette.text; context.beginPath(); context.arc(first.x, first.y, 15, 0, Math.PI * 2); context.fill(); context.fillStyle = palette.accent; context.beginPath(); context.arc(first.x, first.y, 7, 0, Math.PI * 2); context.fill()
+  context.fillStyle = palette.accent; context.beginPath(); context.arc(last.x, last.y, 17, 0, Math.PI * 2); context.fill(); context.fillStyle = palette.text; context.beginPath(); context.arc(last.x, last.y, 7, 0, Math.PI * 2); context.fill()
+}
 
 async function createShareCard(activity: ActivityRecord) {
   const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1080
