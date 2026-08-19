@@ -1,0 +1,22 @@
+insert into public.achievement_definitions (slug, name, description, points) values
+  ('dez-treinos', 'Dez na conta', 'Conclua dez treinos e consolide seu ritmo.', 24),
+  ('vinte-cinco-treinos', 'Rotina de verdade', 'Complete 25 treinos no seu próprio ritmo.', 38),
+  ('cinquenta-treinos', 'Força da constância', 'Complete 50 treinos.', 60),
+  ('cem-treinos', 'Centenário do movimento', 'Chegue a 100 treinos concluídos.', 100),
+  ('cinco-mil-passos', 'Primeiros 5 mil', 'Alcance 5.000 passos em um dia.', 9),
+  ('vinte-mil-passos', 'Dia gigante', 'Alcance 20.000 passos em um único dia.', 30),
+  ('cinquenta-mil-passos-total', 'Caminho aberto', 'Some 50 mil passos registrados.', 15),
+  ('duzentos-cinquenta-mil-passos', 'Horizonte em movimento', 'Some 250 mil passos registrados.', 42),
+  ('um-milhao-passos', 'Um milhão de passos', 'Some um milhão de passos na sua jornada.', 120),
+  ('quatorze-dias-agua', 'Hidratação constante', 'Registre água em 14 dias diferentes.', 26),
+  ('trinta-dias-agua', 'Mês bem hidratado', 'Registre água em 30 dias diferentes.', 52),
+  ('vinte-cinco-litros', '25 litros de cuidado', 'Acumule 25 litros de água registrados.', 22),
+  ('cem-litros', '100 litros de cuidado', 'Acumule 100 litros de água registrados.', 65),
+  ('sete-dias-ativos', 'Semana ativa', 'Some sete dias ativos.', 17),
+  ('sessenta-dias-ativos', 'Dois meses em movimento', 'Some 60 dias ativos.', 70),
+  ('sequencia-tres-dias', 'Três dias de ritmo', 'Mantenha três dias ativos seguidos.', 19),
+  ('sequencia-sete-dias', 'Uma semana inteira', 'Mantenha sete dias ativos seguidos.', 48),
+  ('cinco-dias-semana', 'Semana produtiva', 'Tenha cinco dias ativos em uma semana.', 28),
+  ('cinco-recordes-pessoais', 'Colecionador de recordes', 'Registre cinco recordes pessoais de carga.', 50),
+  ('tres-metas-semanais', 'Metas em sequência', 'Conclua três metas semanais.', 45)
+on conflict (slug) do nothing;
