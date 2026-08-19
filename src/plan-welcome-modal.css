@@ -1,0 +1,17 @@
+.plan-welcome-modal { position:fixed; z-index:200; inset:0; overflow:auto; padding:30px 20px; display:grid; place-items:center; background:rgba(14,26,19,.56); backdrop-filter:blur(7px); }
+.plan-welcome-modal__card { width:min(1000px,100%); padding:30px; border:1px solid var(--product-line); border-radius:22px; color:var(--product-text); background:var(--product-surface); box-shadow:0 28px 70px rgba(11,30,19,.25); }
+.plan-welcome-modal__card>header { display:flex; align-items:flex-start; gap:15px; max-width:690px; }
+.plan-welcome-modal__icon { flex:0 0 50px; height:50px; display:grid; place-items:center; border-radius:15px; color:var(--product-primary); background:var(--product-primary-soft); }
+.plan-welcome-modal__card header small { color:var(--product-primary); font-size:10px; font-weight:800; letter-spacing:1.4px; }
+.plan-welcome-modal__card h1 { margin-top:4px; font-size:27px; letter-spacing:-1px; }
+.plan-welcome-modal__card header p { margin-top:6px; color:var(--product-muted); font-size:13px; line-height:1.55; }
+.plan-welcome-modal__plans { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:13px; margin-top:25px; }
+.plan-welcome-modal__plans article { position:relative; display:flex; flex-direction:column; min-height:305px; padding:20px; border:1px solid var(--product-line); border-radius:16px; background:var(--product-surface-soft); }
+.plan-welcome-modal__plans article.is-featured { border-color:var(--product-primary); box-shadow:0 0 0 2px var(--product-primary-soft); }
+.plan-welcome-modal__popular { position:absolute; top:-11px; right:14px; display:flex; align-items:center; gap:4px; padding:5px 8px; border-radius:999px; color:#fff; background:var(--product-primary); font-size:8px; font-weight:800; }
+.plan-welcome-modal__plan-title h2 { font-size:19px; }.plan-welcome-modal__plan-title p { min-height:39px; margin-top:5px; color:var(--product-muted); font-size:11px; line-height:1.45; }
+.plan-welcome-modal__price { display:block; margin-top:14px; font-size:24px; }.plan-welcome-modal__price small { margin-left:3px; color:var(--product-muted); font-size:11px; font-weight:500; }
+.plan-welcome-modal ul { display:grid; gap:8px; margin:17px 0; padding:0; list-style:none; }.plan-welcome-modal li { display:flex; gap:7px; color:var(--product-muted); font-size:11px; line-height:1.35; }.plan-welcome-modal li svg { flex:0 0 15px; color:var(--product-primary); }
+.plan-welcome-modal article button { width:100%; min-height:41px; margin-top:auto; display:flex; align-items:center; justify-content:center; gap:6px; border:1px solid var(--product-primary); border-radius:10px; color:var(--product-primary); background:var(--product-primary-soft); font-size:11px; font-weight:800; cursor:pointer; }.plan-welcome-modal article.is-featured button { color:#fff; background:var(--product-primary); }
+.plan-welcome-modal__note { margin-top:18px; color:var(--product-muted); font-size:11px; text-align:center; }.plan-welcome-modal__loading,.plan-welcome-modal__error { margin-top:24px; padding:18px; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:13px; color:var(--product-muted); background:var(--product-surface-soft); font-size:12px; }.plan-welcome-modal__error { color:#b84d49; }
+@media(max-width:760px){.plan-welcome-modal{align-items:start;padding:18px 12px}.plan-welcome-modal__card{padding:21px 17px}.plan-welcome-modal__plans{grid-template-columns:1fr}.plan-welcome-modal__plans article{min-height:0}.plan-welcome-modal__plan-title p{min-height:0}}

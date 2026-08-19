@@ -22,6 +22,7 @@ import { NotificationsPage } from './pages/NotificationsPage'
 import { AchievementsPage } from './pages/AchievementsPage'
 import { PwaInstallPrompt } from './components/PwaInstallPrompt'
 import { PwaUpdatePrompt } from './components/PwaUpdatePrompt'
+import { PlanWelcomeModal } from './components/PlanWelcomeModal'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { AdminPage } from './pages/AdminPage'
 import { PlansPage } from './pages/PlansPage'
@@ -42,6 +43,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [themePreference, setThemePreference] = useState<ThemePreference>('light')
   const [systemTheme, setSystemTheme] = useState<'dark' | 'light'>('light')
+  const [showPlanWelcome, setShowPlanWelcome] = useState(false)
   const routeStageRef = useRef<HTMLDivElement>(null)
   const siteOrigin = typeof window === 'undefined' ? '' : window.location.origin
 
@@ -68,6 +70,17 @@ export default function App() {
     void notificationService.startReminderScheduler(user.id)
     return () => notificationService.stopReminderScheduler()
   }, [user?.id])
+
+  useEffect(() => {
+    if (!user || !onboarding.completed || onboarding.loading || !route || ['configuracao-inicial', 'checkout', 'checkout-confirmado'].includes(route.id)) return
+    const key = `MOVELYA.plan-welcome.v1.${user.id}`
+    if (!window.localStorage.getItem(key)) setShowPlanWelcome(true)
+  }, [user, onboarding.completed, onboarding.loading, route])
+
+  function closePlanWelcome() {
+    if (user) window.localStorage.setItem(`MOVELYA.plan-welcome.v1.${user.id}`, 'seen')
+    setShowPlanWelcome(false)
+  }
 
   useEffect(() => {
     const root = routeStageRef.current
@@ -148,7 +161,7 @@ export default function App() {
       initialName={String(user.user_metadata?.full_name ?? '')}
       onComplete={() => {
         onboarding.markCompleted()
-        navigate('/planos?boas-vindas=1')
+        navigate('/inicio')
       }}
     />
   }
@@ -157,6 +170,7 @@ export default function App() {
     <AppErrorBoundary>
       <PwaInstallPrompt />
       <PwaUpdatePrompt />
+      {showPlanWelcome && <PlanWelcomeModal onChooseFree={closePlanWelcome} onChoosePaid={(planCode) => { closePlanWelcome(); navigate(`/checkout?plan=${planCode}`) }} />}
       <title>MOVELYA — Saúde em movimento</title>
       <link rel="manifest" href={`${import.meta.env.BASE_URL}manifest.webmanifest`} />
       <meta name="description" content="Treinos, nutrição, hidratação e passos reunidos para acompanhar sua evolução no MOVELYA." />
