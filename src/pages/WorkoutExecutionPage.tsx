@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle, ArrowRight, Check, ChevronLeft, CircleStop, Dumbbell, Gauge,
-  ImageOff, Medal, Pause, Play, RefreshCw, Save, SkipForward, Timer, Volume2, X,
+  ImageOff, Medal, Pause, Play, RefreshCw, Save, Share2, SkipForward, Timer, Volume2, X,
 } from 'lucide-react'
 import { workoutExecutionService } from '../services/workoutExecutionService'
 import type { ExerciseLibraryItem } from '../types/exerciseLibrary'
@@ -145,7 +145,7 @@ export function WorkoutExecutionPage({ userId, workout, recoverySessionId, libra
   if (loading) return <div className="execution-state"><RefreshCw className="ai-loader" /><h1>Preparando seu treino...</h1></div>
   if (error && !session) return <div className="execution-state"><AlertTriangle /><h1>Treino indisponível</h1><p>{error}</p><button onClick={onExit}>Voltar</button></div>
   if (!session || !current) return <div className="execution-state"><Dumbbell /><h1>Nenhum treino em andamento</h1><button onClick={onExit}>Voltar</button></div>
-  if (summary) return <WorkoutSummaryView summary={summary} difficulty={difficulty} notes={finalNotes} onDone={onExit} />
+  if (summary) return <WorkoutSummaryView summary={summary} difficulty={difficulty} notes={finalNotes} session={session} library={library} onDone={onExit} />
 
   return (
     <section className={`workout-execution ${session.status === 'paused' ? 'is-paused' : ''}`}>
@@ -219,8 +219,17 @@ function FinishModal({ difficulty, notes, saving, onDifficulty, onNotes, onConfi
   return <div className="execution-modal-backdrop"><div className="execution-finish-modal"><Medal /><small>FINALIZAR TREINO</small><h2>Como foi seu treino?</h2><p>Avalie a dificuldade e registre uma observação opcional.</p><div className="difficulty-picker">{[1,2,3,4,5].map((value) => <button className={difficulty === value ? 'is-active' : ''} onClick={() => onDifficulty(value)} key={value}>{value}</button>)}</div><textarea value={notes} onChange={(event) => onNotes(event.target.value)} placeholder="Como você se sentiu? Alguma observação?" /><div className="execution-finish-actions"><button onClick={onClose}>Voltar</button><button onClick={onConfirm} disabled={saving}><Save size={16} /> {saving ? 'Salvando...' : 'Concluir e salvar'}</button></div></div></div>
 }
 
-function WorkoutSummaryView({ summary, difficulty, notes, onDone }: { summary: WorkoutFinishSummary; difficulty: number; notes: string; onDone: () => void }) {
-  return <section className="workout-finish-summary"><span><Medal size={35} /></span><small>TREINO CONCLUÍDO</small><h1>Excelente trabalho!</h1><p>Seu treino foi salvo e já faz parte da sua evolução.</p><div className="finish-summary-grid"><SummaryCard icon={<Timer />} label="Duração" value={formatTime(summary.durationSeconds)} /><SummaryCard icon={<Dumbbell />} label="Exercícios" value={String(summary.exercisesCompleted)} /><SummaryCard icon={<Gauge />} label="Volume total" value={`${Math.round(summary.volumeTotal)} kg`} /><SummaryCard icon={<Check />} label="Séries concluídas" value={String(summary.completedSets)} /><SummaryCard icon={<Medal />} label="Recordes pessoais" value={String(summary.personalRecords)} /><SummaryCard icon={<ArrowRight />} label="Vs. treino anterior" value={summary.volumeDifference === null ? 'Primeiro registro' : `${summary.volumeDifference >= 0 ? '+' : ''}${Math.round(summary.volumeDifference)} kg`} /></div><div className="finish-feedback"><strong>Dificuldade: {difficulty}/5</strong>{notes && <p>{notes}</p>}</div><button onClick={onDone}>Voltar aos meus treinos</button></section>
+function WorkoutSummaryView({ summary, difficulty, notes, session, library, onDone }: { summary: WorkoutFinishSummary; difficulty: number; notes: string; session: WorkoutExecutionSession; library: ExerciseLibraryItem[]; onDone: () => void }) {
+  const [shareStyle, setShareStyle] = useState<'clear' | 'dark'>('dark')
+  const completedExercises = session.exercises.filter((exercise) => !exercise.skipped && exercise.sets.some((set) => set.completed))
+  const muscles = Array.from(new Set(completedExercises.map((exercise) => library.find((item) => item.id === exercise.libraryExerciseId)?.primaryMuscle).filter((muscle): muscle is string => Boolean(muscle)))).slice(0, 6)
+  async function share() {
+    const blob = await createWorkoutShareCard(session, summary, muscles, completedExercises.map((exercise) => exercise.name), difficulty, shareStyle)
+    const file = new File([blob], `movelya-treino-${session.id}.png`, { type: 'image/png' })
+    if (navigator.share && navigator.canShare?.({ files: [file] })) await navigator.share({ title: 'Meu treino no MOVELYA', files: [file] })
+    else { const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = file.name; link.click(); URL.revokeObjectURL(link.href) }
+  }
+  return <section className="workout-finish-summary"><span><Medal size={35} /></span><small>TREINO CONCLUÍDO</small><h1>Excelente trabalho!</h1><p>Seu treino foi salvo e já faz parte da sua evolução.</p><div className="finish-summary-grid"><SummaryCard icon={<Timer />} label="Duração" value={formatTime(summary.durationSeconds)} /><SummaryCard icon={<Dumbbell />} label="Exercícios" value={String(summary.exercisesCompleted)} /><SummaryCard icon={<Gauge />} label="Volume total" value={`${Math.round(summary.volumeTotal)} kg`} /><SummaryCard icon={<Check />} label="Séries concluídas" value={String(summary.completedSets)} /><SummaryCard icon={<Medal />} label="Recordes pessoais" value={String(summary.personalRecords)} /><SummaryCard icon={<ArrowRight />} label="Vs. treino anterior" value={summary.volumeDifference === null ? 'Primeiro registro' : `${summary.volumeDifference >= 0 ? '+' : ''}${Math.round(summary.volumeDifference)} kg`} /></div><div className="finish-feedback"><strong>Dificuldade: {difficulty}/5</strong>{notes && <p>{notes}</p>}</div><div className="workout-share-panel"><div><small>CARD PARA COMPARTILHAR</small><strong>Grupos trabalhados</strong><p>{muscles.length ? muscles.join(' · ') : 'Grupos musculares não identificados neste treino.'}</p></div><div className="workout-share-styles"><button className={shareStyle === 'dark' ? 'is-selected' : ''} onClick={() => setShareStyle('dark')}>Noturno</button><button className={shareStyle === 'clear' ? 'is-selected' : ''} onClick={() => setShareStyle('clear')}>Sem fundo</button></div><button className="workout-share-button" onClick={() => void share()}><Share2 size={16} /> Gerar card</button></div><button onClick={onDone}>Voltar aos meus treinos</button></section>
 }
 
 function SummaryCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
@@ -259,3 +268,30 @@ function formatKg(value: number | null) {
 function numberInput(value: string) {
   return value === '' ? null : Math.max(0, Number(value))
 }
+
+async function createWorkoutShareCard(session: WorkoutExecutionSession, summary: WorkoutFinishSummary, muscles: string[], exercises: string[], difficulty: number, style: 'clear' | 'dark') {
+  const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1920
+  const context = canvas.getContext('2d'); if (!context) throw new Error('Canvas indisponível')
+  const dark = style === 'dark'
+  const text = dark ? '#f4faf6' : '#14281c'; const muted = dark ? '#acc5b5' : '#526d5d'; const accent = dark ? '#c9ff3b' : '#138557'; const line = dark ? 'rgba(255,255,255,.18)' : 'rgba(20,40,28,.18)'
+  if (dark) { const gradient = context.createLinearGradient(0, 0, 1080, 1920); gradient.addColorStop(0, '#07110c'); gradient.addColorStop(.55, '#183024'); gradient.addColorStop(1, '#09120d'); context.fillStyle = gradient; context.fillRect(0, 0, 1080, 1920) }
+  context.textAlign = 'center'; context.textBaseline = 'middle'
+  if (!dark) { context.strokeStyle = 'rgba(19,133,87,.20)'; context.lineWidth = 2; for (let x = 90; x < 1080; x += 120) { context.beginPath(); context.moveTo(x, 0); context.lineTo(x - 220, 1920); context.stroke() } }
+  context.fillStyle = accent; context.font = '800 29px Arial, sans-serif'; context.fillText('MOVELYA', 540, 100)
+  context.fillStyle = text; context.font = '700 38px Arial, sans-serif'; context.fillText('TREINO CONCLUÍDO', 540, 183)
+  context.fillStyle = text; context.font = '800 70px Arial, sans-serif'; context.fillText(trimCanvasText(context, session.workoutName, 860), 540, 295)
+  context.fillStyle = muted; context.font = '500 31px Arial, sans-serif'; context.fillText(`${summary.exercisesCompleted} exercícios · ${formatTime(summary.durationSeconds)}`, 540, 360)
+  context.strokeStyle = line; context.lineWidth = 2; context.beginPath(); context.moveTo(130, 445); context.lineTo(950, 445); context.stroke()
+  context.fillStyle = muted; context.font = '800 24px Arial, sans-serif'; context.fillText('ÁREAS TRABALHADAS', 540, 507)
+  const tags = muscles.length ? muscles : ['Não informado']
+  tags.forEach((muscle, index) => { const column = index % 2; const row = Math.floor(index / 2); const x = column ? 720 : 360; const y = 575 + row * 72; context.fillStyle = dark ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.54)'; context.fillRect(x - 155, y - 24, 310, 48); context.fillStyle = accent; context.font = '700 25px Arial, sans-serif'; context.fillText(trimCanvasText(context, muscle, 265), x, y) })
+  const metricsTop = 850; const metrics = [['VOLUME', `${Math.round(summary.volumeTotal)} kg`], ['SÉRIES', String(summary.completedSets)], ['RECORDES', String(summary.personalRecords)], ['DIFICULDADE', `${difficulty}/5`]]
+  metrics.forEach(([label, value], index) => { const x = index % 2 ? 730 : 350; const y = metricsTop + Math.floor(index / 2) * 150; context.fillStyle = muted; context.font = '700 22px Arial, sans-serif'; context.fillText(label, x, y); context.fillStyle = text; context.font = '800 47px Arial, sans-serif'; context.fillText(value, x, y + 53) })
+  context.strokeStyle = line; context.beginPath(); context.moveTo(540, metricsTop - 45); context.lineTo(540, metricsTop + 250); context.moveTo(165, metricsTop + 125); context.lineTo(915, metricsTop + 125); context.stroke()
+  context.fillStyle = muted; context.font = '800 24px Arial, sans-serif'; context.fillText('EXERCÍCIOS REALIZADOS', 540, 1245)
+  exercises.slice(0, 5).forEach((exercise, index) => { context.fillStyle = accent; context.beginPath(); context.arc(190, 1315 + index * 72, 8, 0, Math.PI * 2); context.fill(); context.fillStyle = text; context.textAlign = 'left'; context.font = '600 30px Arial, sans-serif'; context.fillText(trimCanvasText(context, exercise, 700), 220, 1315 + index * 72); context.textAlign = 'center' })
+  context.fillStyle = accent; context.font = '800 27px Arial, sans-serif'; context.fillText('SEU MOVIMENTO, NO SEU RITMO.', 540, 1770)
+  return await new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Falha ao gerar imagem')), 'image/png'))
+}
+
+function trimCanvasText(context: CanvasRenderingContext2D, value: string, maxWidth: number) { let text = value; while (context.measureText(text).width > maxWidth && text.length > 1) text = `${text.slice(0, -2)}…`; return text }
