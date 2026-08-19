@@ -47,6 +47,7 @@ export default function App() {
   const [showPlanWelcome, setShowPlanWelcome] = useState(false)
   const [showQuotaUpgrade, setShowQuotaUpgrade] = useState(false)
   const routeStageRef = useRef<HTMLDivElement>(null)
+  const planWelcomeCheckRef = useRef<string | null>(null)
   const siteOrigin = typeof window === 'undefined' ? '' : window.location.origin
 
   useEffect(() => {
@@ -74,13 +75,28 @@ export default function App() {
   }, [user?.id])
 
   useEffect(() => {
-    if (!user || showPlanWelcome || !onboarding.completed || onboarding.loading || !route || ['configuracao-inicial', 'checkout', 'checkout-confirmado'].includes(route.id)) return
+    if (!user || !onboarding.completed || onboarding.loading || !route || ['configuracao-inicial', 'checkout', 'checkout-confirmado'].includes(route.id)) return
     const key = `MOVELYA.plan-welcome.v1.${user.id}`
-    if (!window.localStorage.getItem(key)) setShowPlanWelcome(true)
-  }, [user, showPlanWelcome, onboarding.completed, onboarding.loading, route])
+    if (window.localStorage.getItem(key) || planWelcomeCheckRef.current === user.id) return
+
+    let cancelled = false
+    planWelcomeCheckRef.current = user.id
+    void subscriptionService.getOverview().then((overview) => {
+      if (cancelled) return
+      // The welcome offer is for Free accounts only. Existing paid members are
+      // recorded as handled so they never see it merely because they logged in.
+      window.localStorage.setItem(key, overview.code === 'FREE' ? 'shown' : 'skipped-paid')
+      if (overview.code === 'FREE') setShowPlanWelcome(true)
+    }).catch(() => {
+      // Do not interrupt sign-in if subscription data is temporarily unavailable.
+      planWelcomeCheckRef.current = null
+    })
+
+    return () => { cancelled = true }
+  }, [user?.id, onboarding.completed, onboarding.loading, route?.id])
 
   useEffect(() => {
-    if (!user || !onboarding.completed || onboarding.loading || !route || ['configuracao-inicial', 'checkout', 'checkout-confirmado'].includes(route.id)) return
+    if (!user || showPlanWelcome || !onboarding.completed || onboarding.loading || !route || ['configuracao-inicial', 'checkout', 'checkout-confirmado'].includes(route.id)) return
     const welcomeKey = `MOVELYA.plan-welcome.v1.${user.id}`
     if (!window.localStorage.getItem(welcomeKey)) return
     void subscriptionService.getOverview().then((overview) => {
@@ -91,7 +107,7 @@ export default function App() {
         setShowQuotaUpgrade(true)
       }
     }).catch(() => undefined)
-  }, [user, onboarding.completed, onboarding.loading, route])
+  }, [user?.id, showPlanWelcome, onboarding.completed, onboarding.loading, route?.id])
 
   function closePlanWelcome() {
     if (user) window.localStorage.setItem(`MOVELYA.plan-welcome.v1.${user.id}`, 'seen')
