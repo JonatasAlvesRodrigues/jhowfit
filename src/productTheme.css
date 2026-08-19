@@ -1197,3 +1197,99 @@ textarea:focus-visible {
   .profile-hub__aside { grid-template-columns: 1fr; }
   .profile-hub .profile-logout-button { grid-column: auto; }
 }
+
+/* Premium polish: quiet depth, responsive feedback and motion that stays optional. */
+.vita-main {
+  background:
+    radial-gradient(circle at 86% -12%, color-mix(in srgb, var(--product-primary) 10%, transparent), transparent 29%),
+    radial-gradient(circle at 4% 78%, color-mix(in srgb, var(--product-primary) 5%, transparent), transparent 25%),
+    var(--product-bg);
+}
+
+.vita-header {
+  background: color-mix(in srgb, var(--product-surface) 84%, transparent) !important;
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--product-primary) 5%, transparent) !important;
+  backdrop-filter: blur(20px) saturate(1.15);
+}
+
+.vita-route-stage :is(
+  .card,
+  [class*="-card"]:not([class*="__"]),
+  [class*="-panel"]:not([class*="__"]),
+  .library-filters,
+  .library-results,
+  .workout-editor-settings,
+  .workout-exercise-editor
+) {
+  transition: transform 220ms cubic-bezier(.2, .8, .2, 1), border-color 220ms ease, box-shadow 220ms ease !important;
+}
+
+.today-summary,
+.ai-setup-hero,
+.ai-review-heading,
+.profile-plan-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.today-summary::before,
+.ai-setup-hero::before,
+.ai-review-heading::before,
+.profile-plan-card::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(112deg, transparent 22%, color-mix(in srgb, #fff 28%, transparent) 48%, transparent 74%);
+  opacity: .42;
+  transform: translateX(-68%);
+}
+
+.today-summary > *,
+.ai-setup-hero > *,
+.ai-review-heading > *,
+.profile-plan-card > * { position: relative; z-index: 1; }
+
+.vita-content :is(button, a, input, select, textarea) { -webkit-tap-highlight-color: transparent; }
+
+@media (hover: hover) and (pointer: fine) {
+  .vita-route-stage :is(
+    .card,
+    [class*="-card"]:not([class*="__"]),
+    [class*="-panel"]:not([class*="__"])
+  ):hover { transform: translateY(-3px); }
+
+  .vita-content button:not(:disabled):hover,
+  .vita-header button:not(:disabled):hover { transform: translateY(-1px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .today-summary::before,
+  .ai-setup-hero::before,
+  .ai-review-heading::before,
+  .profile-plan-card::before { animation: movelya-premium-sheen 7s ease-in-out infinite; }
+
+  .vita-route-stage > * { animation: movelya-premium-rise 460ms cubic-bezier(.2, .8, .2, 1) both; }
+  .vita-route-stage > *:nth-child(2) { animation-delay: 55ms; }
+  .vita-route-stage > *:nth-child(3) { animation-delay: 110ms; }
+}
+
+@keyframes movelya-premium-sheen {
+  0%, 64%, 100% { opacity: 0; transform: translateX(-68%); }
+  18%, 42% { opacity: .42; }
+  48% { opacity: 0; transform: translateX(68%); }
+}
+
+@keyframes movelya-premium-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vita-route-stage > *,
+  .today-summary::before,
+  .ai-setup-hero::before,
+  .ai-review-heading::before,
+  .profile-plan-card::before { animation: none !important; }
+}
