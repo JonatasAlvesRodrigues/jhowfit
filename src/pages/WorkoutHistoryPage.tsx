@@ -35,6 +35,8 @@ export function WorkoutHistoryPage({ userId }: { userId: string }) {
         <HistoryKpi icon={<CheckCircle2 />} label="Taxa de conclusão" value={`${data.completionRate}%`} />
       </div>
 
+      <RecentWorkouts workouts={data.recentWorkouts} />
+
       <div className="history-overview-grid">
         <WorkoutCalendar month={month} dates={data.completedDates} onMonth={setMonth} />
         <section className="history-panel weekly-history"><PanelTitle eyebrow="ÚLTIMAS 8 SEMANAS" title="Treinos por semana" /><div className="history-chart"><ResponsiveContainer><BarChart data={data.weekly}><XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: '#718078', fontSize: 8 }} /><YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#718078', fontSize: 8 }} /><Tooltip contentStyle={tooltipStyle} /><Bar dataKey="count" name="Treinos" fill="#27d68f" radius={[7,7,2,2]} /></BarChart></ResponsiveContainer></div></section>
@@ -49,6 +51,10 @@ export function WorkoutHistoryPage({ userId }: { userId: string }) {
       <div className="history-safety"><ShieldCheck /><p>As sugestões de progressão são conservadoras, baseadas apenas no histórico registrado e não substituem orientação de um profissional de educação física.</p></div>
     </section>
   )
+}
+
+function RecentWorkouts({ workouts }: { workouts: WorkoutHistoryData['recentWorkouts'] }) {
+  return <section className="history-panel recent-workouts"><header><PanelTitle eyebrow="SESSÕES SALVAS" title="Treinos recentes" /><span>{workouts.length} registro(s)</span></header><div>{workouts.map((workout) => <article key={workout.id}><span className="recent-workouts__icon"><Dumbbell size={18} /></span><div className="recent-workouts__main"><strong>{workout.name}</strong><small><CalendarDays size={12} /> {formatDate(workout.completedAt)} · <Clock size={12} /> {formatDuration(workout.durationSeconds)}</small>{workout.exercises.length > 0 && <p>{workout.exercises.slice(0, 4).join(' · ')}{workout.exercises.length > 4 ? ` · +${workout.exercises.length - 4}` : ''}</p>}</div><div className="recent-workouts__metrics"><span><b>{formatNumber(workout.volumeTotal)} kg</b><small>volume</small></span><span><b>{workout.completedSets}</b><small>séries</small></span>{workout.personalRecords > 0 && <i>+{workout.personalRecords} PR</i>}</div></article>)}</div></section>
 }
 
 function ExerciseProgressPanel({ exercise, exercises, onSelect }: { exercise: ExerciseProgressHistory; exercises: ExerciseProgressHistory[]; onSelect: (name: string) => void }) {

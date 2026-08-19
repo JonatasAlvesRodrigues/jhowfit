@@ -7,7 +7,7 @@ export const workoutHistoryService = {
     const since = new Date()
     since.setMonth(since.getMonth() - 12)
     const { data: sessions, error: sessionsError } = await supabase.from('workout_sessions')
-      .select('id,status,started_at,ended_at,duration_seconds,volume_total,completed_sets')
+      .select('id,status,workout_name,started_at,ended_at,duration_seconds,volume_total,completed_sets,pr_count')
       .eq('user_id', userId).in('status', ['completed', 'abandoned'])
       .gte('started_at', since.toISOString()).order('started_at')
     if (sessionsError) throw new Error('Não foi possível carregar o histórico de treinos.')
@@ -45,6 +45,14 @@ export const workoutHistoryService = {
       topExercises: exerciseCounts.slice(0, 5),
       muscleFrequency: muscleCounts,
       exercises,
+      recentWorkouts: completed.slice().reverse().slice(0, 16).map((session) => {
+        const exercises = exerciseRows.filter((row) => row.session_id === session.id && !row.skipped && completedSets(row).length).map((row) => String(row.name))
+        return {
+          id: String(session.id), name: String(session.workout_name ?? 'Treino'), completedAt: String(session.ended_at ?? session.started_at),
+          durationSeconds: Number(session.duration_seconds ?? 0), volumeTotal: Number(session.volume_total ?? 0),
+          completedSets: Number(session.completed_sets ?? 0), personalRecords: Number(session.pr_count ?? 0), exercises,
+        }
+      }),
     }
   },
 }

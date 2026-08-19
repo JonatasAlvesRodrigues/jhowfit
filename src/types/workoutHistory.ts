@@ -32,6 +32,17 @@ export interface ExerciseProgressHistory {
   }
 }
 
+export interface WorkoutHistorySession {
+  id: string
+  name: string
+  completedAt: string
+  durationSeconds: number
+  volumeTotal: number
+  completedSets: number
+  personalRecords: number
+  exercises: string[]
+}
+
 export interface WorkoutHistoryData {
   completedDates: string[]
   totalWorkouts: number
@@ -42,4 +53,5 @@ export interface WorkoutHistoryData {
   topExercises: HistoryRank[]
   muscleFrequency: HistoryRank[]
   exercises: ExerciseProgressHistory[]
+  recentWorkouts: WorkoutHistorySession[]
 }
