@@ -41,6 +41,7 @@ export interface WorkoutHistorySession {
   completedSets: number
   personalRecords: number
   exercises: string[]
+  muscles: string[]
 }
 
 export interface WorkoutHistoryData {

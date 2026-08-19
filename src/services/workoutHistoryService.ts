@@ -46,11 +46,13 @@ export const workoutHistoryService = {
       muscleFrequency: muscleCounts,
       exercises,
       recentWorkouts: completed.slice().reverse().slice(0, 16).map((session) => {
-        const exercises = exerciseRows.filter((row) => row.session_id === session.id && !row.skipped && completedSets(row).length).map((row) => String(row.name))
+        const performedInSession = exerciseRows.filter((row) => row.session_id === session.id && !row.skipped && completedSets(row).length)
+        const exercises = performedInSession.map((row) => String(row.name))
+        const muscles = [...new Set(performedInSession.map((row) => muscleByLibrary.get(row.library_exercise_id)).filter(Boolean))] as string[]
         return {
           id: String(session.id), name: String(session.workout_name ?? 'Treino'), completedAt: String(session.ended_at ?? session.started_at),
           durationSeconds: Number(session.duration_seconds ?? 0), volumeTotal: Number(session.volume_total ?? 0),
-          completedSets: Number(session.completed_sets ?? 0), personalRecords: Number(session.pr_count ?? 0), exercises,
+          completedSets: Number(session.completed_sets ?? 0), personalRecords: Number(session.pr_count ?? 0), exercises, muscles,
         }
       }),
     }

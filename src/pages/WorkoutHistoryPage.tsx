@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { AlertTriangle, ArrowDown, ArrowRight, ArrowUp, CalendarDays, CheckCircle2, Clock, Dumbbell, Gauge, RefreshCw, ShieldCheck, Target, Trophy } from 'lucide-react'
+import { AlertTriangle, ArrowDown, ArrowRight, ArrowUp, CalendarDays, CheckCircle2, Clock, Dumbbell, Gauge, RefreshCw, Share2, ShieldCheck, Target, Trophy, X } from 'lucide-react'
 import { workoutHistoryService } from '../services/workoutHistoryService'
-import type { ExerciseProgressHistory, WorkoutHistoryData } from '../types/workoutHistory'
+import type { ExerciseProgressHistory, WorkoutHistoryData, WorkoutHistorySession } from '../types/workoutHistory'
 
 export function WorkoutHistoryPage({ userId }: { userId: string }) {
   const [data, setData] = useState<WorkoutHistoryData | null>(null)
@@ -10,6 +10,7 @@ export function WorkoutHistoryPage({ userId }: { userId: string }) {
   const [error, setError] = useState('')
   const [selectedExercise, setSelectedExercise] = useState('')
   const [month, setMonth] = useState(() => new Date())
+  const [shareTarget, setShareTarget] = useState<WorkoutHistorySession | null>(null)
 
   useEffect(() => {
     workoutHistoryService.getHistory(userId).then((result) => {
@@ -35,7 +36,7 @@ export function WorkoutHistoryPage({ userId }: { userId: string }) {
         <HistoryKpi icon={<CheckCircle2 />} label="Taxa de conclusão" value={`${data.completionRate}%`} />
       </div>
 
-      <RecentWorkouts workouts={data.recentWorkouts} />
+      <RecentWorkouts workouts={data.recentWorkouts} onSelect={setShareTarget} />
 
       <div className="history-overview-grid">
         <WorkoutCalendar month={month} dates={data.completedDates} onMonth={setMonth} />
@@ -49,12 +50,24 @@ export function WorkoutHistoryPage({ userId }: { userId: string }) {
 
       {exercise && <ExerciseProgressPanel exercise={exercise} exercises={data.exercises} onSelect={setSelectedExercise} />}
       <div className="history-safety"><ShieldCheck /><p>As sugestões de progressão são conservadoras, baseadas apenas no histórico registrado e não substituem orientação de um profissional de educação física.</p></div>
+      {shareTarget && <HistoryShareDialog workout={shareTarget} onClose={() => setShareTarget(null)} />}
     </section>
   )
 }
 
-function RecentWorkouts({ workouts }: { workouts: WorkoutHistoryData['recentWorkouts'] }) {
-  return <section className="history-panel recent-workouts"><header><PanelTitle eyebrow="SESSÕES SALVAS" title="Treinos recentes" /><span>{workouts.length} registro(s)</span></header><div>{workouts.map((workout) => <article key={workout.id}><span className="recent-workouts__icon"><Dumbbell size={18} /></span><div className="recent-workouts__main"><strong>{workout.name}</strong><small><CalendarDays size={12} /> {formatDate(workout.completedAt)} · <Clock size={12} /> {formatDuration(workout.durationSeconds)}</small>{workout.exercises.length > 0 && <p>{workout.exercises.slice(0, 4).join(' · ')}{workout.exercises.length > 4 ? ` · +${workout.exercises.length - 4}` : ''}</p>}</div><div className="recent-workouts__metrics"><span><b>{formatNumber(workout.volumeTotal)} kg</b><small>volume</small></span><span><b>{workout.completedSets}</b><small>séries</small></span>{workout.personalRecords > 0 && <i>+{workout.personalRecords} PR</i>}</div></article>)}</div></section>
+function RecentWorkouts({ workouts, onSelect }: { workouts: WorkoutHistoryData['recentWorkouts']; onSelect: (workout: WorkoutHistorySession) => void }) {
+  return <section className="history-panel recent-workouts"><header><PanelTitle eyebrow="SESSÕES SALVAS" title="Treinos recentes" /><span>{workouts.length} registro(s)</span></header><div>{workouts.map((workout) => <button type="button" key={workout.id} onClick={() => onSelect(workout)}><span className="recent-workouts__icon"><Dumbbell size={18} /></span><div className="recent-workouts__main"><strong>{workout.name}</strong><small><CalendarDays size={12} /> {formatDate(workout.completedAt)} · <Clock size={12} /> {formatDuration(workout.durationSeconds)}</small>{workout.exercises.length > 0 && <p>{workout.exercises.slice(0, 4).join(' · ')}{workout.exercises.length > 4 ? ` · +${workout.exercises.length - 4}` : ''}</p>}</div><div className="recent-workouts__metrics"><span><b>{formatNumber(workout.volumeTotal)} kg</b><small>volume</small></span><span><b>{workout.completedSets}</b><small>séries</small></span>{workout.personalRecords > 0 && <i>+{workout.personalRecords} PR</i>}</div><Share2 size={15} /></button>)}</div></section>
+}
+
+function HistoryShareDialog({ workout, onClose }: { workout: WorkoutHistorySession; onClose: () => void }) {
+  const [style, setStyle] = useState<'aurora' | 'midnight' | 'transparent'>('aurora')
+  async function share() {
+    const blob = await createHistoryShareCard(workout, style)
+    const file = new File([blob], `movelya-treino-${workout.id}.png`, { type: 'image/png' })
+    if (navigator.share && navigator.canShare?.({ files: [file] })) await navigator.share({ title: workout.name, files: [file] })
+    else { const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = file.name; link.click(); URL.revokeObjectURL(link.href) }
+  }
+  return <div className="history-share-backdrop" role="dialog" aria-modal="true" aria-label="Compartilhar treino"><div className={`history-share-dialog is-${style}`}><button className="history-share-close" onClick={onClose} aria-label="Fechar"><X size={18} /></button><small>TREINO SALVO</small><h2>{workout.name}</h2><p>{formatDate(workout.completedAt)} · {formatDuration(workout.durationSeconds)}</p><div className="history-share-muscles"><strong>Áreas trabalhadas</strong><span>{workout.muscles.length ? workout.muscles.join(' · ') : 'Não identificadas'}</span></div><div className="history-share-style-picker"><button className={style === 'aurora' ? 'is-selected' : ''} onClick={() => setStyle('aurora')}>Aura</button><button className={style === 'midnight' ? 'is-selected' : ''} onClick={() => setStyle('midnight')}>Noturno</button><button className={style === 'transparent' ? 'is-selected' : ''} onClick={() => setStyle('transparent')}>Sem fundo</button></div><button className="history-share-generate" onClick={() => void share()}><Share2 size={16} /> Gerar e compartilhar</button></div></div>
 }
 
 function ExerciseProgressPanel({ exercise, exercises, onSelect }: { exercise: ExerciseProgressHistory; exercises: ExerciseProgressHistory[]; onSelect: (name: string) => void }) {
@@ -100,3 +113,21 @@ function formatDuration(seconds:number){const hours=Math.floor(seconds/3600);con
 function formatNumber(value:number){return new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0}).format(value)}
 function formatDate(value:string){return value?new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'2-digit'}).format(new Date(value)):'—'}
 const tooltipStyle={background:'#101612',border:'1px solid #29362e',borderRadius:10,fontSize:10}
+
+async function createHistoryShareCard(workout: WorkoutHistorySession, style: 'aurora' | 'midnight' | 'transparent') {
+  const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1920
+  const context = canvas.getContext('2d'); if (!context) throw new Error('Canvas indisponível')
+  const midnight = style === 'midnight'; const transparent = style === 'transparent'
+  const text = midnight ? '#f4faf6' : '#14281c'; const muted = midnight ? '#acc5b5' : '#526d5d'; const accent = midnight ? '#c9ff3b' : '#138557'; const line = midnight ? 'rgba(255,255,255,.18)' : 'rgba(20,40,28,.18)'
+  if (midnight) { const gradient = context.createLinearGradient(0, 0, 1080, 1920); gradient.addColorStop(0, '#07110c'); gradient.addColorStop(1, '#183024'); context.fillStyle = gradient; context.fillRect(0, 0, 1080, 1920) }
+  else if (!transparent) { const gradient = context.createLinearGradient(0, 0, 1080, 1920); gradient.addColorStop(0, '#eef6ec'); gradient.addColorStop(1, '#aeb7ae'); context.fillStyle = gradient; context.fillRect(0, 0, 1080, 1920) }
+  context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillStyle = accent; context.font = '800 29px Arial, sans-serif'; context.fillText('MOVELYA', 540, 105)
+  context.fillStyle = text; context.font = '700 38px Arial, sans-serif'; context.fillText('TREINO CONCLUÍDO', 540, 185); context.font = '800 69px Arial, sans-serif'; context.fillText(canvasText(context, workout.name, 860), 540, 295)
+  context.fillStyle = muted; context.font = '500 31px Arial, sans-serif'; context.fillText(`${formatDate(workout.completedAt)} · ${formatDuration(workout.durationSeconds)}`, 540, 365)
+  context.strokeStyle = line; context.lineWidth = 2; context.beginPath(); context.moveTo(130, 445); context.lineTo(950, 445); context.stroke(); context.fillStyle = muted; context.font = '800 24px Arial, sans-serif'; context.fillText('ÁREAS TRABALHADAS', 540, 510)
+  const muscles = workout.muscles.length ? workout.muscles : ['Não identificadas']; muscles.slice(0, 6).forEach((muscle, index) => { const x = index % 2 ? 720 : 360; const y = 585 + Math.floor(index / 2) * 70; context.fillStyle = midnight ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.54)'; context.fillRect(x - 155, y - 24, 310, 48); context.fillStyle = accent; context.font = '700 25px Arial, sans-serif'; context.fillText(canvasText(context, muscle, 265), x, y) })
+  const metrics = [['VOLUME', `${formatNumber(workout.volumeTotal)} kg`], ['SÉRIES', String(workout.completedSets)], ['RECORDES', String(workout.personalRecords)], ['EXERCÍCIOS', String(workout.exercises.length)]]; metrics.forEach(([label, value], index) => { const x = index % 2 ? 730 : 350; const y = 890 + Math.floor(index / 2) * 150; context.fillStyle = muted; context.font = '700 22px Arial, sans-serif'; context.fillText(label, x, y); context.fillStyle = text; context.font = '800 47px Arial, sans-serif'; context.fillText(value, x, y + 53) })
+  context.fillStyle = muted; context.font = '800 24px Arial, sans-serif'; context.fillText('EXERCÍCIOS REALIZADOS', 540, 1245); workout.exercises.slice(0, 5).forEach((exercise, index) => { context.fillStyle = accent; context.beginPath(); context.arc(190, 1315 + index * 72, 8, 0, Math.PI * 2); context.fill(); context.fillStyle = text; context.textAlign = 'left'; context.font = '600 30px Arial, sans-serif'; context.fillText(canvasText(context, exercise, 700), 220, 1315 + index * 72); context.textAlign = 'center' }); context.fillStyle = accent; context.font = '800 27px Arial, sans-serif'; context.fillText('SEU MOVIMENTO, NO SEU RITMO.', 540, 1770)
+  return await new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Falha ao gerar imagem')), 'image/png'))
+}
+function canvasText(context: CanvasRenderingContext2D, value: string, maxWidth: number) { let text = value; while (context.measureText(text).width > maxWidth && text.length > 1) text = `${text.slice(0, -2)}…`; return text }
