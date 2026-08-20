@@ -1853,7 +1853,10 @@ textarea:focus-visible {
 .chat-history__top small { color: var(--product-primary) !important; }
 .chat-history__top strong { color: var(--product-text) !important; }
 .chat-history__top em { display: block; margin-top: 5px; color: var(--product-muted); font-size: 7px; font-style: normal; }
+.chat-history__actions { display: flex; align-items: center; gap: 6px; }
 .chat-new-button { color: #fff !important; background: var(--product-primary) !important; box-shadow: none !important; }
+.chat-history-close--inline { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; border: 1px solid var(--product-line); border-radius: 9px; color: var(--product-muted); background: var(--product-surface); cursor: pointer; }
+.chat-history-close--inline:hover { color: var(--product-primary); border-color: var(--product-primary); background: var(--product-primary-soft); }
 .chat-conversation-list { padding: 10px !important; }
 .chat-conversation-list button { border: 1px solid transparent !important; color: var(--product-muted) !important; border-radius: 12px !important; }
 .chat-conversation-list button strong { color: var(--product-text) !important; }
