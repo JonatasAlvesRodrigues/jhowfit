@@ -113,6 +113,7 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
   const [dietGeneratorOpen, setDietGeneratorOpen] = useState(false)
   const [photoAnalyzerOpen, setPhotoAnalyzerOpen] = useState(false)
   const [savedDiets, setSavedDiets] = useState<SavedDietPlan[]>([])
+  const [selectedSavedDiet, setSelectedSavedDiet] = useState<SavedDietPlan | null>(null)
 
   useEffect(() => {
     void loadDiary()
@@ -431,7 +432,7 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
               <span className="nutrition-mini-tag"><Check size={14} /> {savedDiets.length}</span>
             </div>
             <div className="nutrition-saved-list">
-              {savedDiets.map((diet) => <article key={diet.id}><strong>{diet.name}</strong><small>{Math.round(diet.plan.dailyCalories)} kcal · {Math.round(diet.plan.protein)} g proteína</small><span>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(diet.createdAt))}</span></article>)}
+              {savedDiets.map((diet) => <button type="button" key={diet.id} onClick={() => setSelectedSavedDiet(diet)} aria-label={`Abrir dieta ${diet.name}`}><span><strong>{diet.name}</strong><small>{Math.round(diet.plan.dailyCalories)} kcal · {Math.round(diet.plan.protein)} g proteína</small><em>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(diet.createdAt))}</em></span><ChevronRight size={16} /></button>)}
               {!savedDiets.length && <p className="nutrition-muted">As dietas que você salvar aparecerão aqui.</p>}
             </div>
           </Card>
@@ -631,6 +632,7 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
         onClose={() => setDietGeneratorOpen(false)}
         onCreated={() => { setToast('Dieta salva com sucesso.'); void loadDiary() }}
       />
+      {selectedSavedDiet && <SavedDietPlanModal diet={selectedSavedDiet} onClose={() => setSelectedSavedDiet(null)} />}
       <PhotoMealAnalyzer
         open={photoAnalyzerOpen}
         userId={userId}
@@ -638,6 +640,36 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
         onConfirmed={() => { setToast('Refeição confirmada e adicionada ao diário.'); void loadDiary() }}
       />
     </section>
+  )
+}
+
+function SavedDietPlanModal({ diet, onClose }: { diet: SavedDietPlan; onClose: () => void }) {
+  const { plan } = diet
+  return (
+    <Modal title="Dieta salva" onClose={onClose}>
+      <div className="nutrition-saved-diet">
+        <header className="nutrition-saved-diet__heading">
+          <span><BrainCircuit size={20} /></span>
+          <div><small>PLANO GERADO COM IA</small><h2>{diet.name}</h2><p>{plan.summary}</p></div>
+        </header>
+        <div className="nutrition-saved-diet__metrics">
+          <span><small>CALORIAS</small><strong>≈ {Math.round(plan.dailyCalories)}<em> kcal/dia</em></strong></span>
+          <span><small>PROTEÍNA</small><strong>≈ {Math.round(plan.protein)}<em> g/dia</em></strong></span>
+          <span><small>REFEIÇÕES</small><strong>{plan.meals.length}<em> no plano</em></strong></span>
+          <span><small>CUSTO ESTIMADO</small><strong>R$ {plan.estimatedWeeklyCost}<em> /semana</em></strong></span>
+        </div>
+        <div className="nutrition-saved-diet__notice"><ShieldAlert size={16} /><p>{plan.estimatesNotice || 'Calorias e macronutrientes são estimativas e podem variar conforme marcas, porções e preparo.'}</p></div>
+        <div className="nutrition-saved-diet__meals">
+          {plan.meals.map((meal) => <article key={meal.name}>
+            <header><div><small>{meal.name.toUpperCase()}</small><h3>≈ {Math.round(meal.calories)} kcal</h3></div><span>P {Math.round(meal.protein)} · C {Math.round(meal.carbs)} · G {Math.round(meal.fat)}</span></header>
+            <ul>{meal.foods.map((food) => <li key={food}>{food}</li>)}</ul>
+            {(meal.preparation || meal.notes) && <p><b>Preparo:</b> {meal.preparation || meal.notes}</p>}
+            {meal.alternatives.length > 0 && <div className="nutrition-saved-diet__alternatives"><small>SUBSTITUIÇÕES</small>{meal.alternatives.map((alternative) => <span key={`${meal.name}-${alternative.name}`}><b>{alternative.name}:</b> {alternative.foods.join(' · ')}</span>)}</div>}
+          </article>)}
+        </div>
+        <div className="nutrition-modal-actions"><Button onClick={onClose}>Fechar plano</Button></div>
+      </div>
+    </Modal>
   )
 }
 

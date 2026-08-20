@@ -1778,3 +1778,62 @@ textarea:focus-visible {
   .nutrition-page .nutrition-section-card { padding: 15px !important; }
   .nutrition-page .nutrition-meal-row { align-items: flex-start !important; }
 }
+
+/* Saved plans remain useful after creation: a compact card now opens the complete generated menu. */
+.nutrition-page .nutrition-saved-list button {
+  width: 100%;
+  padding: 12px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--product-line) !important;
+  border-radius: 12px;
+  color: var(--product-text) !important;
+  background: var(--product-surface-soft) !important;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+.nutrition-page .nutrition-saved-list button > span { min-width: 0; }
+.nutrition-page .nutrition-saved-list button strong,
+.nutrition-page .nutrition-saved-list button small,
+.nutrition-page .nutrition-saved-list button em { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nutrition-page .nutrition-saved-list button strong { color: var(--product-text); font-size: 10px; }
+.nutrition-page .nutrition-saved-list button small { margin-top: 4px; color: var(--product-muted); font-size: 8px; }
+.nutrition-page .nutrition-saved-list button em { margin-top: 5px; color: var(--product-primary); font-size: 7px; font-style: normal; font-weight: 800; }
+.nutrition-page .nutrition-saved-list button > svg { flex: 0 0 auto; color: var(--product-primary); }
+.nutrition-page .nutrition-saved-list button:hover { border-color: var(--product-primary) !important; background: var(--product-primary-soft) !important; transform: translateY(-1px); }
+
+.nutrition-saved-diet { display: grid; gap: 14px; }
+.nutrition-saved-diet__heading { padding: 15px; display: flex; align-items: flex-start; gap: 11px; border: 1px solid var(--product-line); border-radius: 15px; background: linear-gradient(125deg, var(--product-primary-soft), var(--product-surface)); }
+.nutrition-saved-diet__heading > span { width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center; border-radius: 12px; color: var(--product-primary); background: var(--product-surface); }
+.nutrition-saved-diet__heading small,
+.nutrition-saved-diet__metrics small,
+.nutrition-saved-diet__alternatives > small { display: block; color: var(--product-primary); font-size: 7px; font-weight: 800; letter-spacing: 1.05px; }
+.nutrition-saved-diet__heading h2 { margin-top: 4px; color: var(--product-text); font-size: 19px; letter-spacing: -.6px; }
+.nutrition-saved-diet__heading p { margin-top: 5px; color: var(--product-muted); font-size: 9px; line-height: 1.45; }
+.nutrition-saved-diet__metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.nutrition-saved-diet__metrics > span { min-width: 0; min-height: 70px; padding: 10px; display: flex; flex-direction: column; justify-content: center; border: 1px solid var(--product-line); border-radius: 11px; background: var(--product-surface-soft); }
+.nutrition-saved-diet__metrics small { color: var(--product-muted); font-size: 6px; }
+.nutrition-saved-diet__metrics strong { margin-top: 4px; overflow: hidden; color: var(--product-text); font-size: 13px; letter-spacing: -.35px; text-overflow: ellipsis; white-space: nowrap; }
+.nutrition-saved-diet__metrics em { color: var(--product-muted); font-size: 6px; font-style: normal; font-weight: 700; }
+.nutrition-saved-diet__notice { padding: 10px; display: flex; align-items: flex-start; gap: 7px; border: 1px solid color-mix(in srgb, var(--product-blue) 22%, var(--product-line)); border-radius: 11px; color: var(--product-blue); background: var(--product-blue-soft); }
+.nutrition-saved-diet__notice p { color: var(--product-muted); font-size: 8px; line-height: 1.45; }
+.nutrition-saved-diet__meals { max-height: min(48vh, 480px); padding-right: 3px; display: grid; gap: 8px; overflow-y: auto; }
+.nutrition-saved-diet__meals > article { padding: 13px; border: 1px solid var(--product-line); border-radius: 13px; color: var(--product-text); background: var(--product-surface-soft); }
+.nutrition-saved-diet__meals > article > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.nutrition-saved-diet__meals header small { color: var(--product-primary); font-size: 7px; font-weight: 800; letter-spacing: .9px; }
+.nutrition-saved-diet__meals h3 { margin-top: 3px; color: var(--product-text); font-size: 13px; }
+.nutrition-saved-diet__meals header > span { padding: 5px 7px; border-radius: 8px; color: var(--product-primary); background: var(--product-primary-soft); font-size: 7px; font-weight: 800; white-space: nowrap; }
+.nutrition-saved-diet__meals ul { margin: 9px 0 0; padding-left: 16px; color: var(--product-muted); font-size: 8px; line-height: 1.65; }
+.nutrition-saved-diet__meals > article > p { margin-top: 9px; padding: 8px; border-radius: 8px; color: var(--product-muted); background: var(--product-surface); font-size: 8px; line-height: 1.45; }
+.nutrition-saved-diet__meals > article > p b { color: var(--product-text); }
+.nutrition-saved-diet__alternatives { margin-top: 9px; padding-top: 9px; display: grid; gap: 5px; border-top: 1px solid var(--product-line); }
+.nutrition-saved-diet__alternatives > small { color: var(--product-muted); font-size: 6px; }
+.nutrition-saved-diet__alternatives span { color: var(--product-muted); font-size: 8px; line-height: 1.4; }
+.nutrition-saved-diet__alternatives b { color: var(--product-text); }
+@media (max-width: 560px) {
+  .nutrition-saved-diet__metrics { grid-template-columns: 1fr 1fr; }
+  .nutrition-saved-diet__meals { max-height: 46vh; }
+}
