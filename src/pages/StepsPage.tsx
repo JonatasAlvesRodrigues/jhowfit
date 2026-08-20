@@ -70,7 +70,7 @@ export function StepsPage({ userId }: { userId: string }) {
 
   return <section className="steps-page">
     <div className="page-heading steps-hero">
-      <div><p>PASSOS, CAMINHADA E CORRIDA</p><h1>Seu movimento, passo a passo.</h1><span>Registre caminhadas e corridas manualmente e acompanhe sua constância.</span></div>
+      <div><p>ATIVIDADES, PASSOS E PERCURSOS</p><h1>Movimente-se do seu jeito.</h1><span>Inicie atividades guiadas, acompanhe seus percursos e mantenha sua constância em um só lugar.</span></div>
       <div className="steps-hero-actions"><Button variant="secondary" onClick={openGoal}><Settings2 size={17} /> Meta diária</Button><Button variant="secondary" onClick={openAdd}><Plus size={17} /> Registrar passos</Button><Button onClick={() => setStartRequest((value) => value + 1)}><Play size={17} fill="currentColor" /> Iniciar atividade</Button></div>
     </div>
 

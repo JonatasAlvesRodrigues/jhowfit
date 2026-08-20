@@ -222,7 +222,7 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
     <Card className="activity-overview">
       <div className="activity-overview__intro">
         <span><TrendingUp size={22} /></span>
-        <div><small>MOVIMENTO DE HOJE</small><h2>Qual vai ser a sua atividade?</h2><p>Comece agora, acompanhe seu ritmo e guarde cada percurso em um só lugar.</p></div>
+        <div><small>SEU RITMO NA SEMANA</small><h2>Qual vai ser a sua atividade?</h2><p>Os indicadores mostram seus últimos sete dias. Comece agora e registre seu próximo percurso.</p></div>
       </div>
       <div className="activity-overview__stats" aria-label="Resumo das atividades dos últimos sete dias">
         <span><b>{formatDistance(overview.distance)}</b><small>distância</small></span>
