@@ -30,6 +30,29 @@ export interface CommunityData {
   ranking: CommunityRankingItem[]
 }
 
+export interface RecentCommunityActivity {
+  id: string
+  label: string
+  type: 'running' | 'walking'
+}
+
+export interface PreparedCommunityImage {
+  image: Blob
+  thumbnail: Blob
+  width: number
+  height: number
+  previewUrl: string
+}
+
+export interface CreateCommunityPostInput {
+  userId: string
+  type: CommunityPostType
+  caption: string
+  activityId: string | null
+  image: PreparedCommunityImage
+  onProgress?: (progress: number, label: string) => void
+}
+
 type RawPost = {
   id: string; user_id: string; type: CommunityPostType; caption: string; created_at: string
   post_media?: Array<{ storage_path: string }>
@@ -86,6 +109,76 @@ export const communityService = {
     if (error) throw error
     return { ...post, likedByMe: true, likes: post.likes + 1 }
   },
+
+  async listRecentActivities(userId: string, type: 'running' | 'walking'): Promise<RecentCommunityActivity[]> {
+    if (!supabase) return []
+    const activityTypes = type === 'running' ? ['run', 'treadmill'] : ['walk']
+    const { data, error } = await supabase.from('outdoor_activities').select('id,type,started_at,distance_km,duration_seconds')
+      .eq('user_id', userId).in('type', activityTypes).order('started_at', { ascending: false }).limit(8)
+    if (error) throw error
+    return (data ?? []).map((activity: any) => ({
+      id: activity.id,
+      type,
+      label: `${type === 'running' ? 'Corrida' : 'Caminhada'} · ${Number(activity.distance_km ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km · ${formatMinutes(Number(activity.duration_seconds ?? 0))}`,
+    }))
+  },
+
+  async createPost(input: CreateCommunityPostInput) {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const postId = createUuid()
+    const objectKey = createUuid()
+    const folder = `posts/${input.userId}/${postId}`
+    const storagePath = `${folder}/image-${objectKey}.webp`
+    const thumbnailPath = `${folder}/thumb-${objectKey}.webp`
+    const notify = input.onProgress ?? (() => undefined)
+    let postInserted = false
+
+    try {
+      notify(18, 'Enviando foto otimizada…')
+      const originalUpload = await supabase.storage.from('community-media').upload(storagePath, input.image.image, {
+        contentType: 'image/webp', cacheControl: '31536000', upsert: false,
+      })
+      if (originalUpload.error) throw originalUpload.error
+
+      notify(55, 'Preparando miniatura…')
+      const thumbnailUpload = await supabase.storage.from('community-media').upload(thumbnailPath, input.image.thumbnail, {
+        contentType: 'image/webp', cacheControl: '31536000', upsert: false,
+      })
+      if (thumbnailUpload.error) throw thumbnailUpload.error
+
+      notify(75, 'Criando publicação…')
+      const { error: postError } = await supabase.from('posts').insert({
+        id: postId, user_id: input.userId, type: input.type, caption: input.caption.trim(),
+        activity_id: input.activityId, status: 'hidden', visibility: 'public', is_permanent: true,
+      })
+      if (postError) throw postError
+      postInserted = true
+
+      const { error: mediaError } = await supabase.from('post_media').insert({
+        post_id: postId, storage_path: storagePath, thumbnail_path: thumbnailPath, media_type: 'image',
+        width: input.image.width, height: input.image.height, size_bytes: input.image.image.size,
+      })
+      if (mediaError) throw mediaError
+
+      const { error: publishError } = await supabase.from('posts').update({ status: 'published' }).eq('id', postId).eq('user_id', input.userId)
+      if (publishError) throw publishError
+      notify(100, 'Publicado')
+      return postId
+    } catch (error) {
+      if (postInserted) await supabase.from('posts').delete().eq('id', postId).eq('user_id', input.userId)
+      await supabase.storage.from('community-media').remove([storagePath, thumbnailPath])
+      throw error
+    }
+  },
+}
+
+export async function prepareCommunityImage(file: File): Promise<PreparedCommunityImage> {
+  if (!file.type.startsWith('image/')) throw new Error('Escolha uma imagem para publicar.')
+  if (file.size > 15 * 1024 * 1024) throw new Error('Escolha uma imagem de até 15 MB para que possamos otimizá-la.')
+  const source = await loadImage(file)
+  const image = await compress(source, 1080, 600 * 1024, 1258291)
+  const thumbnail = await compress(source, 480, 96 * 1024, 300 * 1024)
+  return { image: image.blob, thumbnail: thumbnail.blob, width: image.width, height: image.height, previewUrl: URL.createObjectURL(image.blob) }
 }
 
 async function loadProfiles(userIds: string[]) {
@@ -127,3 +220,42 @@ function calculateStreak(activeDates: Set<string>) { const cursor = new Date(); 
 function startOfWeek() { const date = new Date(); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() - ((date.getDay() + 6) % 7)); return date }
 function dayKey(value: string | Date) { const date = typeof value === 'string' ? new Date(value) : value; return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
 function emptyCommunityData(): CommunityData { return { summary: { streak: 0, weeklyWorkouts: 0, position: null }, posts: [], ranking: [] } }
+
+function createUuid() { return typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}-${Math.random().toString(16).slice(2)}` }
+function formatMinutes(seconds: number) { return `${Math.max(1, Math.round(seconds / 60))} min` }
+
+async function loadImage(file: File) {
+  const sourceUrl = URL.createObjectURL(file)
+  try {
+    const image = new Image()
+    image.decoding = 'async'
+    await new Promise<void>((resolve, reject) => { image.onload = () => resolve(); image.onerror = () => reject(new Error('Não foi possível ler essa foto. Tente JPG, PNG ou WebP.')); image.src = sourceUrl })
+    return image
+  } finally { URL.revokeObjectURL(sourceUrl) }
+}
+
+async function compress(source: HTMLImageElement, maxSide: number, targetBytes: number, maxBytes: number) {
+  const ratio = Math.min(1, maxSide / Math.max(source.naturalWidth, source.naturalHeight))
+  let width = Math.max(1, Math.round(source.naturalWidth * ratio))
+  let height = Math.max(1, Math.round(source.naturalHeight * ratio))
+  let best: Blob | null = null
+  for (let scaleAttempt = 0; scaleAttempt < 4; scaleAttempt += 1) {
+    const canvas = document.createElement('canvas')
+    canvas.width = width; canvas.height = height
+    const context = canvas.getContext('2d', { alpha: false })
+    if (!context) throw new Error('Não foi possível preparar essa foto.')
+    context.drawImage(source, 0, 0, width, height)
+    for (const quality of [.86, .8, .74, .68, .62]) {
+      const blob = await canvasToWebp(canvas, quality)
+      best = blob
+      if (blob.size <= targetBytes) return { blob, width, height }
+    }
+    width = Math.max(1, Math.round(width * .84)); height = Math.max(1, Math.round(height * .84))
+  }
+  if (!best || best.size > maxBytes) throw new Error('Não foi possível otimizar a foto para um tamanho seguro. Escolha outra imagem.')
+  return { blob: best, width, height }
+}
+
+function canvasToWebp(canvas: HTMLCanvasElement, quality: number) {
+  return new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Seu navegador não conseguiu comprimir esta imagem.')), 'image/webp', quality))
+}

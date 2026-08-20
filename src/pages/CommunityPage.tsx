@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Dumbbell, Ellipsis, Flame, Footprints, Heart, Medal, MessageCircle, Salad, Search, Trophy, UsersRound, X } from 'lucide-react'
 import { communityService, type CommunityData, type CommunityPost, type CommunityPostType } from '../services/communityService'
+import { CreateCommunityPostModal } from '../components/CreateCommunityPostModal'
 import '../community.css'
 
 type CommunityTab = 'feed' | 'ranking' | 'clubs'
@@ -12,6 +13,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [notice, setNotice] = useState('')
+  const [composerType, setComposerType] = useState<CommunityPostType | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -51,7 +53,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
           <SummaryCard icon={Trophy} label="Sua posição" value={data.summary.position ? `#${data.summary.position} semanal` : 'Sem posição'} tone="green" />
           <SummaryCard icon={Dumbbell} label="Treinos na semana" value={String(data.summary.weeklyWorkouts)} tone="blue" />
         </section>
-        <PublishActivity onNavigate={onNavigate} />
+        <PublishActivity onOpen={setComposerType} />
         <div className="community-content-grid">
           <div className="community-feed" aria-label="Feed da comunidade">
             <div className="community-section-heading"><div><small>FEED</small><h2>O que move a comunidade</h2></div>{query && <span>{visiblePosts.length} resultado{visiblePosts.length === 1 ? '' : 's'}</span>}</div>
@@ -64,14 +66,15 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
       {tab === 'clubs' && <ClubsPlaceholder />}
     </>}
     {notice && <button className="community-toast" onClick={() => setNotice('')} role="status">{notice}<X size={14} /></button>}
+    {composerType && <CreateCommunityPostModal userId={userId} initialType={composerType} onClose={() => setComposerType(null)} onPublished={() => { setComposerType(null); setData(null); communityService.load(userId).then(setData).catch(() => setError('A publicação foi criada, mas não foi possível atualizar o feed.')) }} />}
   </section>
 }
 
 function Tab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) { return <button role="tab" aria-selected={active} className={active ? 'is-active' : ''} onClick={onClick}>{label}</button> }
 function SummaryCard({ icon: Icon, label, value, tone }: { icon: typeof Flame; label: string; value: string; tone: string }) { return <article className={`community-summary-card is-${tone}`}><span><Icon size={18} /></span><div><small>{label}</small><strong>{value}</strong></div></article> }
 
-function PublishActivity({ onNavigate }: { onNavigate: (path: string) => void }) {
-  return <section className="community-publish"><div><span><UsersRound size={18} /></span><div><small>COMPARTILHE SUA ATIVIDADE</small><h2>Seu movimento pode inspirar alguém.</h2></div></div><nav aria-label="Escolher atividade para compartilhar"><button onClick={() => onNavigate('/treinos')}><Dumbbell size={16} />Treino</button><button onClick={() => onNavigate('/atividades')}><Footprints size={16} />Corrida</button><button onClick={() => onNavigate('/dieta')}><Salad size={16} />Refeição</button></nav></section>
+function PublishActivity({ onOpen }: { onOpen: (type: CommunityPostType) => void }) {
+  return <section className="community-publish"><button className="community-publish__intro" onClick={() => onOpen('general_fitness')}><span><UsersRound size={18} /></span><div><small>COMPARTILHE SUA ATIVIDADE</small><h2>Seu movimento pode inspirar alguém.</h2></div></button><nav aria-label="Escolher atividade para compartilhar"><button onClick={() => onOpen('workout')}><Dumbbell size={16} />Treino</button><button onClick={() => onOpen('running')}><Footprints size={16} />Corrida</button><button onClick={() => onOpen('food')}><Salad size={16} />Refeição</button></nav></section>
 }
 
 function PostCard({ post, onLike, onMenu }: { post: CommunityPost; onLike: () => void; onMenu: () => void }) {
