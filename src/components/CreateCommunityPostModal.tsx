@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import { Camera, Check, ChevronDown, Dumbbell, Footprints, ImagePlus, LoaderCircle, Salad, Send, Sparkles, X } from 'lucide-react'
 import { communityService, prepareCommunityImage, type CommunityPostType, type PreparedCommunityImage, type RecentCommunityActivity } from '../services/communityService'
+import { subscriptionService, type PlanCode } from '../services/subscriptionService'
 
 const categories: Array<{ value: CommunityPostType; label: string; icon: typeof Dumbbell }> = [
   { value: 'workout', label: 'Treino', icon: Dumbbell }, { value: 'running', label: 'Corrida', icon: Footprints },
@@ -19,6 +20,7 @@ export function CreateCommunityPostModal({ userId, initialType = 'workout', onCl
   const [progress, setProgress] = useState(0)
   const [progressLabel, setProgressLabel] = useState('')
   const [error, setError] = useState('')
+  const [planCode, setPlanCode] = useState<PlanCode | null>(null)
   const cameraInput = useRef<HTMLInputElement>(null)
   const libraryInput = useRef<HTMLInputElement>(null)
 
@@ -33,6 +35,12 @@ export function CreateCommunityPostModal({ userId, initialType = 'workout', onCl
     communityService.listRecentActivities(userId, type).then((items) => active && setActivities(items)).catch(() => active && setActivities([]))
     return () => { active = false }
   }, [userId, type, supportsActivity])
+
+  useEffect(() => {
+    let active = true
+    subscriptionService.getOverview().then((overview) => active && setPlanCode(overview.code)).catch(() => active && setPlanCode(null))
+    return () => { active = false }
+  }, [])
 
   useEffect(() => () => { if (image) URL.revokeObjectURL(image.previewUrl) }, [image])
 
@@ -70,6 +78,7 @@ export function CreateCommunityPostModal({ userId, initialType = 'workout', onCl
         <label className="community-field"><span>Categoria</span><div className="community-category-select"><CategoryIcon size={16} /><select value={type} disabled={publishing} onChange={(event) => setType(event.target.value as CommunityPostType)}>{categories.map((category) => <option key={category.value} value={category.value}>{category.label}</option>)}</select><ChevronDown size={15} /></div></label>
         {supportsActivity && <label className="community-field"><span>Vincular atividade recente <em>opcional</em></span><div className="community-activity-select"><select value={activityId ?? ''} disabled={publishing} onChange={(event) => setActivityId(event.target.value || null)}><option value="">Sem vínculo</option>{activities.map((activity) => <option value={activity.id} key={activity.id}>{activity.label}</option>)}</select><ChevronDown size={15} /></div></label>}
         <label className="community-field"><span>Legenda <em>{caption.length}/500</em></span><textarea maxLength={500} value={caption} disabled={publishing} onChange={(event) => setCaption(event.target.value)} placeholder="Conte como foi seu movimento hoje…" /></label>
+        {planCode === 'FREE' && <p className="community-retention-note">Esta publicação fica disponível por 7 dias no plano Free.</p>}
         {(publishing || progressLabel) && <div className="community-upload-progress"><div><span>{progressLabel}</span><b>{progress}%</b></div><i><em style={{ width: `${progress}%` }} /></i></div>}
         {error && <div className="community-composer-error">{error}</div>}
       </div>

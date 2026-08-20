@@ -8,6 +8,8 @@ export interface CommunityPost {
   type: CommunityPostType
   caption: string
   createdAt: string
+  isPermanent: boolean
+  expiresAt: string | null
   likedByMe: boolean
   likes: number
   comments: number
@@ -54,7 +56,7 @@ export interface CreateCommunityPostInput {
 }
 
 type RawPost = {
-  id: string; user_id: string; type: CommunityPostType; caption: string; created_at: string
+  id: string; user_id: string; type: CommunityPostType; caption: string; created_at: string; is_permanent: boolean; expires_at: string | null
   post_media?: Array<{ storage_path: string }>
   post_likes?: Array<{ user_id?: string }>
   post_comments?: Array<{ id: string }>
@@ -69,7 +71,7 @@ export const communityService = {
     const activeSince = new Date()
     activeSince.setDate(activeSince.getDate() - 89)
     const [postsResult, dailyStatsResult, workoutsResult, activitiesResult, mealsResult] = await Promise.all([
-      supabase.from('posts').select('id,user_id,type,caption,created_at,post_media(storage_path),post_likes(user_id),post_comments(id),outdoor_activities(distance_km,duration_seconds)').order('created_at', { ascending: false }).limit(40),
+      supabase.from('posts').select('id,user_id,type,caption,created_at,is_permanent,expires_at,post_media(storage_path),post_likes(user_id),post_comments(id),outdoor_activities(distance_km,duration_seconds)').order('created_at', { ascending: false }).limit(40),
       supabase.from('daily_stats').select('date').eq('user_id', userId).gte('date', dayKey(activeSince)),
       supabase.from('workout_sessions').select('ended_at,started_at').eq('user_id', userId).eq('status', 'completed').gte('started_at', activeSince.toISOString()),
       supabase.from('outdoor_activities').select('started_at').eq('user_id', userId).gte('started_at', activeSince.toISOString()),
@@ -149,7 +151,7 @@ export const communityService = {
       notify(75, 'Criando publicação…')
       const { error: postError } = await supabase.from('posts').insert({
         id: postId, user_id: input.userId, type: input.type, caption: input.caption.trim(),
-        activity_id: input.activityId, status: 'hidden', visibility: 'public', is_permanent: true,
+        activity_id: input.activityId, status: 'hidden', visibility: 'public',
       })
       if (postError) throw postError
       postInserted = true
@@ -199,7 +201,7 @@ async function hydratePost(post: RawPost, profiles: Map<string, { name: string; 
   const activity = Array.isArray(post.outdoor_activities) ? post.outdoor_activities[0] : post.outdoor_activities
   const likes = post.post_likes ?? []
   return {
-    id: post.id, userId: post.user_id, type: post.type, caption: post.caption, createdAt: post.created_at,
+    id: post.id, userId: post.user_id, type: post.type, caption: post.caption, createdAt: post.created_at, isPermanent: post.is_permanent, expiresAt: post.expires_at,
     likedByMe: likes.some((like) => like.user_id === userId), likes: likes.length, comments: post.post_comments?.length ?? 0,
     profile: profiles.get(post.user_id) ?? { name: 'Membro MOVELYA', avatarUrl: null }, mediaUrl,
     activity: activity ? { distanceKm: Number(activity.distance_km ?? 0), durationSeconds: Number(activity.duration_seconds ?? 0) } : null,

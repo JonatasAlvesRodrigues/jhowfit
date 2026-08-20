@@ -57,7 +57,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
         <div className="community-content-grid">
           <div className="community-feed" aria-label="Feed da comunidade">
             <div className="community-section-heading"><div><small>FEED</small><h2>O que move a comunidade</h2></div>{query && <span>{visiblePosts.length} resultado{visiblePosts.length === 1 ? '' : 's'}</span>}</div>
-            {visiblePosts.length ? visiblePosts.map((post) => <PostCard key={post.id} post={post} onLike={() => void toggleLike(post)} onMenu={() => setNotice('As opções da publicação serão disponibilizadas em breve.')} />) : <FeedEmpty searched={Boolean(query)} onNavigate={onNavigate} />}
+            {visiblePosts.length ? visiblePosts.map((post) => <PostCard key={post.id} post={post} viewerId={userId} onLike={() => void toggleLike(post)} onMenu={() => setNotice('As opções da publicação serão disponibilizadas em breve.')} />) : <FeedEmpty searched={Boolean(query)} onNavigate={onNavigate} />}
           </div>
           <WeeklyRanking ranking={data.ranking} onMore={() => setTab('ranking')} />
         </div>
@@ -77,7 +77,7 @@ function PublishActivity({ onOpen }: { onOpen: (type: CommunityPostType) => void
   return <section className="community-publish"><button className="community-publish__intro" onClick={() => onOpen('general_fitness')}><span><UsersRound size={18} /></span><div><small>COMPARTILHE SUA ATIVIDADE</small><h2>Seu movimento pode inspirar alguém.</h2></div></button><nav aria-label="Escolher atividade para compartilhar"><button onClick={() => onOpen('workout')}><Dumbbell size={16} />Treino</button><button onClick={() => onOpen('running')}><Footprints size={16} />Corrida</button><button onClick={() => onOpen('food')}><Salad size={16} />Refeição</button></nav></section>
 }
 
-function PostCard({ post, onLike, onMenu }: { post: CommunityPost; onLike: () => void; onMenu: () => void }) {
+function PostCard({ post, viewerId, onLike, onMenu }: { post: CommunityPost; viewerId: string; onLike: () => void; onMenu: () => void }) {
   const initials = post.profile.name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   const Icon = postIcon(post.type)
   return <article className="community-post">
@@ -85,6 +85,7 @@ function PostCard({ post, onLike, onMenu }: { post: CommunityPost; onLike: () =>
     {post.mediaUrl ? <img className="community-post__image" src={post.mediaUrl} alt="Publicação compartilhada pela comunidade" loading="lazy" /> : <div className="community-post__missing-media"><Icon size={28} /><span>{postTypeLabel(post.type)}</span></div>}
     <div className="community-post__body"><p>{post.caption || 'Atividade compartilhada na comunidade.'}</p><div className="community-post__activity"><span><Icon size={14} /></span>{activityCopy(post)}</div></div>
     <footer><button className={post.likedByMe ? 'is-liked' : ''} onClick={onLike} aria-label={post.likedByMe ? 'Remover curtida' : 'Curtir publicação'}><Heart size={18} fill={post.likedByMe ? 'currentColor' : 'none'} /><b>{post.likes}</b></button><span><MessageCircle size={18} /><b>{post.comments}</b></span><time>{relativeDate(post.createdAt)}</time></footer>
+    {!post.isPermanent && post.expiresAt && <PostExpiration expiresAt={post.expiresAt} isOwner={post.userId === viewerId} />}
   </article>
 }
 
@@ -97,3 +98,5 @@ function postIcon(type: CommunityPostType) { return type === 'workout' ? Dumbbel
 function postTypeLabel(type: CommunityPostType) { return ({ workout: 'Treino', running: 'Corrida', walking: 'Caminhada', food: 'Refeição', achievement: 'Conquista', general_fitness: 'Fitness' } as Record<CommunityPostType, string>)[type] }
 function activityCopy(post: CommunityPost) { if (post.activity) return `${postTypeLabel(post.type)} • ${post.activity.distanceKm.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km${post.activity.durationSeconds ? ` • ${Math.round(post.activity.durationSeconds / 60)} min` : ''}`; return `${postTypeLabel(post.type)} compartilhado` }
 function relativeDate(value: string) { const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000)); return minutes < 1 ? 'agora' : minutes < 60 ? `${minutes} min` : minutes < 1440 ? `${Math.floor(minutes / 60)} h` : `${Math.floor(minutes / 1440)} d` }
+function daysUntil(value: string) { return Math.max(0, Math.ceil((new Date(value).getTime() - Date.now()) / 86_400_000)) }
+function PostExpiration({ expiresAt, isOwner }: { expiresAt: string; isOwner: boolean }) { const days = daysUntil(expiresAt); return <p className={`community-post__expiration ${days <= 1 ? 'is-soon' : ''}`}>{days <= 1 && isOwner ? 'Sua publicação será removida em breve. No Pro, suas publicações permanecem salvas.' : `Expira em ${days} ${days === 1 ? 'dia' : 'dias'}`}</p> }
