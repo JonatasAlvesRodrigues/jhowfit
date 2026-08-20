@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Dumbbell, Ellipsis, Flame, Footprints, Heart, LoaderCircle, Medal, MessageCircle, Salad, Search, Send, Trophy, UsersRound, X } from 'lucide-react'
 import { communityService, type CommunityComment, type CommunityData, type CommunityPost, type CommunityPostType } from '../services/communityService'
 import { CreateCommunityPostModal } from '../components/CreateCommunityPostModal'
@@ -14,6 +14,8 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
   const [query, setQuery] = useState('')
   const [notice, setNotice] = useState('')
   const [composerType, setComposerType] = useState<CommunityPostType | null>(null)
+  const [pendingLikes, setPendingLikes] = useState<Record<string, boolean>>({})
+  const pendingLikeIds = useRef(new Set<string>())
 
   useEffect(() => {
     let mounted = true
@@ -27,10 +29,21 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
   }) ?? [], [data?.posts, query])
 
   async function toggleLike(post: CommunityPost) {
+    if (pendingLikeIds.current.has(post.id)) return
+    const optimistic = { ...post, likedByMe: !post.likedByMe, likes: Math.max(0, post.likes + (post.likedByMe ? -1 : 1)) }
+    pendingLikeIds.current.add(post.id)
+    setPendingLikes((items) => ({ ...items, [post.id]: true }))
+    setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? optimistic : item) } : current)
     try {
       const updated = await communityService.toggleLike(post, userId)
       setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? updated : item) } : current)
-    } catch { setNotice('Não foi possível registrar sua curtida agora.') }
+    } catch {
+      setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? post : item) } : current)
+      setNotice('Não foi possível registrar sua curtida agora.')
+    } finally {
+      pendingLikeIds.current.delete(post.id)
+      setPendingLikes((items) => { const next = { ...items }; delete next[post.id]; return next })
+    }
   }
 
   function retry() { setError(''); setData(null); communityService.load(userId).then(setData).catch(() => setError('Não foi possível atualizar a comunidade agora.')) }
@@ -57,7 +70,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
         <div className="community-content-grid">
           <div className="community-feed" aria-label="Feed da comunidade">
             <div className="community-section-heading"><div><small>FEED</small><h2>O que move a comunidade</h2></div>{query && <span>{visiblePosts.length} resultado{visiblePosts.length === 1 ? '' : 's'}</span>}</div>
-            {visiblePosts.length ? visiblePosts.map((post) => <PostCard key={post.id} post={post} viewerId={userId} onLike={() => void toggleLike(post)} onCommentAdded={() => setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? { ...item, comments: item.comments + 1 } : item) } : current)} onMenu={() => setNotice('As opções da publicação serão disponibilizadas em breve.')} />) : <FeedEmpty searched={Boolean(query)} onNavigate={onNavigate} />}
+            {visiblePosts.length ? visiblePosts.map((post) => <PostCard key={post.id} post={post} viewerId={userId} liking={Boolean(pendingLikes[post.id])} onLike={() => void toggleLike(post)} onCommentAdded={() => setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? { ...item, comments: item.comments + 1 } : item) } : current)} onCommentRemoved={() => setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? { ...item, comments: Math.max(0, item.comments - 1) } : item) } : current)} onMenu={() => setNotice('As opções da publicação serão disponibilizadas em breve.')} />) : <FeedEmpty searched={Boolean(query)} onNavigate={onNavigate} />}
           </div>
           <WeeklyRanking ranking={data.ranking} onMore={() => setTab('ranking')} />
         </div>
@@ -77,7 +90,7 @@ function PublishActivity({ onOpen }: { onOpen: (type: CommunityPostType) => void
   return <section className="community-publish"><button className="community-publish__intro" onClick={() => onOpen('general_fitness')}><span><UsersRound size={18} /></span><div><small>COMPARTILHE SUA ATIVIDADE</small><h2>Seu movimento pode inspirar alguém.</h2></div></button><nav aria-label="Escolher atividade para compartilhar"><button onClick={() => onOpen('workout')}><Dumbbell size={16} />Treino</button><button onClick={() => onOpen('running')}><Footprints size={16} />Corrida</button><button onClick={() => onOpen('food')}><Salad size={16} />Refeição</button></nav></section>
 }
 
-function PostCard({ post, viewerId, onLike, onCommentAdded, onMenu }: { post: CommunityPost; viewerId: string; onLike: () => void; onCommentAdded: () => void; onMenu: () => void }) {
+function PostCard({ post, viewerId, liking, onLike, onCommentAdded, onCommentRemoved, onMenu }: { post: CommunityPost; viewerId: string; liking: boolean; onLike: () => void; onCommentAdded: () => void; onCommentRemoved: () => void; onMenu: () => void }) {
   const initials = post.profile.name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   const Icon = postIcon(post.type)
   const [commentsOpen, setCommentsOpen] = useState(false)
@@ -86,6 +99,8 @@ function PostCard({ post, viewerId, onLike, onCommentAdded, onMenu }: { post: Co
   const [loadingComments, setLoadingComments] = useState(false)
   const [sendingComment, setSendingComment] = useState(false)
   const [commentError, setCommentError] = useState('')
+  const [reportingCommentId, setReportingCommentId] = useState<string | null>(null)
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
 
   async function openComments() {
     const nextOpen = !commentsOpen
@@ -101,17 +116,31 @@ function PostCard({ post, viewerId, onLike, onCommentAdded, onMenu }: { post: Co
     if (!comment.trim() || sendingComment) return
     setSendingComment(true); setCommentError('')
     try {
-      const created = await communityService.createComment(post.id, viewerId, comment)
+      const created = await communityService.createComment(post.id, viewerId, comment.slice(0, 500))
       setComments((items) => [...items, created]); setComment(''); onCommentAdded()
     } catch (error) { setCommentError(error instanceof Error ? error.message : 'Não foi possível enviar seu comentário.') }
     finally { setSendingComment(false) }
+  }
+
+  async function deleteComment(commentId: string) {
+    setDeletingCommentId(commentId); setCommentError('')
+    try { await communityService.deleteComment(commentId, viewerId); setComments((items) => items.filter((item) => item.id !== commentId)); onCommentRemoved() }
+    catch { setCommentError('Não foi possível excluir o comentário agora.') }
+    finally { setDeletingCommentId(null) }
+  }
+
+  async function reportComment(commentId: string) {
+    setReportingCommentId(commentId); setCommentError('')
+    try { await communityService.reportComment(commentId, viewerId); setCommentError('Denúncia enviada para análise.') }
+    catch { setCommentError('Não foi possível enviar a denúncia agora.') }
+    finally { setReportingCommentId(null) }
   }
   return <article className="community-post">
     <header><div className="community-avatar">{post.profile.avatarUrl ? <img src={post.profile.avatarUrl} alt="" /> : initials}</div><div><strong>{post.profile.name}</strong><span><Flame size={12} fill="currentColor" /> atividade compartilhada</span></div><button onClick={onMenu} aria-label={`Opções da publicação de ${post.profile.name}`}><Ellipsis size={19} /></button></header>
     {post.mediaUrl ? <img className="community-post__image" src={post.mediaUrl} alt="Publicação compartilhada pela comunidade" loading="lazy" /> : <div className="community-post__missing-media"><Icon size={28} /><span>{postTypeLabel(post.type)}</span></div>}
     <div className="community-post__body"><p>{post.caption || 'Atividade compartilhada na comunidade.'}</p><div className="community-post__activity"><span><Icon size={14} /></span>{activityCopy(post)}</div></div>
-    <footer><button className={post.likedByMe ? 'is-liked' : ''} onClick={onLike} aria-label={post.likedByMe ? 'Remover curtida' : 'Curtir publicação'}><Heart size={18} fill={post.likedByMe ? 'currentColor' : 'none'} /><b>{post.likes}</b></button><button className={commentsOpen ? 'is-commenting' : ''} onClick={() => void openComments()} aria-expanded={commentsOpen} aria-label="Ver e adicionar comentários"><MessageCircle size={18} /><b>{post.comments}</b></button><time>{relativeDate(post.createdAt)}</time></footer>
-    {commentsOpen && <section className="community-comments" aria-label="Comentários"><div className="community-comments__list">{loadingComments ? <span className="community-comments__loading"><LoaderCircle size={14} className="is-spinning" /> Carregando comentários…</span> : comments.length ? comments.map((item) => <article key={item.id}><span className="community-comment-avatar">{item.profile.avatarUrl ? <img src={item.profile.avatarUrl} alt="" /> : item.profile.name.slice(0, 1)}</span><div><strong>{item.profile.name}</strong><p>{item.content}</p><small>{relativeDate(item.createdAt)}</small></div></article>) : <p className="community-comments__empty">Seja o primeiro a comentar.</p>}</div><div className="community-comment-form"><input value={comment} maxLength={1200} disabled={sendingComment} placeholder="Adicione um comentário…" onChange={(event) => setComment(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendComment() } }} /><button onClick={() => void sendComment()} disabled={!comment.trim() || sendingComment} aria-label="Enviar comentário">{sendingComment ? <LoaderCircle size={15} className="is-spinning" /> : <Send size={15} />}</button></div>{commentError && <p className="community-comments__error">{commentError}</p>}</section>}
+    <footer><button className={`${post.likedByMe ? 'is-liked' : ''} ${post.likedByMe && !liking ? 'is-like-pop' : ''}`} onClick={onLike} disabled={liking} aria-label={post.likedByMe ? 'Remover curtida' : 'Curtir publicação'}><Heart size={18} fill={post.likedByMe ? 'currentColor' : 'none'} /><b>{post.likes}</b></button><button className={commentsOpen ? 'is-commenting' : ''} onClick={() => void openComments()} aria-expanded={commentsOpen} aria-label="Ver e adicionar comentários"><MessageCircle size={18} /><b>{post.comments}</b></button><time>{relativeDate(post.createdAt)}</time></footer>
+    {commentsOpen && <section className="community-comments" aria-label="Comentários"><header><strong>Comentários</strong><button onClick={() => setCommentsOpen(false)} aria-label="Fechar comentários"><X size={15} /></button></header><div className="community-comments__list">{loadingComments ? <span className="community-comments__loading"><LoaderCircle size={14} className="is-spinning" /> Carregando comentários…</span> : comments.length ? comments.map((item) => <article key={item.id}><span className="community-comment-avatar">{item.profile.avatarUrl ? <img src={item.profile.avatarUrl} alt="" /> : item.profile.name.slice(0, 1)}</span><div><strong>{item.profile.name}</strong><p>{item.content}</p><small>{relativeDate(item.createdAt)}</small>{item.userId === viewerId ? <button className="community-comment-action" disabled={deletingCommentId === item.id} onClick={() => void deleteComment(item.id)}>{deletingCommentId === item.id ? 'Excluindo…' : 'Excluir'}</button> : <button className="community-comment-action" disabled={reportingCommentId === item.id} onClick={() => void reportComment(item.id)}>{reportingCommentId === item.id ? 'Enviando…' : 'Denunciar'}</button>}</div></article>) : <p className="community-comments__empty">Seja o primeiro a comentar.</p>}</div><div className="community-comment-form"><input value={comment} maxLength={500} disabled={sendingComment} placeholder="Adicionar comentário..." onChange={(event) => setComment(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendComment() } }} /><button onClick={() => void sendComment()} disabled={!comment.trim() || sendingComment} aria-label="Enviar comentário">{sendingComment ? <LoaderCircle size={15} className="is-spinning" /> : <Send size={15} />}</button></div>{commentError && <p className="community-comments__error">{commentError}</p>}</section>}
     {!post.isPermanent && post.expiresAt && <PostExpiration expiresAt={post.expiresAt} isOwner={post.userId === viewerId} />}
   </article>
 }

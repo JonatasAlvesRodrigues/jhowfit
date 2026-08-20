@@ -66,10 +66,10 @@ export interface CreateCommunityPostInput {
 type RawPost = {
   id: string; user_id: string; type: CommunityPostType; caption: string; created_at: string; is_permanent: boolean; expires_at: string | null
   post_media?: Array<{ storage_path: string }>
-  post_likes?: Array<{ user_id?: string }>
-  post_comments?: Array<{ id: string }>
   outdoor_activities?: { distance_km: number | null; duration_seconds: number | null } | null
 }
+
+type EngagementRow = { post_id: string; likes_count: number; comments_count: number; liked_by_me: boolean }
 
 export const communityService = {
   async load(userId: string): Promise<CommunityData> {
@@ -79,7 +79,7 @@ export const communityService = {
     const activeSince = new Date()
     activeSince.setDate(activeSince.getDate() - 89)
     const [postsResult, dailyStatsResult, workoutsResult, activitiesResult, mealsResult] = await Promise.all([
-      supabase.from('posts').select('id,user_id,type,caption,created_at,is_permanent,expires_at,post_media(storage_path),post_likes(user_id),post_comments(id),outdoor_activities(distance_km,duration_seconds)').order('created_at', { ascending: false }).limit(40),
+      supabase.from('posts').select('id,user_id,type,caption,created_at,is_permanent,expires_at,post_media(storage_path),outdoor_activities(distance_km,duration_seconds)').order('created_at', { ascending: false }).limit(40),
       supabase.from('daily_stats').select('date').eq('user_id', userId).gte('date', dayKey(activeSince)),
       supabase.from('workout_sessions').select('ended_at,started_at').eq('user_id', userId).eq('status', 'completed').gte('started_at', activeSince.toISOString()),
       supabase.from('outdoor_activities').select('started_at').eq('user_id', userId).gte('started_at', activeSince.toISOString()),
@@ -88,8 +88,11 @@ export const communityService = {
     if (postsResult.error) throw postsResult.error
 
     const posts = (postsResult.data ?? []) as unknown as RawPost[]
+    const engagementResult = posts.length ? await supabase.rpc('community_feed_engagement', { target_post_ids: posts.map((post) => post.id) }) : { data: [], error: null }
+    if (engagementResult.error) throw engagementResult.error
+    const engagement = new Map<string, EngagementRow>((engagementResult.data ?? []).map((item: any) => [item.post_id, item]))
     const profiles = await loadProfiles([...new Set(posts.map((post) => post.user_id))])
-    const hydratedPosts = await Promise.all(posts.map((post) => hydratePost(post, profiles, userId)))
+    const hydratedPosts = await Promise.all(posts.map((post) => hydratePost(post, profiles, engagement.get(post.id), userId)))
     const ranking = buildRanking(posts, profiles, weekStart)
     const activeDates = new Set<string>()
     ;(dailyStatsResult.data ?? []).forEach((row: any) => activeDates.add(row.date))
@@ -140,6 +143,18 @@ export const communityService = {
     if (error || !data) throw error ?? new Error('Não foi possível enviar seu comentário.')
     const profiles = await loadProfiles([userId])
     return { id: data.id, userId: data.user_id, content: data.content, createdAt: data.created_at, profile: profiles.get(userId) ?? { name: 'Você', avatarUrl: null } }
+  },
+
+  async deleteComment(commentId: string, userId: string) {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const { error } = await supabase.from('post_comments').delete().eq('id', commentId).eq('user_id', userId)
+    if (error) throw error
+  },
+
+  async reportComment(commentId: string, userId: string) {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const { error } = await supabase.from('reports').insert({ reporter_user_id: userId, target_type: 'comment', comment_id: commentId, reason: 'conteudo_inadequado' })
+    if (error) throw error
   },
 
   async listRecentActivities(userId: string, type: 'running' | 'walking'): Promise<RecentCommunityActivity[]> {
@@ -220,7 +235,7 @@ async function loadProfiles(userIds: string[]) {
   return new Map((data ?? []).map((profile: any) => [profile.id, { name: profile.full_name?.trim() || 'Membro MOVELYA', avatarUrl: profile.avatar_url ?? null }]))
 }
 
-async function hydratePost(post: RawPost, profiles: Map<string, { name: string; avatarUrl: string | null }>, userId: string): Promise<CommunityPost> {
+async function hydratePost(post: RawPost, profiles: Map<string, { name: string; avatarUrl: string | null }>, engagement: EngagementRow | undefined, userId: string): Promise<CommunityPost> {
   const mediaPath = post.post_media?.[0]?.storage_path
   const client = supabase
   let mediaUrl: string | null = null
@@ -229,10 +244,9 @@ async function hydratePost(post: RawPost, profiles: Map<string, { name: string; 
     mediaUrl = signed.data?.signedUrl ?? null
   }
   const activity = Array.isArray(post.outdoor_activities) ? post.outdoor_activities[0] : post.outdoor_activities
-  const likes = post.post_likes ?? []
   return {
     id: post.id, userId: post.user_id, type: post.type, caption: post.caption, createdAt: post.created_at, isPermanent: post.is_permanent, expiresAt: post.expires_at,
-    likedByMe: likes.some((like) => like.user_id === userId), likes: likes.length, comments: post.post_comments?.length ?? 0,
+    likedByMe: engagement?.liked_by_me ?? false, likes: Number(engagement?.likes_count ?? 0), comments: Number(engagement?.comments_count ?? 0),
     profile: profiles.get(post.user_id) ?? { name: 'Membro MOVELYA', avatarUrl: null }, mediaUrl,
     activity: activity ? { distanceKm: Number(activity.distance_km ?? 0), durationSeconds: Number(activity.duration_seconds ?? 0) } : null,
   }
