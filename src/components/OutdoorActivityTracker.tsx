@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ComponentType, type FormEvent } from 'react'
-import { Activity, Bike, Check, ChevronRight, CircleStop, Clock3, CloudOff, Crosshair, Footprints, Gauge, LocateFixed, Map, MapPin, Pause, Play, RotateCcw, Route, Share2, Sparkles, TimerReset, TriangleAlert, WifiOff, X } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type ComponentType, type FormEvent } from 'react'
+import { Activity, Bike, Check, ChevronRight, CircleStop, Clock3, CloudOff, Crosshair, Footprints, Gauge, LocateFixed, Map, MapPin, Pause, Play, RotateCcw, Route, Share2, Sparkles, TimerReset, TrendingUp, TriangleAlert, WifiOff, X } from 'lucide-react'
 import { Button, Card, Modal } from './ui'
 import { outdoorActivityService, type ActivityRecord, type ActivityType, type GpsStatus, type RoutePoint } from '../services/outdoorActivityService'
 import { liveActivityBridge } from '../services/liveActivityBridge'
@@ -50,6 +50,7 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
   const [now, setNow] = useState(Date.now())
   const originalTitle = useRef(typeof document === 'undefined' ? 'MOVELYA' : document.title)
   const wakeLock = useRef<{ release: () => Promise<void> } | null>(null)
+  const overview = useMemo(() => summarizeActivities(activities), [activities])
 
   async function loadHistory() {
     try { setActivities(await outdoorActivityService.list(userId)) }
@@ -218,9 +219,21 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
   return <>
     {(notice || error || !online) && <div className={`activity-inline-alert ${error || !online ? 'is-error' : ''}`}>{!online ? <WifiOff size={16} /> : error ? <TriangleAlert size={16} /> : <Check size={16} />}<span>{!online ? 'Sem conexão. Você pode continuar a atividade; será necessário reconectar para salvar.' : error || notice}</span>{(notice || error) && <button onClick={() => { setNotice(''); setError('') }} aria-label="Fechar aviso"><X size={14} /></button>}</div>}
 
-    <Card className="activity-launch-card">
-      <div><span><LocateFixed size={21} /></span><div><small>CAMINHADA E CORRIDA</small><h2>Comece uma atividade</h2><p>Acompanhe seu movimento ao vivo e salve o percurso quando terminar.</p></div></div>
-      <Button onClick={() => setChooserOpen(true)}><Play size={16} fill="currentColor" /> Iniciar atividade</Button>
+    <Card className="activity-overview">
+      <div className="activity-overview__intro">
+        <span><TrendingUp size={22} /></span>
+        <div><small>MOVIMENTO DE HOJE</small><h2>Qual vai ser a sua atividade?</h2><p>Comece agora, acompanhe seu ritmo e guarde cada percurso em um só lugar.</p></div>
+      </div>
+      <div className="activity-overview__stats" aria-label="Resumo das atividades dos últimos sete dias">
+        <span><b>{formatDistance(overview.distance)}</b><small>distância</small></span>
+        <span><b>{formatDuration(overview.duration)}</b><small>em movimento</small></span>
+        <span><b>{overview.activeDays}</b><small>{overview.activeDays === 1 ? 'dia ativo' : 'dias ativos'}</small></span>
+      </div>
+      <div className="activity-quick-start" aria-label="Iniciar uma atividade">
+        {activityTypes.slice(0, 4).map(({ id, label, icon: Icon }) => <button key={id} onClick={() => start(id)}><span><Icon size={19} /></span><small>{label}</small></button>)}
+        <button className="activity-quick-start__more" onClick={() => setChooserOpen(true)} aria-label="Ver todas as atividades"><span><Sparkles size={19} /></span><small>Mais</small></button>
+      </div>
+      <Button className="activity-overview__cta" onClick={() => setChooserOpen(true)}><Play size={16} fill="currentColor" /> Iniciar atividade</Button>
     </Card>
 
     <Card className="activity-recent-card">
@@ -261,6 +274,18 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
 }
 
 function LiveMetric({ icon: Icon, label, value }: { icon: ComponentType<{ size?: number }>; label: string; value: string }) { return <div><span><Icon size={18} /></span><small>{label}</small><strong>{value}</strong></div> }
+
+function summarizeActivities(activities: ActivityRecord[]) {
+  const weekStart = new Date()
+  weekStart.setHours(0, 0, 0, 0)
+  weekStart.setDate(weekStart.getDate() - 6)
+  const recent = activities.filter((activity) => new Date(activity.startedAt).getTime() >= weekStart.getTime())
+  return {
+    distance: recent.reduce((total, activity) => total + activity.distanceKm, 0),
+    duration: recent.reduce((total, activity) => total + activity.durationSeconds, 0),
+    activeDays: new Set(recent.map((activity) => new Date(activity.startedAt).toDateString())).size,
+  }
+}
 
 function ActivityDetails({ activity, previous, onClose, onShare, justSaved }: { activity: ActivityRecord; previous: ActivityRecord | null; onClose: () => void; onShare: () => void; justSaved: boolean }) {
   return <Modal title={justSaved ? 'Atividade salva!' : 'Detalhes da atividade'} onClose={onClose}><div className="activity-details">{justSaved && <div className="activity-saved-title"><span><Check size={22} /></span><div><small>TUDO CERTO</small><h3>{configFor(activity.type).label} concluída</h3></div></div>}<div className="activity-share-card"><small>MOVELYA · {configFor(activity.type).label.toUpperCase()}</small><h3>{formatDistance(activity.distanceKm)}</h3><div><span><b>{formatDuration(activity.durationSeconds)}</b><small>tempo</small></span><span><b>{formatPace(activity.averagePaceSeconds)}</b><small>ritmo</small></span><span><b>{activity.calories} kcal</b><small>estimativa</small></span></div></div><MapPreview route={activity.route} gpsStatus={activity.gpsStatus} />{activity.observation && <div className="activity-observation"><small>SUA OBSERVAÇÃO</small><p>{activity.observation}</p></div>}<div className="activity-detail-meta"><span>Dificuldade <b>{activity.difficulty}/5 · {difficultyLabel(activity.difficulty)}</b></span>{activity.interrupted && <span>Esta atividade foi recuperada após uma interrupção.</span>}</div><Comparison current={activity} previous={previous} /><div className="nutrition-modal-actions"><Button variant="secondary" onClick={onClose}>Fechar</Button><Button onClick={onShare}><Share2 size={15} /> Compartilhar card</Button></div></div></Modal>
