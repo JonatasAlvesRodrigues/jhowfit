@@ -228,6 +228,7 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
         <span><b>{formatDistance(overview.distance)}</b><small>distância</small></span>
         <span><b>{formatDuration(overview.duration)}</b><small>em movimento</small></span>
         <span><b>{overview.activeDays}</b><small>{overview.activeDays === 1 ? 'dia ativo' : 'dias ativos'}</small></span>
+        <span className="is-estimate"><b>{formatStepCount(overview.estimatedSteps)}</b><small>passos estimados</small></span>
       </div>
       <div className="activity-quick-start" aria-label="Iniciar uma atividade">
         {activityTypes.slice(0, 4).map(({ id, label, icon: Icon }) => <button key={id} onClick={() => start(id)}><span><Icon size={19} /></span><small>{label}</small></button>)}
@@ -260,13 +261,14 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
           <LiveMetric icon={Gauge} label="Velocidade" value={`${speed.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km/h`} />
           <LiveMetric icon={Sparkles} label="Calorias" value={`${calories} kcal`} />
         </section>
+        <EstimatedSteps type={session.type} distanceKm={session.distanceKm} className="activity-live-steps" />
         {!needsGps && <div className="activity-distance-adjust"><span>Atualizar distância</span><button onClick={() => adjustDistance(.1)}>+ 0,1 km</button><button onClick={() => adjustDistance(.5)}>+ 0,5 km</button></div>}
         <MapPreview route={session.route} live gpsStatus={session.gpsStatus} />
       </main>
       <footer>{session.status === 'active' ? <Button variant="secondary" onClick={pause}><Pause size={18} fill="currentColor" /> Pausar</Button> : <Button onClick={continueActivity}><Play size={18} fill="currentColor" /> Continuar</Button>}<Button className="activity-finish-button" onClick={finish}><CircleStop size={19} /> Finalizar</Button></footer>
     </div>}
 
-    {finishing && session && <Modal title="Finalizar atividade" onClose={cancelFinish}><form className="activity-finish-form" onSubmit={saveActivity}><div className="activity-finish-summary"><span><Clock3 /> <small>Tempo</small><strong>{formatDuration(elapsed(session, Date.now()))}</strong></span><span><Route /> <small>Distância</small><strong>{formatDistance(Number(distanceDraft))}</strong></span><span><Sparkles /> <small>Estimativa</small><strong>{Math.round(elapsed(session, Date.now()) / 60 * calorieRate[session.type])} kcal</strong></span></div><label className="field"><span>Distância final (km)</span><input required type="number" min="0" max="1000" step="0.01" value={distanceDraft} onChange={(event) => setDistanceDraft(event.target.value)} /></label><label className="activity-textarea"><span>Observação</span><textarea maxLength={1000} value={observation} onChange={(event) => setObservation(event.target.value)} placeholder="Como foi a atividade? Clima, terreno, sensação…" /></label><fieldset className="activity-difficulty"><legend>Dificuldade percebida</legend><div>{[1,2,3,4,5].map((value) => <button type="button" key={value} className={difficulty === value ? 'is-selected' : ''} onClick={() => setDifficulty(value)}><b>{value}</b><small>{difficultyLabel(value)}</small></button>)}</div></fieldset><MapPreview route={session.route} gpsStatus={session.gpsStatus} /><div className="nutrition-modal-actions"><Button variant="secondary" type="button" onClick={cancelFinish}>Voltar à atividade</Button><Button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Salvar atividade'}</Button></div></form></Modal>}
+    {finishing && session && <Modal title="Finalizar atividade" onClose={cancelFinish}><form className="activity-finish-form" onSubmit={saveActivity}><div className="activity-finish-summary"><span><Clock3 /> <small>Tempo</small><strong>{formatDuration(elapsed(session, Date.now()))}</strong></span><span><Route /> <small>Distância</small><strong>{formatDistance(Number(distanceDraft))}</strong></span><span><Sparkles /> <small>Estimativa</small><strong>{Math.round(elapsed(session, Date.now()) / 60 * calorieRate[session.type])} kcal</strong></span></div><EstimatedSteps type={session.type} distanceKm={Number(distanceDraft)} className="activity-finish-steps" /><label className="field"><span>Distância final (km)</span><input required type="number" min="0" max="1000" step="0.01" value={distanceDraft} onChange={(event) => setDistanceDraft(event.target.value)} /></label><label className="activity-textarea"><span>Observação</span><textarea maxLength={1000} value={observation} onChange={(event) => setObservation(event.target.value)} placeholder="Como foi a atividade? Clima, terreno, sensação…" /></label><fieldset className="activity-difficulty"><legend>Dificuldade percebida</legend><div>{[1,2,3,4,5].map((value) => <button type="button" key={value} className={difficulty === value ? 'is-selected' : ''} onClick={() => setDifficulty(value)}><b>{value}</b><small>{difficultyLabel(value)}</small></button>)}</div></fieldset><MapPreview route={session.route} gpsStatus={session.gpsStatus} /><div className="nutrition-modal-actions"><Button variant="secondary" type="button" onClick={cancelFinish}>Voltar à atividade</Button><Button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Salvar atividade'}</Button></div></form></Modal>}
 
     {(saved || details) && <ActivityDetails activity={(saved ?? details)!} previous={previousComparable((saved ?? details)!, activities)} onClose={() => { setSaved(null); setDetails(null) }} onShare={() => setShareTarget((saved ?? details)!)} justSaved={Boolean(saved)} />}
     {shareTarget && <ActivityShareModal activity={shareTarget} style={shareStyle} onStyleChange={setShareStyle} onClose={() => setShareTarget(null)} onShare={() => { void share(shareTarget, shareStyle); setShareTarget(null) }} />}
@@ -274,6 +276,12 @@ export function OutdoorActivityTracker({ userId, startRequest = 0 }: { userId: s
 }
 
 function LiveMetric({ icon: Icon, label, value }: { icon: ComponentType<{ size?: number }>; label: string; value: string }) { return <div><span><Icon size={18} /></span><small>{label}</small><strong>{value}</strong></div> }
+
+function EstimatedSteps({ type, distanceKm, className }: { type: ActivityType; distanceKm: number; className: string }) {
+  const steps = estimateSteps(type, distanceKm)
+  if (steps === null) return null
+  return <div className={`activity-steps-estimate ${className}`}><Footprints size={17} /><span><strong>{formatStepCount(steps)} passos</strong><small>Estimativa pela distância registrada</small></span></div>
+}
 
 function summarizeActivities(activities: ActivityRecord[]) {
   const weekStart = new Date()
@@ -284,11 +292,21 @@ function summarizeActivities(activities: ActivityRecord[]) {
     distance: recent.reduce((total, activity) => total + activity.distanceKm, 0),
     duration: recent.reduce((total, activity) => total + activity.durationSeconds, 0),
     activeDays: new Set(recent.map((activity) => new Date(activity.startedAt).toDateString())).size,
+    estimatedSteps: recent.reduce((total, activity) => total + (estimateSteps(activity.type, activity.distanceKm) ?? 0), 0),
   }
 }
 
+function estimateSteps(type: ActivityType, distanceKm: number) {
+  if (!Number.isFinite(distanceKm) || distanceKm <= 0) return null
+  if (type === 'walk') return Math.round(distanceKm * 1429)
+  if (type === 'run') return Math.round(distanceKm * 952)
+  return null
+}
+
+function formatStepCount(steps: number) { return Math.round(steps).toLocaleString('pt-BR') }
+
 function ActivityDetails({ activity, previous, onClose, onShare, justSaved }: { activity: ActivityRecord; previous: ActivityRecord | null; onClose: () => void; onShare: () => void; justSaved: boolean }) {
-  return <Modal title={justSaved ? 'Atividade salva!' : 'Detalhes da atividade'} onClose={onClose}><div className="activity-details">{justSaved && <div className="activity-saved-title"><span><Check size={22} /></span><div><small>TUDO CERTO</small><h3>{configFor(activity.type).label} concluída</h3></div></div>}<div className="activity-share-card"><small>MOVELYA · {configFor(activity.type).label.toUpperCase()}</small><h3>{formatDistance(activity.distanceKm)}</h3><div><span><b>{formatDuration(activity.durationSeconds)}</b><small>tempo</small></span><span><b>{formatPace(activity.averagePaceSeconds)}</b><small>ritmo</small></span><span><b>{activity.calories} kcal</b><small>estimativa</small></span></div></div><MapPreview route={activity.route} gpsStatus={activity.gpsStatus} />{activity.observation && <div className="activity-observation"><small>SUA OBSERVAÇÃO</small><p>{activity.observation}</p></div>}<div className="activity-detail-meta"><span>Dificuldade <b>{activity.difficulty}/5 · {difficultyLabel(activity.difficulty)}</b></span>{activity.interrupted && <span>Esta atividade foi recuperada após uma interrupção.</span>}</div><Comparison current={activity} previous={previous} /><div className="nutrition-modal-actions"><Button variant="secondary" onClick={onClose}>Fechar</Button><Button onClick={onShare}><Share2 size={15} /> Compartilhar card</Button></div></div></Modal>
+  return <Modal title={justSaved ? 'Atividade salva!' : 'Detalhes da atividade'} onClose={onClose}><div className="activity-details">{justSaved && <div className="activity-saved-title"><span><Check size={22} /></span><div><small>TUDO CERTO</small><h3>{configFor(activity.type).label} concluída</h3></div></div>}<div className="activity-share-card"><small>MOVELYA · {configFor(activity.type).label.toUpperCase()}</small><h3>{formatDistance(activity.distanceKm)}</h3><div><span><b>{formatDuration(activity.durationSeconds)}</b><small>tempo</small></span><span><b>{formatPace(activity.averagePaceSeconds)}</b><small>ritmo</small></span><span><b>{activity.calories} kcal</b><small>estimativa</small></span></div></div><EstimatedSteps type={activity.type} distanceKm={activity.distanceKm} className="activity-detail-steps" /><MapPreview route={activity.route} gpsStatus={activity.gpsStatus} />{activity.observation && <div className="activity-observation"><small>SUA OBSERVAÇÃO</small><p>{activity.observation}</p></div>}<div className="activity-detail-meta"><span>Dificuldade <b>{activity.difficulty}/5 · {difficultyLabel(activity.difficulty)}</b></span>{activity.interrupted && <span>Esta atividade foi recuperada após uma interrupção.</span>}</div><Comparison current={activity} previous={previous} /><div className="nutrition-modal-actions"><Button variant="secondary" onClick={onClose}>Fechar</Button><Button onClick={onShare}><Share2 size={15} /> Compartilhar card</Button></div></div></Modal>
 }
 
 function ActivityShareModal({ activity, style, onStyleChange, onClose, onShare }: { activity: ActivityRecord; style: ShareCardStyle; onStyleChange: (style: ShareCardStyle) => void; onClose: () => void; onShare: () => void }) {
