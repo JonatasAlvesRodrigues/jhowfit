@@ -21,6 +21,7 @@ import { FitnessChatPage } from './pages/FitnessChatPage'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { AchievementsPage } from './pages/AchievementsPage'
 import { CommunityPage } from './pages/CommunityPage'
+import { CommunityProfilePage } from './pages/CommunityProfilePage'
 import { PwaInstallPrompt } from './components/PwaInstallPrompt'
 import { PwaUpdatePrompt } from './components/PwaUpdatePrompt'
 import { PlanWelcomeModal } from './components/PlanWelcomeModal'
@@ -242,7 +243,7 @@ export default function App() {
               {status === 'transitioning' && <span />}
             </div>
             <div className="vita-content" aria-live="polite">
-              <div ref={routeStageRef} key={route?.id ?? 'not-found'} className="vita-route-stage">
+              <div ref={routeStageRef} key={`${route?.id ?? 'not-found'}:${typeof window === 'undefined' ? '' : window.location.search}`} className="vita-route-stage">
               {route?.id === 'inicio' && (user || import.meta.env.DEV) ? (
                 <DailyDashboardPage userId={user?.id ?? '00000000-0000-0000-0000-000000000000'} onNavigate={navigate} />
               ) : route?.id === 'dieta' && user ? (
@@ -283,6 +284,8 @@ export default function App() {
                 <AchievementsPage userId={user?.id ?? 'development-preview'} />
               ) : route?.id === 'comunidade' && (user || import.meta.env.DEV) ? (
                 <CommunityPage userId={user?.id ?? 'development-preview'} onNavigate={navigate} />
+              ) : route?.id === 'perfil-social' && user ? (
+                <CommunityProfilePage viewerId={user.id} targetUserId={new URLSearchParams(window.location.search).get('user') ?? ''} onNavigate={navigate} />
               ) : route ? (
                 <RoutePlaceholder route={route} onNavigate={navigate} />
               ) : (

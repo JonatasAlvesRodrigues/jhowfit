@@ -65,6 +65,6 @@ function getCurrentPath() {
   if (isGitHubPages()) {
     return window.location.hash.slice(1) || '/inicio'
   }
-  return window.location.pathname
+  return `${window.location.pathname}${window.location.search}`
 }
 

@@ -34,6 +34,27 @@ export interface CommunityComment {
   profile: { name: string; avatarUrl: string | null }
 }
 
+export interface CommunitySocialAchievement { id: string; title: string }
+
+export interface CommunitySocialProfile {
+  state: 'available' | 'private' | 'blocked' | 'not_found'
+  userId?: string
+  name?: string
+  avatarUrl?: string | null
+  username?: string | null
+  bio?: string | null
+  isOwnProfile?: boolean
+  followingByMe?: boolean
+  profileVisibility?: 'public' | 'private'
+  activityVisibility?: 'public' | 'private'
+  followersCount?: number
+  followingCount?: number
+  streak?: number | null
+  workoutsCount?: number | null
+  distanceKm?: number | null
+  achievements?: CommunitySocialAchievement[]
+}
+
 export interface CommunityData {
   summary: { streak: number; weeklyWorkouts: number; position: number | null }
   posts: CommunityPost[]
@@ -154,6 +175,52 @@ export const communityService = {
   async reportComment(commentId: string, userId: string) {
     if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
     const { error } = await supabase.from('reports').insert({ reporter_user_id: userId, target_type: 'comment', comment_id: commentId, reason: 'conteudo_inadequado' })
+    if (error) throw error
+  },
+
+  async loadSocialProfile(targetUserId: string): Promise<CommunitySocialProfile> {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const { data, error } = await supabase.rpc('community_social_profile', { target_user_id: targetUserId })
+    if (error || !data) throw error ?? new Error('Não foi possível carregar este perfil.')
+    const item = data as any
+    return {
+      state: item.state,
+      userId: item.user_id,
+      name: item.name,
+      avatarUrl: item.avatar_url ?? null,
+      username: item.username ?? null,
+      bio: item.bio ?? null,
+      isOwnProfile: Boolean(item.is_own_profile),
+      followingByMe: Boolean(item.following_by_me),
+      profileVisibility: item.profile_visibility,
+      activityVisibility: item.activity_visibility,
+      followersCount: Number(item.followers_count ?? 0),
+      followingCount: Number(item.following_count ?? 0),
+      streak: item.streak === null || item.streak === undefined ? null : Number(item.streak),
+      workoutsCount: item.workouts_count === null || item.workouts_count === undefined ? null : Number(item.workouts_count),
+      distanceKm: item.distance_km === null || item.distance_km === undefined ? null : Number(item.distance_km),
+      achievements: Array.isArray(item.achievements) ? item.achievements.map((achievement: any) => ({ id: String(achievement.id), title: String(achievement.title) })) : [],
+    }
+  },
+
+  async loadUserPosts(userId: string, viewerId: string): Promise<CommunityPost[]> {
+    if (!supabase) return []
+    const { data, error } = await supabase.from('posts').select('id,user_id,type,caption,created_at,is_permanent,expires_at,post_media(storage_path),outdoor_activities(distance_km,duration_seconds)').eq('user_id', userId).order('created_at', { ascending: false }).limit(40)
+    if (error) throw error
+    const posts = (data ?? []) as unknown as RawPost[]
+    const engagementResult = posts.length ? await supabase.rpc('community_feed_engagement', { target_post_ids: posts.map((post) => post.id) }) : { data: [], error: null }
+    if (engagementResult.error) throw engagementResult.error
+    const engagement = new Map<string, EngagementRow>((engagementResult.data ?? []).map((item: any) => [item.post_id, item]))
+    const profiles = await loadProfiles([userId])
+    return Promise.all(posts.map((post) => hydratePost(post, profiles, engagement.get(post.id), viewerId)))
+  },
+
+  async toggleFollow(targetUserId: string, viewerId: string, following: boolean) {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    if (targetUserId === viewerId) throw new Error('Você não pode seguir seu próprio perfil.')
+    const { error } = following
+      ? await supabase.from('follows').delete().eq('follower_id', viewerId).eq('following_id', targetUserId)
+      : await supabase.from('follows').insert({ follower_id: viewerId, following_id: targetUserId })
     if (error) throw error
   },
 
