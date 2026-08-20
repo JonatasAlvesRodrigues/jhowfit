@@ -1020,14 +1020,32 @@ textarea:focus-visible {
 }
 
 @media (max-width: 720px) {
+  /* Keep the compact app chrome aligned with the mobile reference. */
+  .vita-header {
+    height: 72px;
+    padding-inline: 14px;
+  }
+
+  .header-menu-button,
+  .theme-status,
+  .vita-icon-button {
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    border-radius: 13px !important;
+  }
+
+  .vita-profile { min-height: 44px; }
+  .profile-avatar { width: 44px; height: 44px; border-radius: 13px !important; }
+
   .vita-bottom-nav {
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
     width: auto !important;
     max-width: none !important;
-    min-height: 62px !important;
-    padding: 5px 10px calc(5px + env(safe-area-inset-bottom)) !important;
+    min-height: 76px !important;
+    padding: 7px 10px calc(7px + env(safe-area-inset-bottom)) !important;
     margin: 0 !important;
     transform: none !important;
     background: var(--product-surface) !important;
@@ -1040,7 +1058,7 @@ textarea:focus-visible {
   .vita-bottom-nav button,
   .vita-bottom-nav button[data-route="assistente"] {
     min-width: 0 !important;
-    min-height: 50px !important;
+    min-height: 56px !important;
     margin: 0 !important;
     padding: 4px 2px !important;
     background: transparent !important;
@@ -1049,13 +1067,15 @@ textarea:focus-visible {
     box-shadow: none !important;
     color: var(--product-muted) !important;
     transform: none !important;
+    font-size: 8.5px !important;
+    font-weight: 700 !important;
   }
 
   .vita-bottom-nav .bottom-icon,
   .vita-bottom-nav button[data-route="assistente"] .bottom-icon {
-    width: 28px !important;
-    height: 28px !important;
-    margin: 0 auto 2px !important;
+    width: 30px !important;
+    height: 30px !important;
+    margin: 0 auto 3px !important;
     background: transparent !important;
     border: 0 !important;
     border-radius: 0 !important;
@@ -1077,14 +1097,7 @@ textarea:focus-visible {
   }
 
   .vita-bottom-nav button.is-active::before {
-    top: auto !important;
-    bottom: -5px !important;
-    left: 50% !important;
-    width: 14px !important;
-    height: 2px !important;
-    border-radius: 4px 4px 0 0 !important;
-    background: var(--product-primary) !important;
-    transform: translateX(-50%) !important;
+    display: none !important;
   }
 }
 
