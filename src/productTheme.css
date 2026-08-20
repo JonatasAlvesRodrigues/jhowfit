@@ -1083,6 +1083,27 @@ textarea:focus-visible {
     transform: none !important;
   }
 
+  /* The assistant is an intentional shortcut, not a faded third tab. */
+  .vita-bottom-nav button[data-route="assistente"] {
+    color: var(--product-primary) !important;
+  }
+
+  .vita-bottom-nav button[data-route="assistente"] .bottom-icon {
+    display: grid !important;
+    place-items: center;
+    color: var(--product-primary) !important;
+    background: var(--product-primary-soft) !important;
+    border: 1px solid color-mix(in srgb, var(--product-primary) 20%, var(--product-line)) !important;
+    border-radius: 10px !important;
+  }
+
+  .vita-bottom-nav button[data-route="assistente"] .bottom-icon svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.15;
+  }
+
   .vita-bottom-nav button.is-active,
   .vita-bottom-nav button[data-route="assistente"].is-active {
     background: transparent !important;
@@ -1094,6 +1115,12 @@ textarea:focus-visible {
     background: transparent !important;
     color: var(--product-primary) !important;
     box-shadow: none !important;
+  }
+
+  .vita-bottom-nav button[data-route="assistente"].is-active .bottom-icon {
+    color: #fff !important;
+    background: var(--product-primary) !important;
+    border-color: var(--product-primary) !important;
   }
 
   .vita-bottom-nav button.is-active::before {

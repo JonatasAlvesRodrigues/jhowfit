@@ -1,5 +1,5 @@
 import {
-  Activity, Apple, Bot, ChartNoAxesCombined, ClipboardMinus, Droplets, Dumbbell, Goal, House, Library,
+  Activity, Apple, ChartNoAxesCombined, ClipboardMinus, Droplets, Dumbbell, Goal, House, Library, Sparkles,
   Bell, KeyRound, LogOut, MailCheck, Medal, Settings, ShieldCheck, UserPlus, UserRound, LockKeyhole, Crown,
 } from 'lucide-react'
 import type { RouteId, VitaRoute } from '../types/navigation'
@@ -13,7 +13,7 @@ export const vitaRoutes: VitaRoute[] = [
   { id: 'atividades', path: '/atividades', label: 'Atividades', mobileLabel: 'Atividade', eyebrow: 'VIDA ATIVA', description: 'Corridas, caminhadas, passos e todas as suas atividades.', icon: Activity },
   { id: 'evolucao', path: '/evolucao', label: 'Evolução', eyebrow: 'PROGRESSO', description: 'Visualize mudanças no corpo e celebre cada avanço.', icon: ChartNoAxesCombined },
   { id: 'relatorios', path: '/relatorios', label: 'Relatórios', eyebrow: 'ANÁLISES', description: 'Entenda seus hábitos por meio de relatórios claros.', icon: ClipboardMinus },
-  { id: 'assistente', path: '/assistente', label: 'Assistente IA', mobileLabel: 'IA', eyebrow: 'INTELIGÊNCIA', description: 'Converse com a IA usando apenas os dados que você autorizar.', icon: Bot },
+  { id: 'assistente', path: '/assistente', label: 'Assistente IA', mobileLabel: 'IA', eyebrow: 'INTELIGÊNCIA', description: 'Converse com a IA usando apenas os dados que você autorizar.', icon: Sparkles },
   { id: 'metas', path: '/metas', label: 'Metas', eyebrow: 'OBJETIVOS', description: 'Defina aonde quer chegar e acompanhe seu ritmo.', icon: Goal },
   { id: 'conquistas', path: '/conquistas', label: 'Conquistas', eyebrow: 'CONSISTÊNCIA', description: 'Celebre sua constância, suas medalhas e cada passo da sua evolução.', icon: Medal },
   { id: 'perfil', path: '/perfil', label: 'Perfil', eyebrow: 'SUA CONTA', description: 'Gerencie suas informações e preferências pessoais.', icon: UserRound },
