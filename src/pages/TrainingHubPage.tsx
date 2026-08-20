@@ -184,6 +184,7 @@ export function TrainingHubPage({ userId }: { userId: string }) {
       {tab === 'ai' && <AIWorkoutGenerator userId={userId} profile={hub.data.profile} library={hub.data.library} onSave={hub.saveGenerated} />}
       {tab === 'plans' && (
         <>
+          <TrainingOverview workouts={hub.data.workouts} onStart={setRunningWorkout} onCreate={() => setEditor(createEmptyWorkout())} />
           <WeeklyWorkoutView workouts={hub.data.workouts} />
 
           <section className="workout-list-section">
@@ -254,6 +255,27 @@ export function TrainingHubPage({ userId }: { userId: string }) {
       )}
     </section>
   )
+}
+
+function TrainingOverview({ workouts, onStart, onCreate }: { workouts: WorkoutSummary[]; onStart: (workout: WorkoutSummary) => void; onCreate: () => void }) {
+  const activeWorkouts = workouts.filter((workout) => workout.active)
+  const today = weekDays[(new Date().getDay() + 6) % 7]
+  const nextWorkout = activeWorkouts.find((workout) => workout.days.includes(today)) ?? activeWorkouts[0]
+  const exerciseCount = activeWorkouts.reduce((total, workout) => total + workout.exercises.length, 0)
+  const scheduledDays = new Set(activeWorkouts.flatMap((workout) => workout.days)).size
+
+  return <section className="training-overview">
+    <div className="training-overview__next">
+      <span><Dumbbell size={23} /></span>
+      <div><small>{nextWorkout?.days.includes(today) ? 'TREINO PROGRAMADO PARA HOJE' : 'PRÓXIMA SESSÃO DISPONÍVEL'}</small><h2>{nextWorkout ? nextWorkout.name : 'Monte a sua primeira ficha'}</h2><p>{nextWorkout ? (nextWorkout.focus || nextWorkout.notes || `${nextWorkout.exercises.length} exercícios preparados para você.`) : 'Crie um treino manual ou use um modelo para começar sua rotina.'}</p></div>
+      {nextWorkout ? <button onClick={() => onStart(nextWorkout)}><Play size={16} fill="currentColor" /> Começar treino</button> : <button onClick={onCreate}><Plus size={16} /> Criar treino</button>}
+    </div>
+    <div className="training-overview__stats" aria-label="Resumo das fichas ativas">
+      <span><b>{activeWorkouts.length}</b><small>{activeWorkouts.length === 1 ? 'ficha ativa' : 'fichas ativas'}</small></span>
+      <span><b>{exerciseCount}</b><small>{exerciseCount === 1 ? 'exercício' : 'exercícios'}</small></span>
+      <span><b>{scheduledDays}</b><small>{scheduledDays === 1 ? 'dia planejado' : 'dias planejados'}</small></span>
+    </div>
+  </section>
 }
 
 function WeeklyWorkoutView({ workouts }: { workouts: WorkoutSummary[] }) {
