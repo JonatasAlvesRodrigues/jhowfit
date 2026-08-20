@@ -1451,3 +1451,186 @@ textarea:focus-visible {
 :root[data-theme="light"] .privacy-permission b { background: #cbd9d1 !important; }
 :root[data-theme="light"] .privacy-permission input:checked + b { background: #0f8a5d !important; }
 :root[data-theme="light"] .privacy-photo-notice { color: #376c54 !important; border-color: rgba(19, 155, 103, .17) !important; background: #edf9f1 !important; }
+
+/* Unified training workspace: the four training areas share the same calm, clear visual language. */
+.training-hub-page { gap: 18px !important; }
+.training-hub-heading {
+  min-height: 132px !important;
+  padding: 24px !important;
+  border: 1px solid var(--product-line) !important;
+  border-radius: 22px !important;
+  background: linear-gradient(125deg, var(--product-primary-soft), var(--product-surface) 48%) !important;
+  box-shadow: var(--product-shadow) !important;
+}
+.training-hub-heading h1 { color: var(--product-text) !important; }
+.training-hub-heading p { color: var(--product-muted) !important; }
+.training-hub-heading > button { color: #fff !important; background: var(--product-primary) !important; box-shadow: 0 10px 20px color-mix(in srgb, var(--product-primary) 20%, transparent) !important; }
+.training-tabs {
+  min-height: 62px !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  gap: 6px !important;
+  border-color: var(--product-line) !important;
+  border-radius: 18px !important;
+  background: var(--product-surface) !important;
+  box-shadow: var(--product-shadow) !important;
+}
+.training-tabs button {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  min-height: 48px !important;
+  justify-content: center !important;
+  color: var(--product-muted) !important;
+  border-radius: 13px !important;
+}
+.training-tabs button:hover { color: var(--product-primary) !important; background: var(--product-surface-soft) !important; }
+.training-tabs button.is-active { color: #fff !important; background: var(--product-primary) !important; box-shadow: 0 8px 16px color-mix(in srgb, var(--product-primary) 21%, transparent) !important; }
+.training-tabs button span { color: inherit !important; border-color: currentColor !important; opacity: .8; }
+
+.training-hub-page .library-heading,
+.training-hub-page .history-heading,
+.training-hub-page .ai-setup-hero,
+.training-hub-page .ai-review-heading {
+  border-color: var(--product-line) !important;
+  background: linear-gradient(125deg, var(--product-primary-soft), var(--product-surface) 52%) !important;
+  box-shadow: var(--product-shadow) !important;
+}
+.training-hub-page .library-heading {
+  min-height: 132px !important;
+  margin-top: 2px !important;
+  padding: 24px !important;
+  border: 1px solid var(--product-line) !important;
+  border-radius: 22px !important;
+}
+.training-hub-page .library-heading h1,
+.training-hub-page .history-heading h1,
+.training-hub-page .ai-setup-hero h1,
+.training-hub-page .ai-review-heading h1 { color: var(--product-text) !important; }
+.training-hub-page .library-heading p,
+.training-hub-page .history-heading p,
+.training-hub-page .ai-setup-hero p,
+.training-hub-page .ai-review-heading p { color: var(--product-muted) !important; }
+.training-hub-page .library-heading > span,
+.training-hub-page .history-heading > svg {
+  color: var(--product-primary) !important;
+  border-color: color-mix(in srgb, var(--product-primary) 22%, transparent) !important;
+  background: var(--product-primary-soft) !important;
+}
+.training-hub-page .recent-exercises { margin: 0 !important; padding: 18px !important; border: 1px solid var(--product-line) !important; border-radius: 20px !important; background: var(--product-surface) !important; box-shadow: var(--product-shadow) !important; }
+.training-hub-page .recent-exercises__track > button {
+  border-color: var(--product-line) !important;
+  color: var(--product-text) !important;
+  background: var(--product-surface-soft) !important;
+}
+.training-hub-page .recent-exercises__track > button:hover { border-color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+.training-hub-page .recent-exercises__track small,
+.training-hub-page .library-results__top,
+.training-hub-page .library-filters__heading button { color: var(--product-muted) !important; }
+.training-hub-page .library-toolbar { margin: 0 !important; padding: 12px !important; border: 1px solid var(--product-line) !important; border-radius: 18px !important; background: var(--product-surface) !important; box-shadow: var(--product-shadow) !important; }
+.training-hub-page .library-search,
+.training-hub-page .favorite-filter,
+.training-hub-page .library-filters {
+  border-color: var(--product-line) !important;
+  color: var(--product-text) !important;
+  background: var(--product-surface-soft) !important;
+}
+.training-hub-page .library-search input { color: var(--product-text) !important; }
+.training-hub-page .library-search input::placeholder { color: var(--product-muted) !important; }
+.training-hub-page .favorite-filter.is-active { color: var(--product-primary) !important; border-color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+.training-hub-page .library-layout { gap: 14px !important; }
+.training-hub-page .library-filters { padding: 18px !important; border-radius: 18px !important; }
+.training-hub-page .library-filters__heading { color: var(--product-text) !important; }
+.training-hub-page .library-results { padding: 14px !important; border: 1px solid var(--product-line) !important; border-radius: 20px !important; background: var(--product-surface) !important; box-shadow: var(--product-shadow) !important; }
+
+/* History previously inherited dark panels in light mode; each value now has explicit contrast. */
+.training-hub-page .history-heading { min-height: 132px !important; padding: 24px !important; border: 1px solid var(--product-line) !important; border-radius: 22px !important; }
+.training-hub-page .history-kpis > div,
+.training-hub-page .history-panel,
+.training-hub-page .exercise-progress-panel,
+.training-hub-page .history-empty,
+.training-hub-page .history-state {
+  border-color: var(--product-line) !important;
+  color: var(--product-text) !important;
+  background: var(--product-surface) !important;
+  box-shadow: var(--product-shadow) !important;
+}
+.training-hub-page .history-kpis > div { border-radius: 17px !important; }
+.training-hub-page .history-kpis small,
+.training-hub-page .history-panel p,
+.training-hub-page .history-panel > header > span,
+.training-hub-page .exercise-progress-panel small,
+.training-hub-page .history-empty p,
+.training-hub-page .history-state p { color: var(--product-muted) !important; }
+.training-hub-page .history-kpis strong,
+.training-hub-page .history-panel h2,
+.training-hub-page .history-panel h3,
+.training-hub-page .exercise-progress-panel h2,
+.training-hub-page .exercise-progress-panel h3,
+.training-hub-page .recent-workouts__main strong,
+.training-hub-page .rank-panel strong { color: var(--product-text) !important; }
+.training-hub-page .history-kpis svg,
+.training-hub-page .recent-workouts__icon { color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+.training-hub-page .workout-calendar > header button,
+.training-hub-page .calendar-grid > div,
+.training-hub-page .recent-workouts article,
+.training-hub-page .recent-workouts > div > button,
+.training-hub-page .exercise-progress-kpis > div,
+.training-hub-page .exercise-history-charts > div {
+  border-color: var(--product-line) !important;
+  color: var(--product-text) !important;
+  background: var(--product-surface-soft) !important;
+}
+.training-hub-page .calendar-weekdays span,
+.training-hub-page .calendar-grid > div,
+.training-hub-page .recent-workouts__main small,
+.training-hub-page .recent-workouts__main p,
+.training-hub-page .recent-workouts__metrics small { color: var(--product-muted) !important; }
+.training-hub-page .calendar-grid > div.has-training { color: #fff !important; border-color: var(--product-primary) !important; background: var(--product-primary) !important; }
+.training-hub-page .recent-workouts > div > button:hover { border-color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+
+.training-hub-page .ai-profile-preview,
+.training-hub-page .ai-extra-preferences,
+.training-hub-page .ai-review-meta,
+.training-hub-page .ai-generated-workouts > article {
+  border-color: var(--product-line) !important;
+  background: var(--product-surface) !important;
+  box-shadow: var(--product-shadow) !important;
+}
+.training-hub-page .ai-profile-grid > div,
+.training-hub-page .ai-weekly-split span,
+.training-hub-page .ai-exercise-review { border-color: var(--product-line) !important; background: var(--product-surface-soft) !important; }
+.training-hub-page .ai-profile-grid strong,
+.training-hub-page .ai-workout-toggle { color: var(--product-text) !important; }
+.training-hub-page .ai-profile-grid small,
+.training-hub-page .ai-priority-picker > span,
+.training-hub-page .ai-workout-toggle small { color: var(--product-muted) !important; }
+
+@media (max-width: 720px) {
+  .training-hub-page { gap: 14px !important; }
+  .training-hub-heading,
+  .training-hub-page .library-heading,
+  .training-hub-page .history-heading { min-height: 0 !important; padding: 19px !important; border-radius: 20px !important; }
+  .training-hub-heading h1,
+  .training-hub-page .library-heading h1,
+  .training-hub-page .history-heading h1 { font-size: 25px !important; line-height: 1.1 !important; }
+  .training-hub-heading p,
+  .training-hub-page .library-heading p,
+  .training-hub-page .history-heading p { max-width: 260px !important; font-size: 10px !important; line-height: 1.45 !important; }
+  .training-tabs { min-height: 60px !important; margin: 0 !important; overflow: visible !important; }
+  .training-tabs button { min-width: 0 !important; padding: 0 !important; font-size: 0 !important; }
+  .training-tabs button svg { width: 20px !important; height: 20px !important; }
+  .training-tabs button span { display: none !important; }
+  .training-hub-page .library-heading > span,
+  .training-hub-page .history-heading > svg { flex-basis: 46px !important; width: 46px !important; height: 46px !important; }
+  .training-hub-page .recent-exercises { padding: 15px !important; border-radius: 18px !important; }
+  .training-hub-page .recent-exercises__track { margin-top: 10px !important; }
+  .training-hub-page .recent-exercises__track > button { flex-basis: 252px !important; }
+  .training-hub-page .library-toolbar { position: static !important; padding: 9px !important; }
+  .training-hub-page .library-filters,
+  .training-hub-page .library-results { border-radius: 18px !important; }
+  .training-hub-page .library-results { padding: 11px !important; }
+  .training-hub-page .ai-setup-hero,
+  .training-hub-page .ai-review-heading { min-height: 0 !important; padding: 19px !important; border-radius: 20px !important; }
+  .training-hub-page .history-kpis { gap: 9px !important; }
+  .training-hub-page .history-kpis > div { min-height: 82px !important; padding: 12px !important; }
+}
