@@ -368,6 +368,19 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
         <MacroCard label="Fibras" value={summary?.fiber ?? 0} goal={summary?.goals.fiber ?? 0} unit="g" color="green" />
       </div>
 
+      <NutritionDayGuide
+        sections={sections}
+        calories={summary?.calories ?? 0}
+        caloriesGoal={summary?.caloriesGoal ?? 0}
+        protein={summary?.protein ?? 0}
+        proteinGoal={summary?.goals.protein ?? 0}
+        carbs={summary?.carbs ?? 0}
+        carbsGoal={summary?.goals.carbs ?? 0}
+        fat={summary?.fat ?? 0}
+        fatGoal={summary?.goals.fat ?? 0}
+        onAdd={(section) => openFood(fallbackFoodForSection(section), section)}
+      />
+
       <div className="nutrition-layout">
         <div className="nutrition-main-column">
           <Card className="nutrition-toolbar">
@@ -742,6 +755,59 @@ function MacroCard({
       <strong>{Math.round(value)}<span>/{Math.round(goal)} {unit}</span></strong>
       <Progress value={progress} color={color} />
       <p>{progress >= 100 ? 'Meta atingida' : `${Math.max(Math.round(goal - value), 0)} ${unit} restantes`}</p>
+    </Card>
+  )
+}
+
+function NutritionDayGuide({
+  sections,
+  calories,
+  caloriesGoal,
+  protein,
+  proteinGoal,
+  carbs,
+  carbsGoal,
+  fat,
+  fatGoal,
+  onAdd,
+}: {
+  sections: DiarySection[]
+  calories: number
+  caloriesGoal: number
+  protein: number
+  proteinGoal: number
+  carbs: number
+  carbsGoal: number
+  fat: number
+  fatGoal: number
+  onAdd: (section: MealSection) => void
+}) {
+  const registeredMeals = sections.reduce((total, section) => total + section.meals.length, 0)
+  const filledSections = sections.filter((section) => section.meals.length > 0).length
+  const nextSection = sections.find((section) => section.meals.length === 0) ?? sections[0]
+  const caloriesRemaining = Math.max(Math.round(caloriesGoal - calories), 0)
+  const focus = [
+    { label: 'proteína', value: protein, goal: proteinGoal },
+    { label: 'carboidratos', value: carbs, goal: carbsGoal },
+    { label: 'gorduras', value: fat, goal: fatGoal },
+  ].filter((item) => item.goal > item.value).sort((a, b) => ((b.goal - b.value) / b.goal) - ((a.goal - a.value) / a.goal))[0]
+
+  return (
+    <Card className="nutrition-day-guide">
+      <div className="nutrition-day-guide__intro">
+        <span><CalendarClock size={19} /></span>
+        <div>
+          <small>PLANEJAMENTO DE HOJE</small>
+          <h2>Seu dia alimentar, de forma clara.</h2>
+          <p>{registeredMeals ? `${registeredMeals} alimento(s) registrados em ${filledSections} refeição(ões).` : 'Comece registrando a primeira refeição do dia.'}</p>
+        </div>
+      </div>
+      <div className="nutrition-day-guide__facts">
+        <span><small>RESTANTE</small><strong>{caloriesRemaining} <em>kcal</em></strong></span>
+        <span><small>REFEIÇÕES</small><strong>{filledSections}<em>/{sections.length}</em></strong></span>
+        <span><small>PRIORIDADE</small><strong>{focus ? `${Math.max(Math.round(focus.goal - focus.value), 0)} g` : 'Em dia'}<em>{focus?.label ?? 'metas'}</em></strong></span>
+      </div>
+      {nextSection && <button type="button" onClick={() => onAdd(nextSection.section)}><Plus size={16} /> Adicionar em {nextSection.section}</button>}
     </Card>
   )
 }
