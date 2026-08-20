@@ -5,7 +5,7 @@ import { emptyFitnessPermissions, type AiConversation, type AiMessage, type Fitn
 
 const permissionItems: Array<{ key: FitnessPermission; label: string; detail: string; icon: typeof UserRound }> = [
   { key:'profile', label:'Perfil', detail:'Nome, experiência e preferências de treino.', icon:UserRound }, { key:'objective', label:'Objetivo', detail:'Objetivo fitness informado no perfil.', icon:Goal },
-  { key:'workouts', label:'Treinos', detail:'Fichas atuais e exercícios planejados.', icon:Dumbbell }, { key:'history', label:'Histórico', detail:'Sessões realizadas nos últimos dias.', icon:History },
+  { key:'workouts', label:'Treinos', detail:'Treinos atuais e exercícios planejados.', icon:Dumbbell }, { key:'history', label:'Histórico', detail:'Sessões realizadas nos últimos dias.', icon:History },
   { key:'nutrition', label:'Alimentação', detail:'Totais de calorias e macronutrientes.', icon:Apple }, { key:'steps', label:'Passos', detail:'Passos e distância registrados.', icon:Footprints },
   { key:'water', label:'Água', detail:'Consumo e meta de hidratação.', icon:Waves }, { key:'weight', label:'Peso', detail:'Registros de evolução de peso.', icon:Scale },
   { key:'goals', label:'Metas', detail:'Metas ativas, progresso e prazos.', icon:Goal },

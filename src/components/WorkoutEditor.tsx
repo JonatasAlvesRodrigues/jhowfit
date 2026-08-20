@@ -81,7 +81,7 @@ export function WorkoutEditor({
     <section className="workout-editor">
       <header className="workout-editor__header">
         <button onClick={onCancel}><ArrowLeft size={17} /> Voltar</button>
-        <div><small>{draft.id ? 'EDITAR FICHA' : 'NOVA FICHA'}</small><h1>{draft.id ? draft.name : 'Monte seu treino'}</h1></div>
+        <div><small>{draft.id ? 'EDITAR TREINO' : 'NOVO TREINO'}</small><h1>{draft.id ? draft.name : 'Monte seu treino'}</h1></div>
         <button className="editor-save-top" onClick={submit} disabled={saving}><Save size={16} /> {saving ? 'Salvando...' : 'Salvar'}</button>
       </header>
 

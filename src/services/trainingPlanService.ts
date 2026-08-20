@@ -34,7 +34,7 @@ export const trainingPlanService = {
         .maybeSingle(),
     ])
     const firstError = [workoutsResult.error, exercisesResult.error, templatesResult.error, libraryResult.error, profileResult.error].find(Boolean)
-    if (firstError) throw new Error('Não foi possível carregar suas fichas de treino.')
+    if (firstError) throw new Error('Não foi possível carregar seus treinos.')
 
     const exercisesByWorkout = new Map<string, TrainingExercise[]>()
     for (const row of exercisesResult.data ?? []) {

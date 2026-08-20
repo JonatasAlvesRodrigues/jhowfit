@@ -55,7 +55,7 @@ export function TrainingHubPage({ userId }: { userId: string }) {
   if (hub.error || !hub.data) {
     return (
       <section className="training-hub-state">
-        <span><RefreshCw size={24} /></span><small>TREINOS INDISPONÍVEIS</small><h1>Não foi possível carregar suas fichas.</h1><p>{hub.error}</p>
+        <span><RefreshCw size={24} /></span><small>TREINOS INDISPONÍVEIS</small><h1>Não foi possível carregar seus treinos.</h1><p>{hub.error}</p>
         <button className="vita-primary-button" onClick={() => void hub.retry()}><RefreshCw size={16} /> Tentar novamente</button>
       </section>
     )
@@ -165,7 +165,7 @@ export function TrainingHubPage({ userId }: { userId: string }) {
   return (
     <section className="training-hub-page">
       <header className="training-hub-heading">
-        <div><small>SEUS TREINOS</small><h1>Planeje. Execute. Evolua.</h1><p>Monte fichas manualmente ou revise uma sugestão criada com IA.</p></div>
+        <div><small>SEUS TREINOS</small><h1>Planeje. Execute. Evolua.</h1><p>Monte treinos manualmente ou revise uma sugestão criada com IA.</p></div>
         {tab === 'plans' && <button onClick={() => setEditor(createEmptyWorkout())}><Plus size={17} /> Criar treino</button>}
       </header>
 
@@ -189,7 +189,7 @@ export function TrainingHubPage({ userId }: { userId: string }) {
 
           <section className="workout-list-section">
             <div className="training-section-heading">
-              <div><small>FICHAS SALVAS</small><h2>Meus treinos</h2></div>
+              <div><small>TREINOS SALVOS</small><h2>Meus treinos</h2></div>
               <span>{hub.data.workouts.filter((workout) => workout.active).length} ativos</span>
             </div>
             {hub.data.workouts.length ? (
@@ -227,7 +227,7 @@ export function TrainingHubPage({ userId }: { userId: string }) {
               </div>
             ) : (
               <div className="training-empty-workouts">
-                <span><Dumbbell size={29} /></span><h3>Sua primeira ficha começa aqui</h3><p>Crie do zero, escolha um exemplo ou gere uma sugestão com IA.</p><button onClick={() => setEditor(createEmptyWorkout())}><Plus size={16} /> Criar treino</button>
+                <span><Dumbbell size={29} /></span><h3>Seu primeiro treino começa aqui</h3><p>Crie do zero, escolha um exemplo ou gere uma sugestão com IA.</p><button onClick={() => setEditor(createEmptyWorkout())}><Plus size={16} /> Criar treino</button>
               </div>
             )}
           </section>
@@ -248,7 +248,7 @@ export function TrainingHubPage({ userId }: { userId: string }) {
       {deleteTarget && (
         <div className="training-modal-backdrop" onMouseDown={() => setDeleteTarget(null)}>
           <div className="delete-workout-modal" onMouseDown={(event) => event.stopPropagation()}>
-            <span><Trash2 size={24} /></span><small>CONFIRMAR EXCLUSÃO</small><h2>Excluir “{deleteTarget.name}”?</h2><p>Os exercícios e configurações desta ficha também serão removidos. Esta ação não pode ser desfeita.</p>
+            <span><Trash2 size={24} /></span><small>CONFIRMAR EXCLUSÃO</small><h2>Excluir “{deleteTarget.name}”?</h2><p>Os exercícios e configurações deste treino também serão removidos. Esta ação não pode ser desfeita.</p>
             <div><button onClick={() => setDeleteTarget(null)}>Cancelar</button><button onClick={() => void remove()} disabled={saving}><Trash2 size={16} /> {saving ? 'Excluindo...' : 'Excluir treino'}</button></div>
           </div>
         </div>
@@ -267,11 +267,11 @@ function TrainingOverview({ workouts, onStart, onCreate }: { workouts: WorkoutSu
   return <section className="training-overview">
     <div className="training-overview__next">
       <span><Dumbbell size={23} /></span>
-      <div><small>{nextWorkout?.days.includes(today) ? 'TREINO PROGRAMADO PARA HOJE' : 'PRÓXIMA SESSÃO DISPONÍVEL'}</small><h2>{nextWorkout ? nextWorkout.name : 'Monte a sua primeira ficha'}</h2><p>{nextWorkout ? (nextWorkout.focus || nextWorkout.notes || `${nextWorkout.exercises.length} exercícios preparados para você.`) : 'Crie um treino manual ou use um modelo para começar sua rotina.'}</p></div>
+      <div><small>{nextWorkout?.days.includes(today) ? 'TREINO PROGRAMADO PARA HOJE' : 'PRÓXIMA SESSÃO DISPONÍVEL'}</small><h2>{nextWorkout ? nextWorkout.name : 'Monte o seu primeiro treino'}</h2><p>{nextWorkout ? (nextWorkout.focus || nextWorkout.notes || `${nextWorkout.exercises.length} exercícios preparados para você.`) : 'Crie um treino manual ou use um modelo para começar sua rotina.'}</p></div>
       {nextWorkout ? <button onClick={() => onStart(nextWorkout)}><Play size={16} fill="currentColor" /> Começar treino</button> : <button onClick={onCreate}><Plus size={16} /> Criar treino</button>}
     </div>
-    <div className="training-overview__stats" aria-label="Resumo das fichas ativas">
-      <span><b>{activeWorkouts.length}</b><small>{activeWorkouts.length === 1 ? 'ficha ativa' : 'fichas ativas'}</small></span>
+    <div className="training-overview__stats" aria-label="Resumo dos treinos ativos">
+      <span><b>{activeWorkouts.length}</b><small>{activeWorkouts.length === 1 ? 'treino ativo' : 'treinos ativos'}</small></span>
       <span><b>{exerciseCount}</b><small>{exerciseCount === 1 ? 'exercício' : 'exercícios'}</small></span>
       <span><b>{scheduledDays}</b><small>{scheduledDays === 1 ? 'dia planejado' : 'dias planejados'}</small></span>
     </div>
