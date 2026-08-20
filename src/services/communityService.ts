@@ -26,6 +26,14 @@ export interface CommunityRankingItem {
   position: number
 }
 
+export interface CommunityComment {
+  id: string
+  userId: string
+  content: string
+  createdAt: string
+  profile: { name: string; avatarUrl: string | null }
+}
+
 export interface CommunityData {
   summary: { streak: number; weeklyWorkouts: number; position: number | null }
   posts: CommunityPost[]
@@ -110,6 +118,28 @@ export const communityService = {
     const { error } = await supabase.from('post_likes').insert({ post_id: post.id, user_id: userId })
     if (error) throw error
     return { ...post, likedByMe: true, likes: post.likes + 1 }
+  },
+
+  async listComments(postId: string): Promise<CommunityComment[]> {
+    if (!supabase) return []
+    const { data, error } = await supabase.from('post_comments').select('id,user_id,content,created_at').eq('post_id', postId).eq('status', 'published').order('created_at', { ascending: true }).limit(100)
+    if (error) throw error
+    const rows = data ?? []
+    const profiles = await loadProfiles([...new Set(rows.map((comment: any) => comment.user_id))])
+    return rows.map((comment: any) => ({
+      id: comment.id, userId: comment.user_id, content: comment.content, createdAt: comment.created_at,
+      profile: profiles.get(comment.user_id) ?? { name: 'Membro MOVELYA', avatarUrl: null },
+    }))
+  },
+
+  async createComment(postId: string, userId: string, content: string): Promise<CommunityComment> {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const normalizedContent = content.trim()
+    if (!normalizedContent) throw new Error('Escreva um comentário antes de enviar.')
+    const { data, error } = await supabase.from('post_comments').insert({ post_id: postId, user_id: userId, content: normalizedContent }).select('id,user_id,content,created_at').single()
+    if (error || !data) throw error ?? new Error('Não foi possível enviar seu comentário.')
+    const profiles = await loadProfiles([userId])
+    return { id: data.id, userId: data.user_id, content: data.content, createdAt: data.created_at, profile: profiles.get(userId) ?? { name: 'Você', avatarUrl: null } }
   },
 
   async listRecentActivities(userId: string, type: 'running' | 'walking'): Promise<RecentCommunityActivity[]> {

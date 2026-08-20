@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, Dumbbell, Ellipsis, Flame, Footprints, Heart, Medal, MessageCircle, Salad, Search, Trophy, UsersRound, X } from 'lucide-react'
-import { communityService, type CommunityData, type CommunityPost, type CommunityPostType } from '../services/communityService'
+import { ArrowRight, Dumbbell, Ellipsis, Flame, Footprints, Heart, LoaderCircle, Medal, MessageCircle, Salad, Search, Send, Trophy, UsersRound, X } from 'lucide-react'
+import { communityService, type CommunityComment, type CommunityData, type CommunityPost, type CommunityPostType } from '../services/communityService'
 import { CreateCommunityPostModal } from '../components/CreateCommunityPostModal'
 import '../community.css'
 
@@ -57,7 +57,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
         <div className="community-content-grid">
           <div className="community-feed" aria-label="Feed da comunidade">
             <div className="community-section-heading"><div><small>FEED</small><h2>O que move a comunidade</h2></div>{query && <span>{visiblePosts.length} resultado{visiblePosts.length === 1 ? '' : 's'}</span>}</div>
-            {visiblePosts.length ? visiblePosts.map((post) => <PostCard key={post.id} post={post} viewerId={userId} onLike={() => void toggleLike(post)} onMenu={() => setNotice('As opções da publicação serão disponibilizadas em breve.')} />) : <FeedEmpty searched={Boolean(query)} onNavigate={onNavigate} />}
+            {visiblePosts.length ? visiblePosts.map((post) => <PostCard key={post.id} post={post} viewerId={userId} onLike={() => void toggleLike(post)} onCommentAdded={() => setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? { ...item, comments: item.comments + 1 } : item) } : current)} onMenu={() => setNotice('As opções da publicação serão disponibilizadas em breve.')} />) : <FeedEmpty searched={Boolean(query)} onNavigate={onNavigate} />}
           </div>
           <WeeklyRanking ranking={data.ranking} onMore={() => setTab('ranking')} />
         </div>
@@ -77,14 +77,41 @@ function PublishActivity({ onOpen }: { onOpen: (type: CommunityPostType) => void
   return <section className="community-publish"><button className="community-publish__intro" onClick={() => onOpen('general_fitness')}><span><UsersRound size={18} /></span><div><small>COMPARTILHE SUA ATIVIDADE</small><h2>Seu movimento pode inspirar alguém.</h2></div></button><nav aria-label="Escolher atividade para compartilhar"><button onClick={() => onOpen('workout')}><Dumbbell size={16} />Treino</button><button onClick={() => onOpen('running')}><Footprints size={16} />Corrida</button><button onClick={() => onOpen('food')}><Salad size={16} />Refeição</button></nav></section>
 }
 
-function PostCard({ post, viewerId, onLike, onMenu }: { post: CommunityPost; viewerId: string; onLike: () => void; onMenu: () => void }) {
+function PostCard({ post, viewerId, onLike, onCommentAdded, onMenu }: { post: CommunityPost; viewerId: string; onLike: () => void; onCommentAdded: () => void; onMenu: () => void }) {
   const initials = post.profile.name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   const Icon = postIcon(post.type)
+  const [commentsOpen, setCommentsOpen] = useState(false)
+  const [comments, setComments] = useState<CommunityComment[]>([])
+  const [comment, setComment] = useState('')
+  const [loadingComments, setLoadingComments] = useState(false)
+  const [sendingComment, setSendingComment] = useState(false)
+  const [commentError, setCommentError] = useState('')
+
+  async function openComments() {
+    const nextOpen = !commentsOpen
+    setCommentsOpen(nextOpen)
+    if (!nextOpen || comments.length || loadingComments) return
+    setLoadingComments(true); setCommentError('')
+    try { setComments(await communityService.listComments(post.id)) }
+    catch { setCommentError('Não foi possível carregar os comentários agora.') }
+    finally { setLoadingComments(false) }
+  }
+
+  async function sendComment() {
+    if (!comment.trim() || sendingComment) return
+    setSendingComment(true); setCommentError('')
+    try {
+      const created = await communityService.createComment(post.id, viewerId, comment)
+      setComments((items) => [...items, created]); setComment(''); onCommentAdded()
+    } catch (error) { setCommentError(error instanceof Error ? error.message : 'Não foi possível enviar seu comentário.') }
+    finally { setSendingComment(false) }
+  }
   return <article className="community-post">
     <header><div className="community-avatar">{post.profile.avatarUrl ? <img src={post.profile.avatarUrl} alt="" /> : initials}</div><div><strong>{post.profile.name}</strong><span><Flame size={12} fill="currentColor" /> atividade compartilhada</span></div><button onClick={onMenu} aria-label={`Opções da publicação de ${post.profile.name}`}><Ellipsis size={19} /></button></header>
     {post.mediaUrl ? <img className="community-post__image" src={post.mediaUrl} alt="Publicação compartilhada pela comunidade" loading="lazy" /> : <div className="community-post__missing-media"><Icon size={28} /><span>{postTypeLabel(post.type)}</span></div>}
     <div className="community-post__body"><p>{post.caption || 'Atividade compartilhada na comunidade.'}</p><div className="community-post__activity"><span><Icon size={14} /></span>{activityCopy(post)}</div></div>
-    <footer><button className={post.likedByMe ? 'is-liked' : ''} onClick={onLike} aria-label={post.likedByMe ? 'Remover curtida' : 'Curtir publicação'}><Heart size={18} fill={post.likedByMe ? 'currentColor' : 'none'} /><b>{post.likes}</b></button><span><MessageCircle size={18} /><b>{post.comments}</b></span><time>{relativeDate(post.createdAt)}</time></footer>
+    <footer><button className={post.likedByMe ? 'is-liked' : ''} onClick={onLike} aria-label={post.likedByMe ? 'Remover curtida' : 'Curtir publicação'}><Heart size={18} fill={post.likedByMe ? 'currentColor' : 'none'} /><b>{post.likes}</b></button><button className={commentsOpen ? 'is-commenting' : ''} onClick={() => void openComments()} aria-expanded={commentsOpen} aria-label="Ver e adicionar comentários"><MessageCircle size={18} /><b>{post.comments}</b></button><time>{relativeDate(post.createdAt)}</time></footer>
+    {commentsOpen && <section className="community-comments" aria-label="Comentários"><div className="community-comments__list">{loadingComments ? <span className="community-comments__loading"><LoaderCircle size={14} className="is-spinning" /> Carregando comentários…</span> : comments.length ? comments.map((item) => <article key={item.id}><span className="community-comment-avatar">{item.profile.avatarUrl ? <img src={item.profile.avatarUrl} alt="" /> : item.profile.name.slice(0, 1)}</span><div><strong>{item.profile.name}</strong><p>{item.content}</p><small>{relativeDate(item.createdAt)}</small></div></article>) : <p className="community-comments__empty">Seja o primeiro a comentar.</p>}</div><div className="community-comment-form"><input value={comment} maxLength={1200} disabled={sendingComment} placeholder="Adicione um comentário…" onChange={(event) => setComment(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendComment() } }} /><button onClick={() => void sendComment()} disabled={!comment.trim() || sendingComment} aria-label="Enviar comentário">{sendingComment ? <LoaderCircle size={15} className="is-spinning" /> : <Send size={15} />}</button></div>{commentError && <p className="community-comments__error">{commentError}</p>}</section>}
     {!post.isPermanent && post.expiresAt && <PostExpiration expiresAt={post.expiresAt} isOwner={post.userId === viewerId} />}
   </article>
 }
