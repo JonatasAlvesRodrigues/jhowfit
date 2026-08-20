@@ -258,6 +258,40 @@ alter table public.follows enable row level security;
 alter table public.blocked_users enable row level security;
 alter table public.reports enable row level security;
 
+-- Permite reexecutar a migration caso uma execução manual anterior tenha parado no meio.
+drop policy if exists "Community members view permitted posts" on public.posts;
+drop policy if exists "Post authors create their posts" on public.posts;
+drop policy if exists "Post authors update their posts" on public.posts;
+drop policy if exists "Post authors delete their posts" on public.posts;
+drop policy if exists "Moderators manage community posts" on public.posts;
+drop policy if exists "Community members view permitted post media" on public.post_media;
+drop policy if exists "Post authors attach their own media" on public.post_media;
+drop policy if exists "Post authors update their media" on public.post_media;
+drop policy if exists "Post authors delete their media" on public.post_media;
+drop policy if exists "Moderators manage community media" on public.post_media;
+drop policy if exists "Community members view likes on permitted posts" on public.post_likes;
+drop policy if exists "Users create their own likes" on public.post_likes;
+drop policy if exists "Users remove their own likes" on public.post_likes;
+drop policy if exists "Community members view comments on permitted posts" on public.post_comments;
+drop policy if exists "Users comment on permitted posts" on public.post_comments;
+drop policy if exists "Comment authors update their comments" on public.post_comments;
+drop policy if exists "Comment authors delete their comments" on public.post_comments;
+drop policy if exists "Moderators manage community comments" on public.post_comments;
+drop policy if exists "Users view their follow relationships" on public.follows;
+drop policy if exists "Users follow other unblocked users" on public.follows;
+drop policy if exists "Users unfollow from their own account" on public.follows;
+drop policy if exists "Users view their own blocks" on public.blocked_users;
+drop policy if exists "Users block from their own account" on public.blocked_users;
+drop policy if exists "Users remove their own blocks" on public.blocked_users;
+drop policy if exists "Users view their own reports" on public.reports;
+drop policy if exists "Users create reports as themselves" on public.reports;
+drop policy if exists "Moderators review community reports" on public.reports;
+drop policy if exists "Moderators update community reports" on public.reports;
+drop policy if exists "Users upload their own community images" on storage.objects;
+drop policy if exists "Community members read permitted community images" on storage.objects;
+drop policy if exists "Users update their own community images" on storage.objects;
+drop policy if exists "Users delete their own community images" on storage.objects;
+
 create policy "Community members view permitted posts"
   on public.posts for select to authenticated
   using (public.can_view_community_post(id));
