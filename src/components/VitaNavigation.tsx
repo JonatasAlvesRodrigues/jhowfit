@@ -40,7 +40,7 @@ export function VitaSidebar({
   const routeById = (id: RouteId) => routes.find((route) => route.id === id)
   const groups = [
     { id: 'nutrition', label: 'Alimentação', icon: Apple, routeIds: ['dieta', 'alimentos', 'agua'] as RouteId[] },
-    { id: 'progress', label: 'Acompanhar', icon: ChartNoAxesCombined, routeIds: ['atividades', 'evolucao', 'relatorios', 'metas', 'conquistas'] as RouteId[] },
+    { id: 'progress', label: 'Acompanhar', icon: ChartNoAxesCombined, routeIds: ['atividades', 'evolucao', 'relatorios', 'metas', 'conquistas', 'comunidade'] as RouteId[] },
     { id: 'account', label: 'Conta e preferências', icon: UserRound, routeIds: ['perfil', 'planos', 'configuracoes', 'privacidade', 'notificacoes'] as RouteId[] },
   ]
   const directRoutes = (['inicio', 'treinos', 'assistente'] as RouteId[]).map(routeById).filter(Boolean) as typeof routes
@@ -111,7 +111,7 @@ export function VitaSidebar({
 
 function getGroupForRoute(routeId?: RouteId) {
   if (['dieta', 'alimentos', 'agua'].includes(routeId ?? '')) return 'nutrition'
-  if (['atividades', 'evolucao', 'relatorios', 'metas', 'conquistas'].includes(routeId ?? '')) return 'progress'
+  if (['atividades', 'evolucao', 'relatorios', 'metas', 'conquistas', 'comunidade'].includes(routeId ?? '')) return 'progress'
   if (['perfil', 'planos', 'configuracoes', 'privacidade', 'notificacoes'].includes(routeId ?? '')) return 'account'
   return null
 }

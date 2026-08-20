@@ -1,6 +1,6 @@
 import {
   Activity, Apple, ChartNoAxesCombined, ClipboardMinus, Droplets, Dumbbell, Goal, House, Library, Sparkles,
-  Bell, KeyRound, LogOut, MailCheck, Medal, Settings, ShieldCheck, UserPlus, UserRound, LockKeyhole, Crown,
+  Bell, KeyRound, LogOut, MailCheck, Medal, Settings, ShieldCheck, UserPlus, UserRound, LockKeyhole, Crown, UsersRound,
 } from 'lucide-react'
 import type { RouteId, VitaRoute } from '../types/navigation'
 
@@ -16,6 +16,7 @@ export const vitaRoutes: VitaRoute[] = [
   { id: 'assistente', path: '/assistente', label: 'Assistente IA', mobileLabel: 'IA', eyebrow: 'INTELIGÊNCIA', description: 'Converse com a IA usando apenas os dados que você autorizar.', icon: Sparkles },
   { id: 'metas', path: '/metas', label: 'Metas', eyebrow: 'OBJETIVOS', description: 'Defina aonde quer chegar e acompanhe seu ritmo.', icon: Goal },
   { id: 'conquistas', path: '/conquistas', label: 'Conquistas', eyebrow: 'CONSISTÊNCIA', description: 'Celebre sua constância, suas medalhas e cada passo da sua evolução.', icon: Medal },
+  { id: 'comunidade', path: '/comunidade', label: 'Comunidade', eyebrow: 'EM MOVIMENTO', description: 'Compartilhe sua rotina e encontre inspiração em quem também se movimenta.', icon: UsersRound },
   { id: 'perfil', path: '/perfil', label: 'Perfil', eyebrow: 'SUA CONTA', description: 'Gerencie suas informações e preferências pessoais.', icon: UserRound },
   { id: 'planos', path: '/planos', label: 'Planos e assinatura', mobileLabel: 'Planos', eyebrow: 'ASSINATURA', description: 'Conheça os benefícios do seu plano e acompanhe suas cotas mensais.', icon: Crown },
   { id: 'configuracoes', path: '/configuracoes', label: 'Configurações', eyebrow: 'PREFERÊNCIAS', description: 'Ajuste o MOVELYA para funcionar do seu jeito.', icon: Settings },

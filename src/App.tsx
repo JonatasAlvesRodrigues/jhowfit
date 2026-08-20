@@ -20,6 +20,7 @@ import { WeeklyReportPage } from './pages/WeeklyReportPage'
 import { FitnessChatPage } from './pages/FitnessChatPage'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { AchievementsPage } from './pages/AchievementsPage'
+import { CommunityPage } from './pages/CommunityPage'
 import { PwaInstallPrompt } from './components/PwaInstallPrompt'
 import { PwaUpdatePrompt } from './components/PwaUpdatePrompt'
 import { PlanWelcomeModal } from './components/PlanWelcomeModal'
@@ -155,7 +156,7 @@ export default function App() {
   useEffect(() => {
     if (authLoading || roleLoading || onboarding.loading || status === 'booting' || status === 'transitioning') return
     if (import.meta.env.DEV && !user && route?.id === 'configuracao-inicial') return
-    if (import.meta.env.DEV && !user && (route?.id === 'inicio' || route?.id === 'conquistas')) return
+    if (import.meta.env.DEV && !user && (route?.id === 'inicio' || route?.id === 'conquistas' || route?.id === 'comunidade')) return
     if (recoveryMode && route?.id !== 'redefinir-senha') {
       navigate('/redefinir-senha')
       return
@@ -187,7 +188,7 @@ export default function App() {
   if (import.meta.env.DEV && !user && route?.id === 'configuracao-inicial') {
     return <OnboardingPage userId="development-preview" initialName="João Silva" onComplete={() => undefined} />
   }
-  if ((!user && isPrivateRoute(route) && !(import.meta.env.DEV && (route?.id === 'inicio' || route?.id === 'conquistas'))) || (recoveryMode && route?.id !== 'redefinir-senha')) return <LoadingScreen />
+  if ((!user && isPrivateRoute(route) && !(import.meta.env.DEV && (route?.id === 'inicio' || route?.id === 'conquistas' || route?.id === 'comunidade'))) || (recoveryMode && route?.id !== 'redefinir-senha')) return <LoadingScreen />
   if (route?.public) return <><PwaInstallPrompt /><PwaUpdatePrompt /><AuthPage routeId={route.id} navigate={navigate} /></>
   if (user && route?.id === 'configuracao-inicial') {
     return <OnboardingPage
@@ -280,6 +281,8 @@ export default function App() {
                 <NotificationsPage userId={user.id} onNavigate={navigate} />
               ) : route?.id === 'conquistas' && (user || import.meta.env.DEV) ? (
                 <AchievementsPage userId={user?.id ?? 'development-preview'} />
+              ) : route?.id === 'comunidade' && (user || import.meta.env.DEV) ? (
+                <CommunityPage userId={user?.id ?? 'development-preview'} onNavigate={navigate} />
               ) : route ? (
                 <RoutePlaceholder route={route} onNavigate={navigate} />
               ) : (
