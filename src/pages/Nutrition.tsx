@@ -11,11 +11,13 @@ import {
   ChevronRight,
   Copy,
   CreditCard,
+  Download,
   Drumstick,
   Flame,
   Heart,
   History,
   ListPlus,
+  LoaderCircle,
   Pencil,
   Plus,
   RotateCcw,
@@ -37,6 +39,7 @@ import type {
 import { nutritionService, type DiarySection, type NutritionDiaryData, type SavedDietPlan } from '../services/nutritionService'
 import { AIDietGenerator } from '../components/AIDietGenerator'
 import { PhotoMealAnalyzer } from '../components/PhotoMealAnalyzer'
+import { generateNutritionDietPdf } from '../utils/nutritionDietPdf'
 
 const mealSections: MealSection[] = [
   'Café da manhã',
@@ -645,6 +648,27 @@ export function NutritionPage({ userId, onNavigate }: NutritionPageProps) {
 
 function SavedDietPlanModal({ diet, onClose }: { diet: SavedDietPlan; onClose: () => void }) {
   const { plan } = diet
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState('')
+
+  function downloadPdf() {
+    try {
+      setExporting(true)
+      setExportError('')
+      const blob = generateNutritionDietPdf(diet)
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `movelya-plano-alimentar-${fileName(diet.name)}.pdf`
+      anchor.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (reason) {
+      setExportError(reason instanceof Error ? reason.message : 'Não foi possível gerar o PDF.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <Modal title="Dieta salva" onClose={onClose}>
       <div className="nutrition-saved-diet">
@@ -667,10 +691,15 @@ function SavedDietPlanModal({ diet, onClose }: { diet: SavedDietPlan; onClose: (
             {meal.alternatives.length > 0 && <div className="nutrition-saved-diet__alternatives"><small>SUBSTITUIÇÕES</small>{meal.alternatives.map((alternative) => <span key={`${meal.name}-${alternative.name}`}><b>{alternative.name}:</b> {alternative.foods.join(' · ')}</span>)}</div>}
           </article>)}
         </div>
-        <div className="nutrition-modal-actions"><Button onClick={onClose}>Fechar plano</Button></div>
+        {exportError && <p className="nutrition-saved-diet__error" role="alert">{exportError}</p>}
+        <div className="nutrition-modal-actions"><Button variant="secondary" onClick={onClose}>Fechar plano</Button><Button onClick={downloadPdf} disabled={exporting}>{exporting ? <><LoaderCircle className="is-spinning" size={16} /> Gerando...</> : <><Download size={16} /> Exportar PDF</>}</Button></div>
       </div>
     </Modal>
   )
+}
+
+function fileName(value: string) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'dieta'
 }
 
 function MealSectionCard({

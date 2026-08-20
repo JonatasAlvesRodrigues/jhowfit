@@ -1833,6 +1833,7 @@ textarea:focus-visible {
 .nutrition-saved-diet__alternatives > small { color: var(--product-muted); font-size: 6px; }
 .nutrition-saved-diet__alternatives span { color: var(--product-muted); font-size: 8px; line-height: 1.4; }
 .nutrition-saved-diet__alternatives b { color: var(--product-text); }
+.nutrition-saved-diet__error { padding: 9px 10px; border: 1px solid rgba(199, 72, 58, .24); border-radius: 9px; color: #aa4035; background: #fff0ed; font-size: 8px; }
 @media (max-width: 560px) {
   .nutrition-saved-diet__metrics { grid-template-columns: 1fr 1fr; }
   .nutrition-saved-diet__meals { max-height: 46vh; }
