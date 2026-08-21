@@ -1,5 +1,6 @@
 import { supabase } from '../integrations/supabase'
 import type { DailyDashboardData, DashboardMetric, DashboardWorkout, WeightPoint } from '../types/dashboard'
+import { activityStreakService } from './activityStreakService'
 
 interface DailyStatsRow {
   calories_current: number
@@ -20,7 +21,7 @@ export const dashboardService = {
     if (!supabase) throw new Error('A conexão com o Supabase não está configurada.')
 
     const date = localDate()
-    const [profileResult, statsResult, mealsResult, workoutResult, weightResult, recentStatsResult] = await Promise.all([
+    const [profileResult, statsResult, mealsResult, workoutResult, weightResult, streakSummary] = await Promise.all([
       supabase
         .from('profiles')
         .select('full_name,avatar_url,current_weight')
@@ -51,15 +52,10 @@ export const dashboardService = {
         .eq('user_id', userId)
         .order('measured_at', { ascending: false })
         .limit(7),
-      supabase
-        .from('daily_stats')
-        .select('date,calories_current,water_current,steps_current,workout_minutes')
-        .eq('user_id', userId)
-        .order('date', { ascending: false })
-        .limit(366),
+      activityStreakService.load(userId),
     ])
 
-    const firstError = [profileResult.error, statsResult.error, mealsResult.error, workoutResult.error, weightResult.error, recentStatsResult.error]
+    const firstError = [profileResult.error, statsResult.error, mealsResult.error, workoutResult.error, weightResult.error]
       .find(Boolean)
     if (firstError) throw new Error('Não foi possível carregar o resumo do dia.')
 
@@ -102,26 +98,13 @@ export const dashboardService = {
       workout,
       weight: { current: currentWeight, difference, history },
       completion,
-      activeStreak: calculateActiveStreak(recentStatsResult.data ?? [], date),
+      activeStreak: streakSummary.currentStreak,
       insight: getInsight(metrics, workout, allGoalsCompleted),
       hasAnyData,
       allGoalsCompleted,
     }
   },
 
-}
-
-function calculateActiveStreak(rows: Array<Record<string, unknown>>, today: string) {
-  const activeDates = new Set(rows
-    .filter((row) => Number(row.calories_current ?? 0) > 0 || Number(row.water_current ?? 0) > 0 || Number(row.steps_current ?? 0) > 0 || Number(row.workout_minutes ?? 0) > 0)
-    .map((row) => String(row.date)))
-  let cursor = new Date(`${today}T12:00:00`)
-  let streak = 0
-  while (activeDates.has(cursor.toISOString().slice(0, 10))) {
-    streak += 1
-    cursor.setDate(cursor.getDate() - 1)
-  }
-  return streak
 }
 
 function mapWorkout(row: Record<string, unknown>): DashboardWorkout {

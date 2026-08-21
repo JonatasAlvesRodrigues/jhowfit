@@ -1,4 +1,5 @@
 import { supabase } from '../integrations/supabase'
+import { activityStreakService } from './activityStreakService'
 
 export type AchievementIcon = 'spark' | 'five' | 'steps' | 'water' | 'record' | 'month' | 'goal'
 
@@ -44,12 +45,13 @@ export const achievementService = {
   async load(userId: string): Promise<AchievementSummary> {
     if (!supabase || userId === 'development-preview') return demoSummary()
 
-    const [workoutResult, stepsResult, waterResult, goalsResult, profileResult] = await Promise.all([
+    const [workoutResult, stepsResult, waterResult, goalsResult, profileResult, streakSummary] = await Promise.all([
       supabase.from('workout_sessions').select('started_at,ended_at,status,pr_count').eq('user_id', userId).eq('status', 'completed').order('started_at'),
       supabase.from('step_records').select('occurred_on,steps').eq('user_id', userId).order('occurred_on'),
       supabase.from('water_intake_logs').select('occurred_at,amount_ml').eq('user_id', userId).order('occurred_at'),
       supabase.from('personal_goals').select('status,frequency,updated_at').eq('user_id', userId).eq('frequency', 'weekly').order('updated_at'),
       supabase.from('profiles').select('created_at').eq('id', userId).maybeSingle(),
+      activityStreakService.load(userId),
     ])
     const failed = [workoutResult, stepsResult, waterResult, goalsResult, profileResult].find((result) => result.error)
     if (failed?.error) throw failed.error
@@ -60,11 +62,12 @@ export const achievementService = {
       (waterResult.data ?? []) as WaterRow[],
       (goalsResult.data ?? []) as GoalRow[],
       profileResult.data?.created_at ?? new Date().toISOString(),
+      streakSummary.currentStreak,
     )
   },
 }
 
-function buildSummary(workouts: WorkoutRow[], steps: StepRow[], water: WaterRow[], goals: GoalRow[], createdAt: string): AchievementSummary {
+function buildSummary(workouts: WorkoutRow[], steps: StepRow[], water: WaterRow[], goals: GoalRow[], createdAt: string, physicalActivityStreak: number): AchievementSummary {
   const stepDays = sumByDay(steps.map((row) => ({ date: row.occurred_on, value: Number(row.steps) })))
   const waterDays = sumByDay(water.map((row) => ({ date: row.occurred_at, value: Number(row.amount_ml) })))
   const workoutDates = workouts.map((row) => dayKey(row.ended_at ?? row.started_at))
@@ -86,7 +89,7 @@ function buildSummary(workouts: WorkoutRow[], steps: StepRow[], water: WaterRow[
   const highestStepDay = Math.max(0, ...stepDays.values())
   const stepsDateAt = (target: number) => [...stepDays].find(([, total]) => total >= target)?.[0] ?? null
   const personalRecords = workouts.reduce((total, workout) => total + Math.max(0, Number(workout.pr_count) || 0), 0)
-  const streak = calculateStreak(active)
+  const streak = physicalActivityStreak
   const bestWeek = calculateBestWeek(activeSorted)
   const completedGoals = goals.filter((goal) => goal.status === 'completed')
   const lastActiveDate = activeSorted.length ? activeSorted[activeSorted.length - 1] : null
@@ -153,14 +156,6 @@ function sumByDay(rows: Array<{ date: string; value: number }>) {
   const map = new Map<string, number>()
   rows.forEach(({ date, value }) => { const key = dayKey(date); map.set(key, (map.get(key) ?? 0) + value) })
   return map
-}
-
-function calculateStreak(active: Set<string>) {
-  const cursor = new Date()
-  if (!active.has(dayKey(cursor))) cursor.setDate(cursor.getDate() - 1)
-  let streak = 0
-  while (active.has(dayKey(cursor))) { streak += 1; cursor.setDate(cursor.getDate() - 1) }
-  return streak
 }
 
 function calculateBestWeek(dates: string[]) {

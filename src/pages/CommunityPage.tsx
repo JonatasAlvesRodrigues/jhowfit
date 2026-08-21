@@ -76,6 +76,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
       {tab === 'feed' && <>
         <section className="community-summary" aria-label="Seu resumo na comunidade">
           <SummaryCard icon={Flame} label="Sua sequência" value={data.summary.streak ? `${data.summary.streak} ${data.summary.streak === 1 ? 'dia' : 'dias'}` : 'Comece hoje'} tone="orange" />
+          <SummaryCard icon={Medal} label="Maior sequência" value={`${data.summary.bestStreak} ${data.summary.bestStreak === 1 ? 'dia' : 'dias'}`} tone="orange" />
           <SummaryCard icon={Trophy} label="Sua posição" value={data.summary.position ? `#${data.summary.position} semanal` : 'Sem posição'} tone="green" />
           <SummaryCard icon={Dumbbell} label="Treinos na semana" value={String(data.summary.weeklyWorkouts)} tone="blue" />
         </section>
