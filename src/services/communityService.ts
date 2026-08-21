@@ -62,6 +62,22 @@ export interface CommunityProfileSettings {
   shareAchievements: boolean
 }
 
+export interface CommunityProfileEditor extends CommunityProfileSettings {
+  username: string
+  bio: string
+  avatarUrl: string | null
+  avatarSource: 'initials' | 'custom' | 'system'
+  avatarKey: string | null
+}
+
+export interface CommunityProfileSearchResult {
+  userId: string
+  name: string
+  username: string
+  avatarUrl: string | null
+  isPrivate: boolean
+}
+
 export const defaultCommunityProfileSettings: CommunityProfileSettings = {
   profileVisibility: 'public', activityVisibility: 'public', shareDistance: true, shareAchievements: true,
 }
@@ -238,6 +254,62 @@ export const communityService = {
     if (error) throw error
   },
 
+  async loadMyProfileEditor(userId: string): Promise<CommunityProfileEditor> {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const [settingsResult, profileResult] = await Promise.all([
+      supabase.from('community_profile_settings').select('username,bio,profile_visibility,activity_visibility,share_distance,share_achievements,avatar_source,avatar_key').eq('user_id', userId).maybeSingle(),
+      supabase.from('profiles').select('avatar_url').eq('id', userId).maybeSingle(),
+    ])
+    if (settingsResult.error) throw settingsResult.error
+    if (profileResult.error) throw profileResult.error
+    const setting = settingsResult.data
+    return {
+      username: setting?.username ?? '', bio: setting?.bio ?? '', avatarUrl: profileResult.data?.avatar_url ?? null,
+      profileVisibility: setting?.profile_visibility === 'private' ? 'private' : 'public',
+      activityVisibility: setting?.activity_visibility === 'private' ? 'private' : 'public',
+      shareDistance: setting?.share_distance ?? true, shareAchievements: setting?.share_achievements ?? true,
+      avatarSource: setting?.avatar_source === 'custom' || setting?.avatar_source === 'system' ? setting.avatar_source : 'initials',
+      avatarKey: setting?.avatar_key ?? null,
+    }
+  },
+
+  async saveMyProfileEditor(userId: string, editor: CommunityProfileEditor) {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const username = editor.username.trim().replace(/^@+/, '').toLowerCase()
+    const bio = editor.bio.trim()
+    const { error } = await supabase.from('community_profile_settings').upsert({
+      user_id: userId, username: username || null, bio: bio || null,
+      profile_visibility: editor.profileVisibility, activity_visibility: editor.activityVisibility,
+      share_distance: editor.shareDistance, share_achievements: editor.shareAchievements,
+      avatar_source: editor.avatarSource, avatar_key: editor.avatarKey,
+    }, { onConflict: 'user_id' })
+    if (error) {
+      if (error.code === '23505') throw new Error('Esse @ já está em uso. Escolha outro.')
+      throw error
+    }
+  },
+
+  async uploadMyProfileAvatar(userId: string, file: File, currentAvatarKey: string | null): Promise<{ avatarUrl: string; avatarKey: string }> {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const prepared = await prepareProfileAvatar(file)
+    const avatarKey = `${userId}/avatar-${createUuid()}.webp`
+    const { error: uploadError } = await supabase.storage.from('community-profile-avatars').upload(avatarKey, prepared, { contentType: 'image/webp', cacheControl: '31536000', upsert: false })
+    if (uploadError) throw uploadError
+    const { data } = supabase.storage.from('community-profile-avatars').getPublicUrl(avatarKey)
+    const avatarUrl = data.publicUrl
+    const { error: profileError } = await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('id', userId)
+    if (profileError) { await supabase.storage.from('community-profile-avatars').remove([avatarKey]); throw profileError }
+    if (currentAvatarKey) void supabase.storage.from('community-profile-avatars').remove([currentAvatarKey])
+    return { avatarUrl, avatarKey }
+  },
+
+  async searchProfiles(term: string): Promise<CommunityProfileSearchResult[]> {
+    if (!supabase || term.trim().replace(/^@/, '').length < 2) return []
+    const { data, error } = await supabase.rpc('community_search_profiles', { search_term: term })
+    if (error) throw error
+    return (data ?? []).map((item: any) => ({ userId: item.user_id, name: item.full_name, username: item.username, avatarUrl: item.avatar_url ?? null, isPrivate: Boolean(item.is_private) }))
+  },
+
   async loadUserPosts(userId: string, viewerId: string): Promise<CommunityPost[]> {
     if (!supabase) return []
     const { data, error } = await supabase.from('posts').select('id,user_id,type,caption,created_at,is_permanent,expires_at,post_media(storage_path),outdoor_activities(distance_km,duration_seconds)').eq('user_id', userId).order('created_at', { ascending: false }).limit(40)
@@ -328,6 +400,14 @@ export async function prepareCommunityImage(file: File): Promise<PreparedCommuni
   const image = await compress(source, 1080, 600 * 1024, 1258291)
   const thumbnail = await compress(source, 480, 96 * 1024, 300 * 1024)
   return { image: image.blob, thumbnail: thumbnail.blob, width: image.width, height: image.height, previewUrl: URL.createObjectURL(image.blob) }
+}
+
+async function prepareProfileAvatar(file: File): Promise<Blob> {
+  if (!file.type.startsWith('image/')) throw new Error('Escolha uma imagem para o perfil.')
+  if (file.size > 5 * 1024 * 1024) throw new Error('Escolha uma imagem de até 5 MB para o perfil.')
+  const source = await loadImage(file)
+  const avatar = await compress(source, 640, 180 * 1024, 450 * 1024)
+  return avatar.blob
 }
 
 async function loadProfiles(userIds: string[]) {

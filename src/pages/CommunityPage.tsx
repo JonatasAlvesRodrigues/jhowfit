@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, Dumbbell, Ellipsis, Flame, Footprints, Heart, LoaderCircle, Medal, MessageCircle, Salad, Search, Send, Trophy, UsersRound, X } from 'lucide-react'
-import { communityService, type CommunityComment, type CommunityData, type CommunityPost, type CommunityPostType } from '../services/communityService'
+import { ArrowRight, Dumbbell, Ellipsis, Flame, Footprints, Heart, LoaderCircle, Medal, MessageCircle, Salad, Search, Send, Trophy, UserRound, UsersRound, X } from 'lucide-react'
+import { communityService, type CommunityComment, type CommunityData, type CommunityPost, type CommunityPostType, type CommunityProfileSearchResult } from '../services/communityService'
 import { CreateCommunityPostModal } from '../components/CreateCommunityPostModal'
 import '../community.css'
 
@@ -12,6 +12,8 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
   const [tab, setTab] = useState<CommunityTab>('feed')
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<CommunityProfileSearchResult[]>([])
+  const [searchingProfiles, setSearchingProfiles] = useState(false)
   const [notice, setNotice] = useState('')
   const [composerType, setComposerType] = useState<CommunityPostType | null>(null)
   const [pendingLikes, setPendingLikes] = useState<Record<string, boolean>>({})
@@ -22,6 +24,17 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
     communityService.load(userId).then((result) => mounted && setData(result)).catch(() => mounted && setError('Não foi possível atualizar a comunidade agora.'))
     return () => { mounted = false }
   }, [userId])
+
+  useEffect(() => {
+    const term = query.trim()
+    if (term.replace(/^@/, '').length < 2) { setSearchResults([]); setSearchingProfiles(false); return }
+    let active = true
+    const timer = window.setTimeout(() => {
+      setSearchingProfiles(true)
+      communityService.searchProfiles(term).then((items) => active && setSearchResults(items)).catch(() => active && setSearchResults([])).finally(() => active && setSearchingProfiles(false))
+    }, 230)
+    return () => { active = false; window.clearTimeout(timer) }
+  }, [query])
 
   const visiblePosts = useMemo(() => data?.posts.filter((post) => {
     const term = query.trim().toLocaleLowerCase('pt-BR')
@@ -53,10 +66,10 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
   return <section className="community-page">
     <header className="community-heading">
       <div><span className="page-eyebrow">EM MOVIMENTO</span><h1>Comunidade</h1><p>Troque inspiração por consistência, no seu ritmo.</p></div>
-      <button className={`community-search ${searchOpen ? 'is-open' : ''}`} onClick={() => setSearchOpen((value) => !value)} aria-label={searchOpen ? 'Fechar pesquisa' : 'Pesquisar na comunidade'}>{searchOpen ? <X size={18} /> : <Search size={18} />}<span>Pesquisar</span></button>
+      <div className="community-heading-actions"><button className="community-my-profile" onClick={() => onNavigate(`/perfil-social?user=${encodeURIComponent(userId)}`)}><UserRound size={16} /><span>Meu perfil</span></button><button className={`community-search ${searchOpen ? 'is-open' : ''}`} onClick={() => setSearchOpen((value) => !value)} aria-label={searchOpen ? 'Fechar pesquisa' : 'Pesquisar na comunidade'}>{searchOpen ? <X size={18} /> : <Search size={18} />}<span>Pesquisar</span></button></div>
     </header>
 
-    {searchOpen && <label className="community-search-field"><Search size={16} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome ou publicação" /><button onClick={() => setQuery('')} aria-label="Limpar pesquisa"><X size={14} /></button></label>}
+    {searchOpen && <div className="community-search-wrap"><label className="community-search-field"><Search size={16} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Publicação ou @usuário" /><button onClick={() => setQuery('')} aria-label="Limpar pesquisa"><X size={14} /></button></label>{(searchingProfiles || searchResults.length > 0) && <div className="community-profile-search-results">{searchingProfiles ? <span><LoaderCircle size={14} className="is-spinning" /> Buscando perfis…</span> : searchResults.map((item) => <button key={item.userId} onClick={() => onNavigate(`/perfil-social?user=${encodeURIComponent(item.userId)}`)}><i>{item.avatarUrl ? <img src={item.avatarUrl} alt="" /> : item.name.slice(0, 1)}</i><span><strong>{item.name}</strong><small>@{item.username}{item.isPrivate ? ' · perfil privado' : ''}</small></span></button>)}</div>}</div>}
     <div className="community-tabs" role="tablist" aria-label="Seções da comunidade"><Tab label="Feed" active={tab === 'feed'} onClick={() => setTab('feed')} /><Tab label="Ranking" active={tab === 'ranking'} onClick={() => setTab('ranking')} /><Tab label="Clubes" active={tab === 'clubs'} onClick={() => setTab('clubs')} /></div>
 
     {!data ? <CommunityLoading /> : <>
