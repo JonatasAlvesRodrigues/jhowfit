@@ -23,8 +23,22 @@ export interface CommunityRankingItem {
   userId: string
   name: string
   avatarUrl: string | null
-  activeDays: number
+  metric: number
   position: number
+  isCurrentUser: boolean
+}
+
+export type CommunityRankingScope = 'global' | 'friends'
+export type CommunityRankingCategory = 'streak' | 'workouts' | 'distance'
+
+export interface CommunityRankingData {
+  scope: CommunityRankingScope
+  category: CommunityRankingCategory
+  weekStart: string
+  timezone: string
+  entries: CommunityRankingItem[]
+  myPosition: number | null
+  myMetric: number | null
 }
 
 export interface CommunityComment {
@@ -86,7 +100,7 @@ export const defaultCommunityProfileSettings: CommunityProfileSettings = {
 export interface CommunityData {
   summary: { streak: number; bestStreak: number; weeklyWorkouts: number; position: number | null }
   posts: CommunityPost[]
-  ranking: CommunityRankingItem[]
+  ranking: CommunityRankingData
 }
 
 export interface RecentCommunityActivity {
@@ -125,10 +139,11 @@ export const communityService = {
     if (!supabase || userId === 'development-preview') return emptyCommunityData()
 
     const weekStart = startOfWeek()
-    const [postsResult, workoutsResult, streakSummary] = await Promise.all([
+    const [postsResult, workoutsResult, streakSummary, ranking] = await Promise.all([
       supabase.from('posts').select('id,user_id,type,caption,created_at,is_permanent,expires_at,post_media(storage_path),outdoor_activities(distance_km,duration_seconds)').order('created_at', { ascending: false }).limit(40),
       supabase.from('workout_sessions').select('ended_at,started_at').eq('user_id', userId).eq('status', 'completed').gte('started_at', weekStart.toISOString()),
       activityStreakService.load(userId),
+      loadCommunityRanking('global', 'streak', 10),
     ])
     if (postsResult.error) throw postsResult.error
 
@@ -138,7 +153,6 @@ export const communityService = {
     const engagement = new Map<string, EngagementRow>((engagementResult.data ?? []).map((item: any) => [item.post_id, item]))
     const profiles = await loadProfiles([...new Set(posts.map((post) => post.user_id))])
     const hydratedPosts = await Promise.all(posts.map((post) => hydratePost(post, profiles, engagement.get(post.id), userId)))
-    const ranking = buildRanking(posts, profiles, weekStart)
     return {
       posts: hydratedPosts,
       ranking,
@@ -146,9 +160,13 @@ export const communityService = {
         streak: streakSummary.currentStreak,
         bestStreak: streakSummary.longestStreak,
         weeklyWorkouts: (workoutsResult.data ?? []).length,
-        position: ranking.find((item) => item.userId === userId)?.position ?? null,
+        position: ranking.myPosition,
       },
     }
+  },
+
+  async loadRanking(scope: CommunityRankingScope, category: CommunityRankingCategory): Promise<CommunityRankingData> {
+    return loadCommunityRanking(scope, category, 10)
   },
 
   async toggleLike(post: CommunityPost, userId: string) {
@@ -426,19 +444,30 @@ async function hydratePost(post: RawPost, profiles: Map<string, { name: string; 
   }
 }
 
-function buildRanking(posts: RawPost[], profiles: Map<string, { name: string; avatarUrl: string | null }>, weekStart: Date): CommunityRankingItem[] {
-  const activeDays = new Map<string, Set<string>>()
-  posts.filter((post) => new Date(post.created_at) >= weekStart).forEach((post) => {
-    const days = activeDays.get(post.user_id) ?? new Set<string>()
-    days.add(dayKey(post.created_at)); activeDays.set(post.user_id, days)
-  })
-  return [...activeDays.entries()].map(([userId, days]) => ({ userId, name: profiles.get(userId)?.name ?? 'Membro MOVELYA', avatarUrl: profiles.get(userId)?.avatarUrl ?? null, activeDays: days.size, position: 0 }))
-    .sort((first, second) => second.activeDays - first.activeDays || first.name.localeCompare(second.name, 'pt-BR')).map((item, index) => ({ ...item, position: index + 1 }))
+function startOfWeek() { const date = new Date(); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() - ((date.getDay() + 6) % 7)); return date }
+function emptyCommunityData(): CommunityData { return { summary: { streak: 0, bestStreak: 0, weeklyWorkouts: 0, position: null }, posts: [], ranking: emptyCommunityRanking() } }
+
+async function loadCommunityRanking(scope: CommunityRankingScope, category: CommunityRankingCategory, limit: number): Promise<CommunityRankingData> {
+  if (!supabase) return emptyCommunityRanking(scope, category)
+  const { data, error } = await supabase.rpc('community_rankings', { ranking_scope: scope, ranking_category: category, requested_limit: limit })
+  if (error) throw error
+  const item = (data ?? {}) as any
+  return {
+    scope: item.scope === 'friends' ? 'friends' : 'global',
+    category: item.category === 'workouts' || item.category === 'distance' ? item.category : 'streak',
+    weekStart: String(item.week_start ?? ''), timezone: String(item.timezone ?? 'America/Sao_Paulo'),
+    entries: Array.isArray(item.entries) ? item.entries.map((entry: any) => ({
+      userId: String(entry.user_id), name: String(entry.name ?? 'Membro MOVELYA'), avatarUrl: entry.avatar_url ?? null,
+      metric: Number(entry.metric ?? 0), position: Number(entry.position ?? 0), isCurrentUser: Boolean(entry.is_current_user),
+    })) : [],
+    myPosition: item.my_position === null || item.my_position === undefined ? null : Number(item.my_position),
+    myMetric: item.my_metric === null || item.my_metric === undefined ? null : Number(item.my_metric),
+  }
 }
 
-function startOfWeek() { const date = new Date(); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() - ((date.getDay() + 6) % 7)); return date }
-function dayKey(value: string | Date) { const date = typeof value === 'string' ? new Date(value) : value; return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
-function emptyCommunityData(): CommunityData { return { summary: { streak: 0, bestStreak: 0, weeklyWorkouts: 0, position: null }, posts: [], ranking: [] } }
+function emptyCommunityRanking(scope: CommunityRankingScope = 'global', category: CommunityRankingCategory = 'streak'): CommunityRankingData {
+  return { scope, category, weekStart: '', timezone: 'America/Sao_Paulo', entries: [], myPosition: null, myMetric: null }
+}
 
 function createUuid() { return typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}-${Math.random().toString(16).slice(2)}` }
 function formatMinutes(seconds: number) { return `${Math.max(1, Math.round(seconds / 60))} min` }

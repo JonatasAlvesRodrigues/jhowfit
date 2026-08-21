@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Dumbbell, Ellipsis, Flame, Footprints, Heart, LoaderCircle, Medal, MessageCircle, Salad, Search, Send, Trophy, UserRound, UsersRound, X } from 'lucide-react'
-import { communityService, type CommunityComment, type CommunityData, type CommunityPost, type CommunityPostType, type CommunityProfileSearchResult } from '../services/communityService'
+import { communityService, type CommunityComment, type CommunityData, type CommunityPost, type CommunityPostType, type CommunityProfileSearchResult, type CommunityRankingCategory, type CommunityRankingData, type CommunityRankingScope } from '../services/communityService'
 import { CreateCommunityPostModal } from '../components/CreateCommunityPostModal'
 import '../community.css'
 
@@ -89,7 +89,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
           <WeeklyRanking ranking={data.ranking} onMore={() => setTab('ranking')} />
         </div>
       </>}
-      {tab === 'ranking' && <RankingPanel ranking={data.ranking} />}
+      {tab === 'ranking' && <RankingPanel initialRanking={data.ranking} onOpenProfile={(targetUserId) => onNavigate(`/perfil-social?user=${encodeURIComponent(targetUserId)}`)} />}
       {tab === 'clubs' && <ClubsPlaceholder />}
     </>}
     {notice && <button className="community-toast" onClick={() => setNotice('')} role="status">{notice}<X size={14} /></button>}
@@ -159,8 +159,34 @@ function PostCard({ post, viewerId, liking, onLike, onOpenProfile, onCommentAdde
   </article>
 }
 
-function WeeklyRanking({ ranking, onMore }: { ranking: CommunityData['ranking']; onMore: () => void }) { return <aside className="community-ranking-card"><header><div><small>RANKING DA SEMANA</small><h2>Ritmo em destaque</h2></div><Trophy size={19} /></header>{ranking.length ? <ol>{ranking.slice(0, 3).map((item) => <li key={item.userId}><b>{item.position}</b><span className="ranking-avatar">{item.avatarUrl ? <img src={item.avatarUrl} alt="" /> : item.name.slice(0, 1)}</span><div><strong>{item.name}</strong><small>{item.activeDays} {item.activeDays === 1 ? 'dia ativo' : 'dias ativos'}</small></div></li>)}</ol> : <p>O ranking aparece quando as primeiras atividades forem compartilhadas nesta semana.</p>}<button onClick={onMore}>Ver mais <ArrowRight size={15} /></button></aside> }
-function RankingPanel({ ranking }: { ranking: CommunityData['ranking'] }) { return <section className="community-ranking-panel"><div className="community-section-heading"><div><small>RANKING</small><h2>Movimento da semana</h2><p>Baseado nos dias com atividades publicadas na comunidade.</p></div></div>{ranking.length ? <ol>{ranking.map((item) => <li key={item.userId}><b>#{item.position}</b><span>{item.avatarUrl ? <img src={item.avatarUrl} alt="" /> : item.name.slice(0, 1)}</span><strong>{item.name}</strong><small>{item.activeDays} {item.activeDays === 1 ? 'dia ativo' : 'dias ativos'}</small></li>)}</ol> : <div className="community-empty-inline"><Medal size={25} /><strong>O ranking está esperando o primeiro movimento.</strong><p>Assim que houver atividades públicas nesta semana, ele aparece aqui.</p></div>}</section> }
+function WeeklyRanking({ ranking, onMore }: { ranking: CommunityData['ranking']; onMore: () => void }) { return <aside className="community-ranking-card"><header><div><small>SEQUÊNCIAS ATIVAS</small><h2>Ritmo em destaque</h2></div><Trophy size={19} /></header>{ranking.entries.length ? <ol>{ranking.entries.slice(0, 3).map((item) => <li key={item.userId}><b>{item.position}</b><span className="ranking-avatar">{item.avatarUrl ? <img src={item.avatarUrl} alt="" /> : item.name.slice(0, 1)}</span><div><strong>{item.name}</strong><small>{formatRankingMetric('streak', item.metric)}</small></div></li>)}</ol> : <p>O ranking aparece após o primeiro movimento válido na Comunidade.</p>}<button onClick={onMore}>Ver ranking <ArrowRight size={15} /></button></aside> }
+
+function RankingPanel({ initialRanking, onOpenProfile }: { initialRanking: CommunityRankingData; onOpenProfile: (userId: string) => void }) {
+  const [scope, setScope] = useState<CommunityRankingScope>('global')
+  const [category, setCategory] = useState<CommunityRankingCategory>('streak')
+  const [ranking, setRanking] = useState<CommunityRankingData>(initialRanking)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    setLoading(true); setError('')
+    communityService.loadRanking(scope, category).then((result) => { if (active) setRanking(result) }).catch(() => { if (active) setError('Não foi possível atualizar este ranking agora.') }).finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [scope, category])
+
+  return <section className="community-ranking-panel">
+    <div className="community-section-heading"><div><small>RANKINGS SEMANAIS</small><h2>Ritmo que inspira</h2><p>{rankingWeekLabel(ranking.weekStart)} · reinicia toda segunda-feira.</p></div></div>
+    <div className="community-ranking-filters" aria-label="Escopo do ranking"><button className={scope === 'friends' ? 'is-active' : ''} onClick={() => setScope('friends')}>Amigos</button><button disabled title="Os clubes chegarão em breve">Clube <small>em breve</small></button><button className={scope === 'global' ? 'is-active' : ''} onClick={() => setScope('global')}>Global</button></div>
+    <div className="community-ranking-categories" role="tablist" aria-label="Categoria do ranking"><RankingCategoryButton icon={Flame} label="Sequência ativa" active={category === 'streak'} onClick={() => setCategory('streak')} /><RankingCategoryButton icon={Dumbbell} label="Mais treinos" active={category === 'workouts'} onClick={() => setCategory('workouts')} /><RankingCategoryButton icon={Footprints} label="Mais quilômetros" active={category === 'distance'} onClick={() => setCategory('distance')} /></div>
+    {loading ? <div className="community-ranking-loading"><span /><span /><span /></div> : error ? <div className="community-empty-inline"><Medal size={25} /><strong>{error}</strong><button onClick={() => { setError(''); setLoading(true); communityService.loadRanking(scope, category).then(setRanking).catch(() => setError('Não foi possível atualizar este ranking agora.')).finally(() => setLoading(false)) }}>Tentar novamente</button></div> : ranking.entries.length ? <><ol className="community-ranking-list">{ranking.entries.map((item) => <li key={item.userId} className={`${item.position <= 3 ? `is-podium is-place-${item.position}` : ''} ${item.isCurrentUser ? 'is-current-user' : ''}`}><b>#{item.position}</b><button onClick={() => onOpenProfile(item.userId)} aria-label={`Abrir perfil de ${item.name}`}>{item.avatarUrl ? <img src={item.avatarUrl} alt="" /> : item.name.slice(0, 1)}</button><button className="community-ranking-list__name" onClick={() => onOpenProfile(item.userId)}><strong>{item.isCurrentUser ? 'Você' : item.name}</strong><small>{item.isCurrentUser ? 'Sua posição nesta categoria' : rankingScopeLabel(scope)}</small></button><em>{formatRankingMetric(category, item.metric)}</em></li>)}</ol>{ranking.myPosition && !ranking.entries.some((item) => item.isCurrentUser) && <div className="community-ranking-you"><span><UserRound size={17} /></span><div><small>SUA POSIÇÃO</small><strong>Você está em #{ranking.myPosition}</strong></div><b>{formatRankingMetric(category, ranking.myMetric ?? 0)}</b></div>}</> : <div className="community-empty-inline"><Medal size={25} /><strong>{scope === 'friends' ? 'Nenhum amigo entrou neste ranking ainda.' : 'O ranking está esperando o primeiro movimento.'}</strong><p>{category === 'streak' ? 'Conclua uma atividade física válida para entrar na sequência ativa.' : 'O ranking considera apenas atividades concluídas e válidas nesta semana.'}</p></div>}
+  </section>
+}
+
+function RankingCategoryButton({ icon: Icon, label, active, onClick }: { icon: typeof Flame; label: string; active: boolean; onClick: () => void }) { return <button role="tab" aria-selected={active} className={active ? 'is-active' : ''} onClick={onClick}><Icon size={15} />{label}</button> }
+function formatRankingMetric(category: CommunityRankingCategory, metric: number) { if (category === 'distance') return `${metric.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km`; if (category === 'workouts') return `${metric} ${metric === 1 ? 'treino' : 'treinos'}`; return `${metric} ${metric === 1 ? 'dia' : 'dias'}` }
+function rankingScopeLabel(scope: CommunityRankingScope) { return scope === 'friends' ? 'Amigos em comum' : 'Comunidade global' }
+function rankingWeekLabel(weekStart: string) { if (!weekStart) return 'Semana atual'; const start = new Date(`${weekStart}T12:00:00`); const end = new Date(start); end.setDate(end.getDate() + 6); return `${start.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} — ${end.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}` }
 function ClubsPlaceholder() { return <section className="community-clubs-placeholder"><span><UsersRound size={25} /></span><small>CLUBES</small><h2>Encontre seu ritmo em grupo.</h2><p>Os clubes serão a próxima etapa da Comunidade. Por enquanto, acompanhe o feed e celebre cada movimento compartilhado.</p></section> }
 function FeedEmpty({ searched, onNavigate }: { searched: boolean; onNavigate: (path: string) => void }) { return <div className="community-empty-feed"><span><Flame size={24} /></span><h3>{searched ? 'Nada encontrado por aqui.' : 'A comunidade começa com o primeiro movimento.'}</h3><p>{searched ? 'Tente um nome ou termo diferente.' : 'Conclua um treino, corrida ou refeição e compartilhe quando estiver pronto.'}</p>{!searched && <button onClick={() => onNavigate('/treinos')}>Ir para treinos <ArrowRight size={15} /></button>}</div> }
 function CommunityLoading() { return <div className="community-loading" aria-label="Carregando comunidade"><span /><span /><span /><div /><div /></div> }
