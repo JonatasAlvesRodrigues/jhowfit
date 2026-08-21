@@ -207,6 +207,13 @@ export const communityService = {
     return (data ?? []).map(mapCommunityClub)
   },
 
+  async createClub(userId: string, input: { name: string; description: string; privacy: 'public' | 'private' }): Promise<string> {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const { data, error } = await supabase.from('clubs').insert({ owner_id: userId, name: input.name.trim(), description: input.description.trim(), privacy: input.privacy }).select('id').single()
+    if (error || !data) throw error ?? new Error('Não foi possível criar o clube.')
+    return String(data.id)
+  },
+
   async loadClub(clubId: string): Promise<CommunityClubDetail> {
     if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
     const { data, error } = await supabase.rpc('community_club_detail', { target_club_id: clubId })

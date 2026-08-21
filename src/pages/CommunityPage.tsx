@@ -91,7 +91,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
         </div>
       </>}
       {tab === 'ranking' && <RankingPanel initialRanking={data.ranking} onOpenProfile={(targetUserId) => onNavigate(`/perfil-social?user=${encodeURIComponent(targetUserId)}`)} />}
-      {tab === 'clubs' && <CommunityClubsPanel />}
+      {tab === 'clubs' && <CommunityClubsPanel userId={userId} />}
     </>}
     {notice && <button className="community-toast" onClick={() => setNotice('')} role="status">{notice}<X size={14} /></button>}
     {composerType && <CreateCommunityPostModal userId={userId} initialType={composerType} onClose={() => setComposerType(null)} onPublished={() => { setComposerType(null); setData(null); communityService.load(userId).then(setData).catch(() => setError('A publicação foi criada, mas não foi possível atualizar o feed.')) }} />}

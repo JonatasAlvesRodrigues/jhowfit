@@ -3,11 +3,16 @@ import { ArrowLeft, Dumbbell, Flame, Footprints, LoaderCircle, LockKeyhole, Meda
 import { communityService, type CommunityClub, type CommunityClubDetail, type CommunityRankingCategory, type CommunityRankingData } from '../services/communityService'
 import '../community.css'
 
-export function CommunityClubsPanel() {
+export function CommunityClubsPanel({ userId }: { userId: string }) {
   const [clubs, setClubs] = useState<CommunityClub[]>([])
   const [selectedClubId, setSelectedClubId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [savingClub, setSavingClub] = useState(false)
+  const [clubName, setClubName] = useState('')
+  const [clubDescription, setClubDescription] = useState('')
+  const [clubPrivacy, setClubPrivacy] = useState<'public' | 'private'>('public')
 
   function loadDirectory() {
     setLoading(true); setError('')
@@ -16,7 +21,14 @@ export function CommunityClubsPanel() {
 
   useEffect(() => { loadDirectory() }, [])
   if (selectedClubId) return <ClubDetail clubId={selectedClubId} onBack={() => { setSelectedClubId(null); loadDirectory() }} />
-  return <section className="community-clubs-panel"><header className="community-section-heading"><div><small>CLUBES</small><h2>Encontre seu ritmo em grupo</h2><p>Comunidades focadas em atividade, desafios e evolução — sem chat.</p></div></header>{loading ? <div className="community-club-loading"><span /><span /><span /></div> : error ? <div className="community-empty-inline"><UsersRound size={25} /><strong>{error}</strong><button onClick={loadDirectory}>Tentar novamente</button></div> : clubs.length ? <div className="community-club-grid">{clubs.map((club) => <ClubCard key={club.id} club={club} onOpen={() => setSelectedClubId(club.id)} />)}</div> : <div className="community-empty-inline"><UsersRound size={25} /><strong>Os primeiros clubes estão chegando.</strong><p>A estrutura já está pronta para clubes públicos e privados, desafios e moderação.</p></div>}</section>
+  async function createClub() {
+    if (savingClub || clubName.trim().length < 3) return
+    setSavingClub(true); setError('')
+    try { const id = await communityService.createClub(userId, { name: clubName, description: clubDescription, privacy: clubPrivacy }); setSelectedClubId(id) }
+    catch (createError) { setError(createError instanceof Error ? createError.message : 'Não foi possível criar o clube.') }
+    finally { setSavingClub(false) }
+  }
+  return <section className="community-clubs-panel"><header className="community-section-heading"><div><small>CLUBES</small><h2>Encontre seu ritmo em grupo</h2><p>Comunidades focadas em atividade, desafios e evolução — sem chat.</p></div><button className="community-club-create-trigger" onClick={() => setCreating((value) => !value)}>{creating ? 'Cancelar' : 'Criar clube'}</button></header>{creating && <section className="community-club-create"><div><small>NOVO CLUBE</small><h3>Comece uma comunidade de movimento</h3></div><label>Nome<input value={clubName} maxLength={60} placeholder="Ex.: Corredores da manhã" onChange={(event) => setClubName(event.target.value)} /></label><label>Descrição<textarea value={clubDescription} maxLength={500} placeholder="Qual é o foco do grupo?" onChange={(event) => setClubDescription(event.target.value)} /></label><label>Privacidade<select value={clubPrivacy} onChange={(event) => setClubPrivacy(event.target.value as 'public' | 'private')}><option value="public">Público</option><option value="private">Privado</option></select></label><button disabled={savingClub || clubName.trim().length < 3} onClick={() => void createClub()}>{savingClub ? <LoaderCircle size={15} className="is-spinning" /> : <UsersRound size={15} />}Criar clube</button><p>Você será o proprietário. Convites para clubes privados serão adicionados em uma próxima etapa.</p></section>}{loading ? <div className="community-club-loading"><span /><span /><span /></div> : error ? <div className="community-empty-inline"><UsersRound size={25} /><strong>{error}</strong><button onClick={loadDirectory}>Tentar novamente</button></div> : clubs.length ? <div className="community-club-grid">{clubs.map((club) => <ClubCard key={club.id} club={club} onOpen={() => setSelectedClubId(club.id)} />)}</div> : <div className="community-empty-inline"><UsersRound size={25} /><strong>Crie o primeiro clube.</strong><p>Junte pessoas em torno de um ritmo, uma modalidade ou um desafio.</p></div>}</section>
 }
 
 function ClubCard({ club, onOpen }: { club: CommunityClub; onOpen: () => void }) { return <article className="community-club-card"><button className="community-club-card__open" onClick={onOpen}><div className="community-club-card__cover">{club.coverUrl ? <img src={club.coverUrl} alt="" /> : <span><UsersRound size={23} /></span>}</div><div className="community-club-card__body"><span className="community-club-avatar">{club.avatarUrl ? <img src={club.avatarUrl} alt="" /> : club.name.slice(0, 1)}</span><div><h3>{club.name}</h3><p>{club.description || 'Atividade e consistência em comunidade.'}</p></div></div></button><footer><span><UsersRound size={14} /> {club.membersCount} {club.membersCount === 1 ? 'membro' : 'membros'}</span><span><Target size={14} /> {club.challengesCount} {club.challengesCount === 1 ? 'desafio' : 'desafios'}</span><button onClick={onOpen}>{club.joined ? 'Ver clube' : 'Conhecer'}</button></footer></article> }
