@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, Apple, Check, ClipboardList, CloudDownload, Eye, FileText, KeyRound, Link2Off, LockKeyhole, LogOut, MessageSquareLock, RefreshCw, ShieldCheck, Trash2, UserRound, Utensils, Weight, X } from 'lucide-react'
+import { Activity, Apple, Check, ClipboardList, CloudDownload, Eye, FileText, KeyRound, Link2Off, LockKeyhole, LogOut, MessageSquareLock, RefreshCw, ShieldCheck, Trash2, UserRound, UsersRound, Utensils, Weight, X } from 'lucide-react'
 import { Button, Card } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../integrations/supabase'
 import { healthIntegrationService } from '../services/healthIntegrationService'
 import '../privacy.css'
 import { defaultPrivacyPermissions, privacyService, type ConsentType, type PrivacyCategory, type PrivacyPermissions } from '../services/privacyService'
+import { communityService, defaultCommunityProfileSettings, type CommunityProfileSettings } from '../services/communityService'
 
 const categories: Array<{ key: PrivacyCategory; title: string; description: string; icon: typeof UserRound; sensitive?: boolean }> = [
   { key: 'profile', title: 'Perfil', description: 'Nome, objetivo e informações básicas.', icon: UserRound },
@@ -22,6 +23,7 @@ const consentLabels: Record<ConsentType, string> = { privacy_policy: 'Política 
 export function PrivacyPage({ userId, onLogout }: { userId: string; onLogout: () => void }) {
   const { user, updatePassword } = useAuth()
   const [permissions, setPermissions] = useState<PrivacyPermissions>(defaultPrivacyPermissions)
+  const [communitySettings, setCommunitySettings] = useState<CommunityProfileSettings>(defaultCommunityProfileSettings)
   const [consents, setConsents] = useState<Awaited<ReturnType<typeof privacyService.load>>['consents']>([])
   const [audits, setAudits] = useState<Awaited<ReturnType<typeof privacyService.load>>['audits']>([])
   const [session, setSession] = useState<{ createdAt: string | null; expiresAt: string | null } | null>(null)
@@ -38,8 +40,9 @@ export function PrivacyPage({ userId, onLogout }: { userId: string; onLogout: ()
   async function load() {
     setLoading(true); setError('')
     try {
-      const data = await privacyService.load(userId)
+      const [data, socialSettings] = await Promise.all([privacyService.load(userId), communityService.loadMyProfileSettings(userId)])
       setPermissions(data.permissions); setConsents(data.consents); setAudits(data.audits)
+      setCommunitySettings(socialSettings)
       const current = await supabase?.auth.getSession()
       const authSession = current?.data.session
       setSession({ createdAt: authSession?.user?.created_at ?? null, expiresAt: authSession?.expires_at ? new Date(authSession.expires_at * 1000).toISOString() : null })
@@ -57,6 +60,14 @@ export function PrivacyPage({ userId, onLogout }: { userId: string; onLogout: ()
     setPermissions(next); setBusy(true); setError('')
     try { await privacyService.savePermissions(userId, next); setNotice('Preferência da IA atualizada.'); await load() }
     catch (requestError) { setPermissions(permissions); setError(message(requestError)) }
+    finally { setBusy(false) }
+  }
+
+  async function saveCommunitySettings(next: CommunityProfileSettings) {
+    const previous = communitySettings
+    setCommunitySettings(next); setBusy(true); setError('')
+    try { await communityService.saveMyProfileSettings(userId, next); setNotice('Preferências da Comunidade atualizadas.') }
+    catch (requestError) { setCommunitySettings(previous); setError(message(requestError)) }
     finally { setBusy(false) }
   }
 
@@ -116,6 +127,8 @@ export function PrivacyPage({ userId, onLogout }: { userId: string; onLogout: ()
     <section className="privacy-summary"><article><ShieldCheck size={18} /><div><strong>Conta protegida</strong><small>Dados separados por usuário</small></div></article><article><MessageSquareLock size={18} /><div><strong>{enabledCount} de 7</strong><small>categorias liberadas para a IA</small></div></article><article><ClipboardList size={18} /><div><strong>{audits.length}</strong><small>ações recentes registradas</small></div></article></section>
 
     <Card className="privacy-card privacy-ai-card"><div className="privacy-card-heading"><div><small>CONTROLE DA IA</small><h2>Você escolhe o que pode ser usado</h2><p>A IA só recebe categorias liberadas aqui. A permissão para fotos é separada e começa desligada.</p></div><MessageSquareLock size={24} /></div><div className="privacy-permission-grid">{categories.map(({ key, title, description, icon: Icon, sensitive }) => <label className={`privacy-permission ${sensitive ? 'is-sensitive' : ''}`} key={key}><span><Icon size={17} /></span><div><strong>{title}{sensitive && <i>SENSÍVEL</i>}</strong><small>{description}</small></div><input type="checkbox" checked={permissions[key]} disabled={busy} onChange={() => void togglePermission(key)} /><b /></label>)}</div><div className="privacy-photo-notice"><LockKeyhole size={16} /><span><strong>Fotos nunca entram por padrão.</strong> Mesmo com a chave ligada, o envio só deve acontecer em uma ação futura que peça autorização específica para aquela foto.</span></div></Card>
+
+    <Card className="privacy-card community-privacy-card"><div className="privacy-card-heading"><div><small>COMUNIDADE</small><h2>O que aparece no seu perfil social</h2><p>Essas escolhas valem apenas para a Comunidade. Peso, altura, calorias e dados de saúde continuam privados.</p></div><UsersRound size={24} /></div><div className="community-privacy-settings"><label><span><strong>Perfil na Comunidade</strong><small>Um perfil privado só mostra seus conteúdos para seus seguidores.</small></span><select value={communitySettings.profileVisibility} disabled={busy} onChange={(event) => void saveCommunitySettings({ ...communitySettings, profileVisibility: event.target.value as CommunityProfileSettings['profileVisibility'] })}><option value="public">Público</option><option value="private">Privado</option></select></label><label><span><strong>Resumo de atividade</strong><small>Controla a sequência e o total de treinos exibidos no perfil social.</small></span><select value={communitySettings.activityVisibility} disabled={busy} onChange={(event) => void saveCommunitySettings({ ...communitySettings, activityVisibility: event.target.value as CommunityProfileSettings['activityVisibility'] })}><option value="public">Público</option><option value="private">Privado</option></select></label><label className="community-privacy-toggle"><span><strong>Mostrar distância acumulada</strong><small>Compartilha apenas o total, nunca o trajeto ou dados detalhados.</small></span><input type="checkbox" checked={communitySettings.shareDistance} disabled={busy} onChange={() => void saveCommunitySettings({ ...communitySettings, shareDistance: !communitySettings.shareDistance })} /><b /></label><label className="community-privacy-toggle"><span><strong>Compartilhar conquistas</strong><small>Exibe apenas medalhas escolhidas para a Comunidade.</small></span><input type="checkbox" checked={communitySettings.shareAchievements} disabled={busy} onChange={() => void saveCommunitySettings({ ...communitySettings, shareAchievements: !communitySettings.shareAchievements })} /><b /></label></div></Card>
 
     <div className="privacy-two-col"><Card className="privacy-card"><div className="privacy-card-heading"><div><small>TRANSPARÊNCIA</small><h2>Políticas e consentimentos</h2><p>Leia os documentos e altere suas escolhas quando quiser.</p></div><FileText size={23} /></div><div className="privacy-document-actions"><button onClick={() => setDocumentView('privacy')}><FileText size={16} /><span><strong>Política de privacidade</strong><small>Como tratamos dados pessoais e de saúde</small></span><Eye size={15} /></button><button onClick={() => setDocumentView('terms')}><ClipboardList size={16} /><span><strong>Termos de uso</strong><small>Regras de utilização do MOVELYA</small></span><Eye size={15} /></button></div><div className="privacy-consent-list">{(Object.keys(consentLabels) as ConsentType[]).map((type) => { const current = latestConsent.get(type); return <label key={type}><span><strong>{consentLabels[type]}</strong><small>{current?.granted ? `Aceito em ${formatDate(current.grantedAt)}` : 'Ainda não aceito'}</small></span><input type="checkbox" checked={Boolean(current?.granted)} disabled={busy} onChange={(event) => void toggleConsent(type, event.target.checked)} /><b /></label> })}</div></Card>
       <Card className="privacy-card privacy-history-card"><div className="privacy-card-heading"><div><small>HISTÓRICO</small><h2>Rastro de segurança</h2><p>Consentimentos e ações importantes da sua conta.</p></div><ClipboardList size={23} /></div><div className="privacy-audit-list">{audits.length ? audits.slice(0, 7).map((item) => <article key={item.id}><span><Check size={13} /></span><div><strong>{auditLabel(item.action)}</strong><small>{formatDateTime(item.createdAt)}</small></div></article>) : <p>Nenhuma ação registrada ainda.</p>}</div></Card></div>

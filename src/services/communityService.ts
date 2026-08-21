@@ -55,6 +55,17 @@ export interface CommunitySocialProfile {
   achievements?: CommunitySocialAchievement[]
 }
 
+export interface CommunityProfileSettings {
+  profileVisibility: 'public' | 'private'
+  activityVisibility: 'public' | 'private'
+  shareDistance: boolean
+  shareAchievements: boolean
+}
+
+export const defaultCommunityProfileSettings: CommunityProfileSettings = {
+  profileVisibility: 'public', activityVisibility: 'public', shareDistance: true, shareAchievements: true,
+}
+
 export interface CommunityData {
   summary: { streak: number; weeklyWorkouts: number; position: number | null }
   posts: CommunityPost[]
@@ -201,6 +212,30 @@ export const communityService = {
       distanceKm: item.distance_km === null || item.distance_km === undefined ? null : Number(item.distance_km),
       achievements: Array.isArray(item.achievements) ? item.achievements.map((achievement: any) => ({ id: String(achievement.id), title: String(achievement.title) })) : [],
     }
+  },
+
+  async loadMyProfileSettings(userId: string): Promise<CommunityProfileSettings> {
+    if (!supabase) return defaultCommunityProfileSettings
+    const { data, error } = await supabase.from('community_profile_settings').select('profile_visibility,activity_visibility,share_distance,share_achievements').eq('user_id', userId).maybeSingle()
+    if (error) throw error
+    return {
+      profileVisibility: data?.profile_visibility === 'private' ? 'private' : 'public',
+      activityVisibility: data?.activity_visibility === 'private' ? 'private' : 'public',
+      shareDistance: data?.share_distance ?? true,
+      shareAchievements: data?.share_achievements ?? true,
+    }
+  },
+
+  async saveMyProfileSettings(userId: string, settings: CommunityProfileSettings) {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const { error } = await supabase.from('community_profile_settings').upsert({
+      user_id: userId,
+      profile_visibility: settings.profileVisibility,
+      activity_visibility: settings.activityVisibility,
+      share_distance: settings.shareDistance,
+      share_achievements: settings.shareAchievements,
+    }, { onConflict: 'user_id' })
+    if (error) throw error
   },
 
   async loadUserPosts(userId: string, viewerId: string): Promise<CommunityPost[]> {
