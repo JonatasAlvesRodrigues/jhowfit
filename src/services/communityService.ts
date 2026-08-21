@@ -41,6 +41,37 @@ export interface CommunityRankingData {
   myMetric: number | null
 }
 
+export interface CommunityClub {
+  id: string
+  name: string
+  description: string
+  avatarUrl: string | null
+  coverUrl: string | null
+  membersCount: number
+  challengesCount: number
+  joined: boolean
+}
+
+export interface CommunityClubChallenge {
+  id: string
+  title: string
+  description: string
+  metric: CommunityRankingCategory
+  targetValue: number
+  startsAt: string
+  endsAt: string
+  status: 'upcoming' | 'active'
+  participantsCount: number
+  joinedByMe: boolean
+}
+
+export interface CommunityClubDetail extends CommunityClub {
+  state: 'available' | 'private' | 'not_found'
+  privacy?: 'public' | 'private'
+  role?: 'owner' | 'moderator' | 'member' | null
+  challenges: CommunityClubChallenge[]
+}
+
 export interface CommunityComment {
   id: string
   userId: string
@@ -167,6 +198,49 @@ export const communityService = {
 
   async loadRanking(scope: CommunityRankingScope, category: CommunityRankingCategory): Promise<CommunityRankingData> {
     return loadCommunityRanking(scope, category, 10)
+  },
+
+  async listClubs(): Promise<CommunityClub[]> {
+    if (!supabase) return []
+    const { data, error } = await supabase.rpc('community_club_directory')
+    if (error) throw error
+    return (data ?? []).map(mapCommunityClub)
+  },
+
+  async loadClub(clubId: string): Promise<CommunityClubDetail> {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const { data, error } = await supabase.rpc('community_club_detail', { target_club_id: clubId })
+    if (error || !data) throw error ?? new Error('Não foi possível abrir este clube.')
+    const item = data as any
+    return {
+      ...mapCommunityClub(item), state: item.state === 'private' || item.state === 'not_found' ? item.state : 'available',
+      privacy: item.privacy === 'private' ? 'private' : 'public', role: item.role === 'owner' || item.role === 'moderator' || item.role === 'member' ? item.role : null,
+      challenges: Array.isArray(item.challenges) ? item.challenges.map((challenge: any) => ({
+        id: String(challenge.id), title: String(challenge.title), description: String(challenge.description ?? ''),
+        metric: challenge.metric === 'workouts' || challenge.metric === 'distance' ? challenge.metric : 'streak', targetValue: Number(challenge.target_value ?? 0),
+        startsAt: String(challenge.starts_at), endsAt: String(challenge.ends_at), status: challenge.status === 'active' ? 'active' : 'upcoming',
+        participantsCount: Number(challenge.participants_count ?? 0), joinedByMe: Boolean(challenge.joined_by_me),
+      })) : [],
+    }
+  },
+
+  async toggleClubMembership(clubId: string, joined: boolean) {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const { error } = await supabase.rpc(joined ? 'leave_community_club' : 'join_community_club', { target_club_id: clubId })
+    if (error) throw error
+  },
+
+  async joinClubChallenge(challengeId: string) {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const { error } = await supabase.rpc('join_community_club_challenge', { target_challenge_id: challengeId })
+    if (error) throw error
+  },
+
+  async loadClubRanking(clubId: string, category: CommunityRankingCategory): Promise<CommunityRankingData> {
+    if (!supabase) return emptyCommunityRanking('global', category)
+    const { data, error } = await supabase.rpc('community_club_rankings', { target_club_id: clubId, ranking_category: category, requested_limit: 10 })
+    if (error) throw error
+    return mapCommunityRanking(data, category)
   },
 
   async toggleLike(post: CommunityPost, userId: string) {
@@ -451,10 +525,14 @@ async function loadCommunityRanking(scope: CommunityRankingScope, category: Comm
   if (!supabase) return emptyCommunityRanking(scope, category)
   const { data, error } = await supabase.rpc('community_rankings', { ranking_scope: scope, ranking_category: category, requested_limit: limit })
   if (error) throw error
+  return mapCommunityRanking(data, category, scope)
+}
+
+function mapCommunityRanking(data: unknown, fallbackCategory: CommunityRankingCategory, fallbackScope: CommunityRankingScope = 'global'): CommunityRankingData {
   const item = (data ?? {}) as any
   return {
-    scope: item.scope === 'friends' ? 'friends' : 'global',
-    category: item.category === 'workouts' || item.category === 'distance' ? item.category : 'streak',
+    scope: item.scope === 'friends' ? 'friends' : fallbackScope,
+    category: item.category === 'workouts' || item.category === 'distance' ? item.category : fallbackCategory === 'workouts' || fallbackCategory === 'distance' ? fallbackCategory : 'streak',
     weekStart: String(item.week_start ?? ''), timezone: String(item.timezone ?? 'America/Sao_Paulo'),
     entries: Array.isArray(item.entries) ? item.entries.map((entry: any) => ({
       userId: String(entry.user_id), name: String(entry.name ?? 'Membro MOVELYA'), avatarUrl: entry.avatar_url ?? null,
@@ -462,6 +540,14 @@ async function loadCommunityRanking(scope: CommunityRankingScope, category: Comm
     })) : [],
     myPosition: item.my_position === null || item.my_position === undefined ? null : Number(item.my_position),
     myMetric: item.my_metric === null || item.my_metric === undefined ? null : Number(item.my_metric),
+  }
+}
+
+function mapCommunityClub(item: any): CommunityClub {
+  return {
+    id: String(item.id ?? ''), name: String(item.name ?? 'Clube MOVELYA'), description: String(item.description ?? ''),
+    avatarUrl: item.avatar_url ?? null, coverUrl: item.cover_url ?? null, membersCount: Number(item.members_count ?? 0),
+    challengesCount: Number(item.challenges_count ?? (Array.isArray(item.challenges) ? item.challenges.length : 0)), joined: Boolean(item.joined),
   }
 }
 

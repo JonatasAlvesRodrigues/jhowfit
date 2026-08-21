@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Dumbbell, Ellipsis, Flame, Footprints, Heart, LoaderCircle, Medal, MessageCircle, Salad, Search, Send, Trophy, UserRound, UsersRound, X } from 'lucide-react'
 import { communityService, type CommunityComment, type CommunityData, type CommunityPost, type CommunityPostType, type CommunityProfileSearchResult, type CommunityRankingCategory, type CommunityRankingData, type CommunityRankingScope } from '../services/communityService'
 import { CreateCommunityPostModal } from '../components/CreateCommunityPostModal'
+import { CommunityClubsPanel } from '../components/CommunityClubsPanel'
 import '../community.css'
 
 type CommunityTab = 'feed' | 'ranking' | 'clubs'
@@ -90,7 +91,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
         </div>
       </>}
       {tab === 'ranking' && <RankingPanel initialRanking={data.ranking} onOpenProfile={(targetUserId) => onNavigate(`/perfil-social?user=${encodeURIComponent(targetUserId)}`)} />}
-      {tab === 'clubs' && <ClubsPlaceholder />}
+      {tab === 'clubs' && <CommunityClubsPanel />}
     </>}
     {notice && <button className="community-toast" onClick={() => setNotice('')} role="status">{notice}<X size={14} /></button>}
     {composerType && <CreateCommunityPostModal userId={userId} initialType={composerType} onClose={() => setComposerType(null)} onPublished={() => { setComposerType(null); setData(null); communityService.load(userId).then(setData).catch(() => setError('A publicação foi criada, mas não foi possível atualizar o feed.')) }} />}
