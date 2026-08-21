@@ -285,7 +285,7 @@ export default function App() {
               ) : route?.id === 'comunidade' && (user || import.meta.env.DEV) ? (
                 <CommunityPage userId={user?.id ?? 'development-preview'} onNavigate={navigate} />
               ) : route?.id === 'perfil-social' && user ? (
-                <CommunityProfilePage viewerId={user.id} targetUserId={new URLSearchParams(window.location.search).get('user') ?? ''} onNavigate={navigate} />
+                <CommunityProfilePage viewerId={user.id} targetUserId={communityProfileUserId()} onNavigate={navigate} />
               ) : route ? (
                 <RoutePlaceholder route={route} onNavigate={navigate} />
               ) : (
@@ -300,4 +300,10 @@ export default function App() {
       </div>
     </AppErrorBoundary>
   )
+}
+
+function communityProfileUserId() {
+  if (typeof window === 'undefined') return ''
+  const query = window.location.hash.includes('?') ? window.location.hash.split('?')[1] : window.location.search.slice(1)
+  return new URLSearchParams(query).get('user') ?? ''
 }
