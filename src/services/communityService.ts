@@ -30,6 +30,7 @@ export interface CommunityRankingItem {
 
 export type CommunityRankingScope = 'global' | 'friends'
 export type CommunityRankingCategory = 'streak' | 'workouts' | 'distance'
+export type ClubChallengeMetric = CommunityRankingCategory | 'activities'
 
 export interface CommunityRankingData {
   scope: CommunityRankingScope
@@ -56,13 +57,16 @@ export interface CommunityClubChallenge {
   id: string
   title: string
   description: string
-  metric: CommunityRankingCategory
+  metric: ClubChallengeMetric
   targetValue: number
   startsAt: string
   endsAt: string
-  status: 'upcoming' | 'active'
+  status: 'upcoming' | 'active' | 'completed'
   participantsCount: number
+  completedCount: number
   joinedByMe: boolean
+  progressValue: number
+  completedByMe: boolean
 }
 
 export interface CommunityClubDetail extends CommunityClub {
@@ -229,9 +233,9 @@ export const communityService = {
       privacy: item.privacy === 'private' ? 'private' : 'public', role: item.role === 'owner' || item.role === 'moderator' || item.role === 'member' ? item.role : null,
       challenges: Array.isArray(item.challenges) ? item.challenges.map((challenge: any) => ({
         id: String(challenge.id), title: String(challenge.title), description: String(challenge.description ?? ''),
-        metric: challenge.metric === 'workouts' || challenge.metric === 'distance' ? challenge.metric : 'streak', targetValue: Number(challenge.target_value ?? 0),
-        startsAt: String(challenge.starts_at), endsAt: String(challenge.ends_at), status: challenge.status === 'active' ? 'active' : 'upcoming',
-        participantsCount: Number(challenge.participants_count ?? 0), joinedByMe: Boolean(challenge.joined_by_me),
+        metric: challenge.metric === 'workouts' || challenge.metric === 'distance' || challenge.metric === 'activities' ? challenge.metric : 'streak', targetValue: Number(challenge.target_value ?? 0),
+        startsAt: String(challenge.starts_at), endsAt: String(challenge.ends_at), status: challenge.status === 'active' || challenge.status === 'completed' ? challenge.status : 'upcoming',
+        participantsCount: Number(challenge.participants_count ?? 0), completedCount: Number(challenge.completed_count ?? 0), joinedByMe: Boolean(challenge.joined_by_me), progressValue: Number(challenge.progress_value ?? 0), completedByMe: Boolean(challenge.completed_by_me),
       })) : [],
     }
   },
@@ -245,6 +249,24 @@ export const communityService = {
   async joinClubChallenge(challengeId: string) {
     if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
     const { error } = await supabase.rpc('join_community_club_challenge', { target_challenge_id: challengeId })
+    if (error) throw error
+  },
+
+  async loadClubChallengeProgress(clubId: string): Promise<CommunityClubChallenge[]> {
+    if (!supabase) return []
+    const { data, error } = await supabase.rpc('community_club_challenge_progress', { target_club_id: clubId })
+    if (error) throw error
+    return Array.isArray(data) ? data.map((challenge: any) => ({
+      id: String(challenge.id), title: String(challenge.title), description: String(challenge.description ?? ''),
+      metric: challenge.metric === 'workouts' || challenge.metric === 'distance' || challenge.metric === 'activities' ? challenge.metric : 'streak', targetValue: Number(challenge.target_value ?? 0),
+      startsAt: String(challenge.starts_at), endsAt: String(challenge.ends_at), status: challenge.status === 'active' || challenge.status === 'completed' ? challenge.status : 'upcoming', participantsCount: Number(challenge.participants_count ?? 0),
+      completedCount: Number(challenge.completed_count ?? 0), joinedByMe: Boolean(challenge.joined_by_me), progressValue: Number(challenge.progress_value ?? 0), completedByMe: Boolean(challenge.completed_by_me),
+    })) : []
+  },
+
+  async createClubChallenge(input: { clubId: string; userId: string; title: string; description: string; metric: ClubChallengeMetric; targetValue: number; startsAt: string; endsAt: string }) {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    const { error } = await supabase.from('club_challenges').insert({ club_id: input.clubId, created_by: input.userId, title: input.title.trim(), description: input.description.trim(), metric: input.metric, target_value: input.targetValue, starts_at: input.startsAt, ends_at: input.endsAt })
     if (error) throw error
   },
 
