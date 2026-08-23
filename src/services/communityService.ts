@@ -209,9 +209,14 @@ export const communityService = {
 
   async createClub(userId: string, input: { name: string; description: string; privacy: 'public' | 'private' }): Promise<string> {
     if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
-    const { data, error } = await supabase.from('clubs').insert({ owner_id: userId, name: input.name.trim(), description: input.description.trim(), privacy: input.privacy }).select('id').single()
-    if (error || !data) throw error ?? new Error('Não foi possível criar o clube.')
-    return String(data.id)
+    const id = createUuid()
+    const { error } = await supabase.from('clubs').insert({ id, owner_id: userId, name: input.name.trim(), description: input.description.trim(), privacy: input.privacy })
+    if (error) {
+      if (error.code === '42501') throw new Error('Sua sessão não tem permissão para criar o clube. Entre novamente e tente de novo.')
+      if (error.code === '23505') throw new Error('Já existe um clube com esse nome. Escolha outro nome.')
+      throw error
+    }
+    return id
   },
 
   async loadClub(clubId: string): Promise<CommunityClubDetail> {
