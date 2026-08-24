@@ -11,6 +11,8 @@ export interface AdminCoupon { code: string; description: string; discount_type:
 export interface AdminAuditEvent { created_at:string; action:string; actor_name:string|null; target_user_id:string|null; metadata:Record<string,unknown> }
 export interface AdminInternalAlert { id:string; category:string; severity:'info'|'warning'|'critical'; title:string; details:Record<string,unknown>; status:string; created_at:string }
 export interface AdminCancellationReason { plan_code:'PRO'|'PRO_PLUS'; reason:string; cancellations:number; percentage:number }
+export type AdminCommunityReportStatus = 'open' | 'reviewing' | 'resolved' | 'dismissed'
+export interface AdminCommunityReport { id:string; target_type:'post'|'comment'|'user'; reason:'spam'|'harassment'|'inappropriate_content'|'off_topic'|'other'; details:string|null; status:AdminCommunityReportStatus; created_at:string; reviewed_at:string|null; reporter_name:string|null; target_name:string|null }
 
 function requireClient() { if (!supabase) throw new Error('Supabase não configurado.') ; return supabase }
 
@@ -55,6 +57,8 @@ export const adminService = {
   async auditHistory(days=30, action='') { const {data,error}=await requireClient().rpc('admin_list_audit_history',{input_days:days,input_action:action||null}); if(error)throw error; return (data??[]) as AdminAuditEvent[] },
   async internalAlerts() { const {data,error}=await requireClient().rpc('admin_list_internal_alerts'); if(error)throw error; return (data??[]) as AdminInternalAlert[] },
   async cancellationReasons(days=90) { const {data,error}=await requireClient().rpc('admin_cancellation_reason_report',{input_days:days}); if(error)throw error; return (data??[]) as AdminCancellationReason[] },
+  async communityReports(status: AdminCommunityReportStatus | 'all' = 'open') { const {data,error}=await requireClient().rpc('admin_list_community_reports',{input_status:status==='all'?null:status}); if(error)throw error; return (data??[]) as AdminCommunityReport[] },
+  async updateCommunityReportStatus(reportId:string,status:Exclude<AdminCommunityReportStatus,'open'>) { const {error}=await requireClient().rpc('admin_update_community_report_status',{input_report_id:reportId,input_status:status}); if(error)throw error },
   async updateSubscriptionPlan(planCode: 'FREE' | 'PRO' | 'PRO_PLUS', priceMonthlyCents: number) {
     const { error } = await requireClient().rpc('admin_update_subscription_plan', { input_plan_code: planCode, input_price_cents: priceMonthlyCents, input_features: null })
     if (error) throw error

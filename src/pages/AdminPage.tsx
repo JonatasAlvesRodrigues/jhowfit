@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import { AlertTriangle, BarChart3, Bell, Database, ShieldCheck, Users, Utensils, Dumbbell, Crown, CreditCard, Save, BadgePercent, Pause, Archive, Play } from 'lucide-react'
+import { AlertTriangle, BarChart3, Bell, Database, ShieldCheck, Users, Utensils, Dumbbell, Crown, CreditCard, Save, BadgePercent, Pause, Archive, Play, Flag } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { adminService, type AdminAuditEvent, type AdminCancellationReason, type AdminCoupon, type AdminCouponSummary, type AdminInternalAlert, type AdminPlanLimit, type AdminSubscription, type AdminSubscriptionSummary, type AdminSummary, type AdminUser } from '../services/adminService'
+import { adminService, type AdminAuditEvent, type AdminCancellationReason, type AdminCommunityReport, type AdminCommunityReportStatus, type AdminCoupon, type AdminCouponSummary, type AdminInternalAlert, type AdminPlanLimit, type AdminSubscription, type AdminSubscriptionSummary, type AdminSummary, type AdminUser } from '../services/adminService'
 import '../admin.css'
 import '../admin-coupons.css'
 import '../admin-cancellations.css'
@@ -21,6 +21,8 @@ export function AdminPage() {
   const [alerts, setAlerts] = useState<AdminInternalAlert[]>([])
   const [cancellationReasons, setCancellationReasons] = useState<AdminCancellationReason[]>([])
   const [cancellationDays, setCancellationDays] = useState(90)
+  const [communityReports, setCommunityReports] = useState<AdminCommunityReport[]>([])
+  const [reportStatus, setReportStatus] = useState<AdminCommunityReportStatus | 'all'>('open')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
@@ -32,8 +34,8 @@ export function AdminPage() {
   async function load() {
     setLoading(true); setError('')
     try {
-      const [nextSummary, nextUsers] = await Promise.all([adminService.summary(), adminService.users()])
-      setSummary(nextSummary); setUsers(nextUsers)
+      const [nextSummary, nextUsers, nextReports] = await Promise.all([adminService.summary(), adminService.users(), adminService.communityReports(reportStatus)])
+      setSummary(nextSummary); setUsers(nextUsers); setCommunityReports(nextReports)
       if (role === 'admin') {
         const [nextSubscriptionSummary, nextSubscriptions, nextLimits, nextCouponSummary, nextCoupons,nextAudit,nextAlerts,nextReasons] = await Promise.all([adminService.subscriptionSummary(), adminService.subscriptions(), adminService.planLimits(), adminService.couponSummary(couponDays), adminService.coupons(couponDays),adminService.auditHistory(auditDays),adminService.internalAlerts(),adminService.cancellationReasons(cancellationDays)])
         setSubscriptionSummary(nextSubscriptionSummary); setSubscriptions(nextSubscriptions); setPlanLimits(nextLimits); setCouponSummary(nextCouponSummary); setCoupons(nextCoupons);setAudit(nextAudit);setAlerts(nextAlerts);setCancellationReasons(nextReasons)
@@ -42,7 +44,7 @@ export function AdminPage() {
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Acesso administrativo não autorizado.') }
     finally { setLoading(false) }
   }
-  useEffect(() => { if (role !== 'user') void load() }, [role, couponDays,auditDays,cancellationDays])
+  useEffect(() => { if (role !== 'user') void load() }, [role, couponDays,auditDays,cancellationDays,reportStatus])
 
   async function toggleSuspension(item: AdminUser) {
     try { await adminService.setSuspension(item.user_id, item.account_status === 'active'); setUsers((current) => current.map((userItem) => userItem.user_id === item.user_id ? { ...userItem, account_status: item.account_status === 'active' ? 'suspended' : 'active' } : userItem)); setToast('Status da conta atualizado.') }
@@ -59,6 +61,7 @@ export function AdminPage() {
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível sincronizar os exercícios.') }
     finally { setSyncingExercises(false) }
   }
+  async function updateReport(reportId:string,status:Exclude<AdminCommunityReportStatus,'open'>) { setError(''); try { await adminService.updateCommunityReportStatus(reportId,status); setCommunityReports(current=>current.map(item=>item.id===reportId?{...item,status,reviewed_at:new Date().toISOString()}:item)); setToast(status==='reviewing'?'Denúncia marcada como em análise.':status==='resolved'?'Denúncia resolvida.':'Denúncia descartada.') } catch(cause) { setError(cause instanceof Error?cause.message:'Não foi possível atualizar a denúncia.') } }
 
   if (role === 'user') return <section className="admin-page"><div className="admin-error"><ShieldCheck size={16} /> Esta área é restrita a moderadores e administradores.</div></section>
   return <section className="admin-page">
@@ -72,6 +75,7 @@ export function AdminPage() {
         <Stat icon={<Utensils size={17} color="var(--vita-green)" />} label="Alimentos" value={summary.foods} detail="Itens públicos" />
         <Stat icon={<AlertTriangle size={17} color="var(--vita-green)" />} label="Sinalizações" value={summary.flags_open} detail="Aguardando moderação" />
       </div>
+      <AdminCommunityReports reports={communityReports} status={reportStatus} onStatusChange={setReportStatus} onUpdate={updateReport} />
       {role === 'admin' && subscriptionSummary && <AdminSubscriptions summary={subscriptionSummary} subscriptions={subscriptions} limits={planLimits} onChanged={() => void load()} onError={setError} onToast={setToast} />}
       {role === 'admin' && couponSummary && <AdminCoupons summary={couponSummary} coupons={coupons} days={couponDays} onDaysChange={setCouponDays} onChanged={() => void load()} onError={setError} onToast={setToast} />}
       {role === 'admin' && <section className="admin-panel card"><h2>Histórico administrativo</h2><select value={auditDays} onChange={e=>setAuditDays(Number(e.target.value))}><option value={7}>Últimos 7 dias</option><option value={30}>Últimos 30 dias</option><option value={90}>Últimos 90 dias</option><option value={0}>Todo histórico</option></select><button onClick={()=>downloadAudit(audit)}>Exportar CSV</button><div className="admin-subscription-list">{audit.slice(0,20).map(item=><article key={`${item.created_at}${item.action}`}><div><strong>{item.action.split('_').join(' ')}</strong><small>{new Date(item.created_at).toLocaleString('pt-BR')} · {item.actor_name||'Admin'}</small></div></article>)}</div></section>}
@@ -81,6 +85,19 @@ export function AdminPage() {
         <div className="admin-panel card"><h2>Notificação geral</h2><p>Crie um rascunho para comunicação operacional. O envio em massa deve passar por revisão antes da publicação.</p><form className="admin-form" onSubmit={(event) => void createBroadcast(event)}><label>Título<input required maxLength={120} value={title} onChange={(event) => setTitle(event.target.value)} /></label><label>Mensagem<textarea required maxLength={1000} value={body} onChange={(event) => setBody(event.target.value)} /></label><label>Público<select value={audience} onChange={(event) => setAudience(event.target.value)}><option value="all">Todos</option><option value="active">Usuários ativos</option><option value="moderators">Moderadores</option></select></label>{role === 'admin' && <button type="submit"><Bell size={14} /> Salvar rascunho</button>}</form></div></div>
       <div className="admin-layout"><div className="admin-panel card"><h2>Saúde do sistema</h2><p><BarChart3 size={15} /> {summary.feature_events_30d} eventos de funcionalidade e {summary.audit_events_30d} ações auditadas nos últimos 30 dias.</p><p><Database size={15} /> Exercícios, alimentos e conquistas são administrados por operações protegidas no banco.</p><button className="admin-sync-button" onClick={() => void syncExercises()} disabled={syncingExercises}><Dumbbell size={15} /> {syncingExercises ? 'Sincronizando...' : 'Sincronizar exercícios'}</button></div><div className="admin-callout"><ShieldCheck size={18} /><span><strong>Limite de privacidade</strong><br />O painel não consulta armazenamento de fotos, conversas da IA, medidas, peso ou refeições individuais. Sinalizações usam apenas tipo, motivo e status.</span></div></div>
     </>}
+  </section>
+}
+
+function AdminCommunityReports({ reports, status, onStatusChange, onUpdate }: { reports: AdminCommunityReport[]; status: AdminCommunityReportStatus | 'all'; onStatusChange: (status: AdminCommunityReportStatus | 'all') => void; onUpdate: (reportId:string,status:Exclude<AdminCommunityReportStatus,'open'>) => Promise<void> }) {
+  const [busy, setBusy] = useState('')
+  async function act(reportId:string, nextStatus:Exclude<AdminCommunityReportStatus,'open'>) { setBusy(`${reportId}:${nextStatus}`); try { await onUpdate(reportId,nextStatus) } finally { setBusy('') } }
+  return <section className="admin-panel admin-reports card">
+    <div className="admin-reports__head"><div><span className="page-eyebrow">MODERAÇÃO DA COMUNIDADE</span><h2><Flag size={15} /> Denúncias</h2><p>Fila manual de publicações, comentários e perfis. Nenhuma decisão é automática.</p></div><select aria-label="Filtrar denúncias" value={status} onChange={(event)=>onStatusChange(event.target.value as AdminCommunityReportStatus|'all')}><option value="open">Em aberto</option><option value="reviewing">Em análise</option><option value="resolved">Resolvidas</option><option value="dismissed">Descartadas</option><option value="all">Todas</option></select></div>
+    <div className="admin-reports__list">{reports.length ? reports.map(item=><article key={item.id}>
+      <div className="admin-reports__meta"><span className={`admin-report-type is-${item.target_type}`}>{reportTargetLabel(item.target_type)}</span><span className={`admin-report-status is-${item.status}`}>{reportStatusLabel(item.status)}</span><time>{new Date(item.created_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}</time></div>
+      <strong>{reportReasonLabel(item.reason)}</strong><p>Alvo: {item.target_name || 'Conteúdo removido ou perfil indisponível'}{item.reporter_name ? ` · Reportado por ${item.reporter_name}` : ''}</p>{item.details && <blockquote>{item.details}</blockquote>}
+      <div className="admin-reports__actions">{item.status==='open' && <button onClick={()=>void act(item.id,'reviewing')} disabled={Boolean(busy)}>{busy===`${item.id}:reviewing`?'Salvando...':'Analisar'}</button>}{item.status!=='resolved' && <button onClick={()=>void act(item.id,'resolved')} disabled={Boolean(busy)}>{busy===`${item.id}:resolved`?'Salvando...':'Resolver'}</button>}{item.status!=='dismissed' && <button className="danger" onClick={()=>void act(item.id,'dismissed')} disabled={Boolean(busy)}>{busy===`${item.id}:dismissed`?'Salvando...':'Descartar'}</button>}</div>
+    </article>) : <p className="admin-reports__empty">Não há denúncias neste filtro.</p>}</div>
   </section>
 }
 
@@ -156,6 +173,9 @@ function AdminCoupons({ summary, coupons, days, onDaysChange, onChanged, onError
 }
 
 function money(cents: number) { return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }
+function reportTargetLabel(type:AdminCommunityReport['target_type']) { return ({post:'Publicação',comment:'Comentário',user:'Usuário'} as const)[type] }
+function reportStatusLabel(status:AdminCommunityReportStatus) { return ({open:'Em aberto',reviewing:'Em análise',resolved:'Resolvida',dismissed:'Descartada'} as const)[status] }
+function reportReasonLabel(reason:AdminCommunityReport['reason']) { return ({spam:'Spam',harassment:'Assédio',inappropriate_content:'Conteúdo inadequado',off_topic:'Fora do tema',other:'Outro'} as const)[reason] }
 function cancellationReasonLabel(reason: string) { return ({too_expensive:'Está caro',not_using:'Não está usando',missing_features:'Faltam recursos',technical_issue:'Problema técnico',other:'Outro motivo',not_informed:'Não informado'} as Record<string,string>)[reason] || reason }
 function downloadAudit(items: AdminAuditEvent[]) { const rows=items.map(i=>[i.created_at,i.action,i.actor_name||'',i.target_user_id||'',JSON.stringify(i.metadata)].map(x=>`"${String(x).split('"').join('""')}"`).join(',')); const csv=['Data,Ação,Administrador,Usuário alvo,Detalhes',...rows].join('\n'); const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); const a=document.createElement('a');a.href=url;a.download='historico-administrativo.csv';a.click();URL.revokeObjectURL(url) }
 
