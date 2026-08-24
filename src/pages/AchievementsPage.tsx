@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Award, Check, ChevronRight, Crown, Droplets, Dumbbell, Flame, Footprints, Goal, LockKeyhole, Medal, Sparkles, Star, Target, Trophy, X } from 'lucide-react'
+import { Award, Check, ChevronRight, Crown, Droplets, Dumbbell, Flame, Footprints, Goal, LoaderCircle, LockKeyhole, Medal, Send, Share2, Sparkles, Star, Target, Trophy, X } from 'lucide-react'
 import { achievementService, type Achievement, type AchievementIcon, type AchievementSummary } from '../services/achievementService'
+import { communityService } from '../services/communityService'
+import { createAchievementShareImage } from '../services/achievementShareService'
 
 const icons: Record<AchievementIcon, typeof Sparkles> = { spark: Sparkles, five: Dumbbell, steps: Footprints, water: Droplets, record: Trophy, month: Crown, goal: Goal }
 
@@ -9,6 +11,7 @@ export function AchievementsPage({ userId }: { userId: string }) {
   const [filter, setFilter] = useState<'all' | 'unlocked' | 'progress'>('all')
   const [error, setError] = useState('')
   const [celebration, setCelebration] = useState<Achievement | null>(null)
+  const [shareAchievement, setShareAchievement] = useState<Achievement | null>(null)
 
   useEffect(() => {
     let active = true
@@ -34,6 +37,7 @@ export function AchievementsPage({ userId }: { userId: string }) {
     {celebration && <aside className="achievement-unlock" role="status">
       <span><Sparkles size={18} /></span><div><small>CONQUISTA DESBLOQUEADA</small><strong>{celebration.title}</strong><p>+{celebration.xp} XP · Seu progresso continua com você.</p></div>
       <button onClick={() => setCelebration(null)} aria-label="Fechar celebração"><X size={16} /></button>
+      <button className="achievement-unlock__share" onClick={() => setShareAchievement(celebration)}><Share2 size={14} /> Compartilhar</button>
     </aside>}
 
     <header className="achievement-hero">
@@ -68,7 +72,7 @@ export function AchievementsPage({ userId }: { userId: string }) {
         <button className={filter === 'unlocked' ? 'is-active' : ''} onClick={() => setFilter('unlocked')}>Conquistadas</button>
         <button className={filter === 'progress' ? 'is-active' : ''} onClick={() => setFilter('progress')}>Em progresso</button>
       </div></div>
-      <div className="medal-grid">{visible.map((item) => <MedalCard achievement={item} key={item.id} />)}</div>
+      <div className="medal-grid">{visible.map((item) => <MedalCard achievement={item} key={item.id} onShare={() => setShareAchievement(item)} />)}</div>
     </section>
 
     <section className="achievement-bottom-grid">
@@ -77,6 +81,7 @@ export function AchievementsPage({ userId }: { userId: string }) {
       </div>
       <div className="accumulated-card"><small>EVOLUÇÃO ACUMULADA</small><h2>O que você já construiu</h2><div><span><Dumbbell size={17} /><b>{summary.totals.workouts}</b><small>treinos</small></span><span><Footprints size={17} /><b>{compact(summary.totals.steps)}</b><small>passos</small></span><span><Droplets size={17} /><b>{summary.totals.waterLiters.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} L</b><small>de água</small></span></div><p><Check size={15} /> Toda atividade soma. Nenhuma pausa apaga o caminho percorrido.</p></div>
     </section>
+    {shareAchievement && <AchievementShareModal userId={userId} achievement={shareAchievement} displayName={summary.displayName} onClose={() => setShareAchievement(null)} />}
   </div>
 }
 
@@ -84,13 +89,46 @@ function Metric({ icon: Icon, value, label, note, positive }: { icon: typeof Tar
   return <article className="consistency-card"><span><Icon size={18} /></span><div><strong className={positive ? 'is-positive' : ''}>{value}</strong><b>{label}</b><small>{note}</small></div></article>
 }
 
-function MedalCard({ achievement }: { achievement: Achievement }) {
+function MedalCard({ achievement, onShare }: { achievement: Achievement; onShare: () => void }) {
   const Icon = icons[achievement.icon]
   return <article className={`medal-card ${achievement.unlocked ? 'is-unlocked' : ''}`}>
     <div className="medal-card__top"><span className="medal-icon"><Icon size={25} /></span>{achievement.unlocked ? <i><Check size={12} /> Conquistada</i> : <i className="is-locked"><LockKeyhole size={11} /> Em progresso</i>}</div>
     <small>+{achievement.xp} XP</small><h3>{achievement.title}</h3><p>{achievement.description}</p>
-    {achievement.unlocked ? <time dateTime={achievement.unlockedAt ?? undefined}>{formatDate(achievement.unlockedAt)}</time> : <><div className="mini-progress"><i style={{ width: `${Math.min(100, achievement.progress / achievement.target * 100)}%` }} /></div><time>{formatProgress(achievement)}</time></>}
+    {achievement.unlocked ? <><time dateTime={achievement.unlockedAt ?? undefined}>{formatDate(achievement.unlockedAt)}</time><button className="medal-card__share" onClick={onShare}><Share2 size={13} /> Compartilhar</button></> : <><div className="mini-progress"><i style={{ width: `${Math.min(100, achievement.progress / achievement.target * 100)}%` }} /></div><time>{formatProgress(achievement)}</time></>}
   </article>
+}
+
+function AchievementShareModal({ userId, achievement, displayName, onClose }: { userId: string; achievement: Achievement; displayName: string; onClose: () => void }) {
+  const [caption, setCaption] = useState('')
+  const [status, setStatus] = useState<'idle' | 'creating' | 'publishing' | 'success' | 'error'>('idle')
+  const [message, setMessage] = useState('')
+
+  async function publish() {
+    if (status === 'creating' || status === 'publishing') return
+    setStatus('creating'); setMessage('Montando seu card de conquista…')
+    try {
+      const image = await createAchievementShareImage(achievement, displayName)
+      setStatus('publishing'); setMessage('Publicando na Comunidade…')
+      await communityService.createPost({ userId, type: 'achievement', caption: caption.trim(), activityId: null, image })
+      URL.revokeObjectURL(image.previewUrl)
+      setStatus('success'); setMessage('Conquista compartilhada na Comunidade.')
+    } catch (cause) {
+      setStatus('error'); setMessage(cause instanceof Error ? cause.message : 'Não foi possível compartilhar agora. Tente novamente.')
+    }
+  }
+
+  return <div className="achievement-share-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && status !== 'publishing' && onClose()}>
+    <section className="achievement-share-modal" role="dialog" aria-modal="true" aria-labelledby="achievement-share-title">
+      <button className="achievement-share-modal__close" onClick={onClose} disabled={status === 'creating' || status === 'publishing'} aria-label="Fechar"><X size={18} /></button>
+      <div className="achievement-share-modal__badge"><Trophy size={20} /></div>
+      <small>COMPARTILHAR CONQUISTA</small><h2 id="achievement-share-title">{achievement.title}</h2>
+      <p>Vamos criar um card exclusivo para a Comunidade. Ele só será publicado quando você confirmar.</p>
+      <label>Legenda opcional <span>{caption.length}/280</span><textarea value={caption} maxLength={280} onChange={(event) => setCaption(event.target.value)} placeholder="Conte como foi chegar até aqui…" disabled={status === 'creating' || status === 'publishing'} /></label>
+      {message && <p className={`achievement-share-modal__message is-${status}`} role="status">{(status === 'creating' || status === 'publishing') && <LoaderCircle size={15} />} {message}</p>}
+      {status === 'success' ? <button className="achievement-share-modal__action" onClick={onClose}><Check size={17} /> Pronto</button> : <button className="achievement-share-modal__action" onClick={publish} disabled={status === 'creating' || status === 'publishing'}>{(status === 'creating' || status === 'publishing') ? <LoaderCircle size={17} /> : <Send size={17} />} Compartilhar na Comunidade</button>}
+      {status !== 'success' && <button className="achievement-share-modal__cancel" onClick={onClose} disabled={status === 'creating' || status === 'publishing'}>Agora não</button>}
+    </section>
+  </div>
 }
 
 function formatDate(value: string | null) { return value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value)) : 'Conquistada' }

@@ -28,13 +28,15 @@ export interface AchievementSummary {
   streak: number
   bestWeek: number
   evolution: number
-  totals: { workouts: number; steps: number; waterLiters: number }
+  displayName: string
+  totals: { workouts: number; steps: number; waterLiters: number; distanceKm: number }
 }
 
 type WorkoutRow = { started_at: string; ended_at: string | null; status: string; pr_count: number | null }
 type StepRow = { occurred_on: string; steps: number }
 type WaterRow = { occurred_at: string; amount_ml: number }
 type GoalRow = { status: string; frequency: string; updated_at: string }
+type OutdoorActivityRow = { ended_at: string; started_at: string; duration_seconds: number; distance_km: number; average_speed_kmh: number; type: string; interrupted: boolean }
 
 const dayKey = (value: string | Date) => {
   const date = typeof value === 'string' ? new Date(value) : value
@@ -45,16 +47,19 @@ export const achievementService = {
   async load(userId: string): Promise<AchievementSummary> {
     if (!supabase || userId === 'development-preview') return demoSummary()
 
-    const [workoutResult, stepsResult, waterResult, goalsResult, profileResult, streakSummary] = await Promise.all([
+    const [workoutResult, stepsResult, waterResult, goalsResult, profileResult, outdoorResult, rankingsResult, streakSummary] = await Promise.all([
       supabase.from('workout_sessions').select('started_at,ended_at,status,pr_count').eq('user_id', userId).eq('status', 'completed').order('started_at'),
       supabase.from('step_records').select('occurred_on,steps').eq('user_id', userId).order('occurred_on'),
       supabase.from('water_intake_logs').select('occurred_at,amount_ml').eq('user_id', userId).order('occurred_at'),
       supabase.from('personal_goals').select('status,frequency,updated_at').eq('user_id', userId).eq('frequency', 'weekly').order('updated_at'),
-      supabase.from('profiles').select('created_at').eq('id', userId).maybeSingle(),
+      supabase.from('profiles').select('created_at,full_name').eq('id', userId).maybeSingle(),
+      supabase.from('outdoor_activities').select('started_at,ended_at,duration_seconds,distance_km,average_speed_kmh,type,interrupted').eq('user_id', userId).order('ended_at'),
+      Promise.all(['streak', 'workouts', 'distance'].map((category) => supabase!.rpc('community_rankings', { ranking_scope: 'global', ranking_category: category, requested_limit: 3 }))),
       activityStreakService.load(userId),
     ])
-    const failed = [workoutResult, stepsResult, waterResult, goalsResult, profileResult].find((result) => result.error)
+    const failed = [workoutResult, stepsResult, waterResult, goalsResult, profileResult, outdoorResult].find((result) => result.error)
     if (failed?.error) throw failed.error
+    const weeklyTopThree = rankingsResult.some((result) => !result.error && Number((result.data as { my_position?: number | null } | null)?.my_position ?? 0) > 0 && Number((result.data as { my_position?: number | null } | null)?.my_position) <= 3)
 
     return buildSummary(
       (workoutResult.data ?? []) as WorkoutRow[],
@@ -63,11 +68,14 @@ export const achievementService = {
       (goalsResult.data ?? []) as GoalRow[],
       profileResult.data?.created_at ?? new Date().toISOString(),
       streakSummary.currentStreak,
+      (outdoorResult.data ?? []) as OutdoorActivityRow[],
+      weeklyTopThree,
+      profileResult.data?.full_name?.trim() || 'Membro MOVELYA',
     )
   },
 }
 
-function buildSummary(workouts: WorkoutRow[], steps: StepRow[], water: WaterRow[], goals: GoalRow[], createdAt: string, physicalActivityStreak: number): AchievementSummary {
+function buildSummary(workouts: WorkoutRow[], steps: StepRow[], water: WaterRow[], goals: GoalRow[], createdAt: string, physicalActivityStreak: number, outdoorActivities: OutdoorActivityRow[], weeklyTopThree: boolean, displayName: string): AchievementSummary {
   const stepDays = sumByDay(steps.map((row) => ({ date: row.occurred_on, value: Number(row.steps) })))
   const waterDays = sumByDay(water.map((row) => ({ date: row.occurred_at, value: Number(row.amount_ml) })))
   const workoutDates = workouts.map((row) => dayKey(row.ended_at ?? row.started_at))
@@ -93,6 +101,11 @@ function buildSummary(workouts: WorkoutRow[], steps: StepRow[], water: WaterRow[
   const bestWeek = calculateBestWeek(activeSorted)
   const completedGoals = goals.filter((goal) => goal.status === 'completed')
   const lastActiveDate = activeSorted.length ? activeSorted[activeSorted.length - 1] : null
+  const validOutdoorActivities = outdoorActivities.filter(isValidOutdoorActivity)
+  const totalDistanceKm = validOutdoorActivities.reduce((total, activity) => total + Number(activity.distance_km), 0)
+  const fiftyKmDate = dateWhenDistanceReached(validOutdoorActivities, 50)
+  const hundredKmDate = dateWhenDistanceReached(validOutdoorActivities, 100)
+  const now = new Date().toISOString()
 
   const definitions: Achievement[] = [
     achievement('first-workout', 'Primeiro movimento', 'Seu primeiro treino concluído.', 'spark', 100, workouts.length, 1, 'treino', workouts[0]?.ended_at ?? workouts[0]?.started_at),
@@ -119,6 +132,10 @@ function buildSummary(workouts: WorkoutRow[], steps: StepRow[], water: WaterRow[
     achievement('sixty-active-days', 'Dois meses em movimento', 'Some 60 dias ativos.', 'month', 700, active.size, 60, 'dias ativos', activeSorted[59] ?? null),
     achievement('three-day-streak', 'Três dias de ritmo', 'Mantenha três dias ativos seguidos.', 'spark', 190, streak, 3, 'dias seguidos', lastActiveDate),
     achievement('seven-day-streak', 'Uma semana inteira', 'Mantenha sete dias ativos seguidos.', 'month', 480, streak, 7, 'dias seguidos', lastActiveDate),
+    achievement('thirty-day-streak', '30 dias de atividade', 'Mantenha trinta dias de atividade física válida seguidos.', 'month', 900, streak, 30, 'dias seguidos', lastActiveDate),
+    achievement('first-50-km', 'Primeiros 50 km', 'Some 50 km em corridas, caminhadas ou outros esportes válidos.', 'steps', 450, totalDistanceKm, 50, 'km', fiftyKmDate),
+    achievement('hundred-km', '100 km acumulados', 'Some 100 km de atividade ao ar livre validada.', 'steps', 850, totalDistanceKm, 100, 'km', hundredKmDate),
+    achievement('weekly-top-three', 'Top 3 semanal', 'Entre no Top 3 semanal de sequência, treinos ou quilômetros.', 'record', 750, weeklyTopThree ? 1 : 0, 1, 'Top 3', weeklyTopThree ? now : null),
     achievement('five-day-week', 'Semana produtiva', 'Tenha cinco dias ativos em uma semana.', 'goal', 280, bestWeek, 5, 'dias na semana', lastActiveDate),
     achievement('five-personal-records', 'Colecionador de recordes', 'Registre cinco recordes pessoais de carga.', 'record', 500, personalRecords, 5, 'recordes', workouts.find((row) => Number(row.pr_count) > 0)?.ended_at ?? null),
     achievement('three-weekly-goals', 'Metas em sequência', 'Conclua três metas semanais.', 'goal', 450, completedGoals.length, 3, 'metas', completedGoals[2]?.updated_at ?? null),
@@ -139,10 +156,12 @@ function buildSummary(workouts: WorkoutRow[], steps: StepRow[], water: WaterRow[
     streak,
     bestWeek,
     evolution: previousActiveDays ? Math.round(((activeDays - previousActiveDays) / previousActiveDays) * 100) : activeDays ? 100 : 0,
+    displayName,
     totals: {
       workouts: workouts.length,
       steps: totalSteps,
       waterLiters: totalWaterLiters,
+      distanceKm: totalDistanceKm,
     },
   }
 }
@@ -168,6 +187,24 @@ function calculateBestWeek(dates: string[]) {
     weeks.set(key, (weeks.get(key) ?? 0) + 1)
   })
   return Math.max(0, ...weeks.values())
+}
+
+function isValidOutdoorActivity(activity: OutdoorActivityRow) {
+  const minimumDuration = activity.type === 'bike' || activity.type === 'other' ? 900 : 600
+  const minimumDistance = activity.type === 'bike' ? 2 : 0.5
+  const maximumSpeed = activity.type === 'walk' ? 12 : activity.type === 'run' || activity.type === 'treadmill' ? 30 : activity.type === 'bike' ? 65 : 35
+  return !activity.interrupted && new Date(activity.ended_at).getTime() > new Date(activity.started_at).getTime()
+    && Number(activity.duration_seconds) >= minimumDuration && Number(activity.distance_km) >= minimumDistance
+    && Number(activity.average_speed_kmh) > 0 && Number(activity.average_speed_kmh) <= maximumSpeed
+}
+
+function dateWhenDistanceReached(activities: OutdoorActivityRow[], target: number) {
+  let total = 0
+  for (const activity of activities) {
+    total += Number(activity.distance_km)
+    if (total >= target) return activity.ended_at
+  }
+  return null
 }
 
 function demoSummary(): AchievementSummary {
@@ -197,6 +234,10 @@ function demoSummary(): AchievementSummary {
     achievement('sixty-active-days', 'Dois meses em movimento', 'Some 60 dias ativos.', 'month', 700, 21, 60, 'dias ativos'),
     achievement('three-day-streak', 'Três dias de ritmo', 'Mantenha três dias ativos seguidos.', 'spark', 190, 6, 3, 'dias seguidos', now),
     achievement('seven-day-streak', 'Uma semana inteira', 'Mantenha sete dias ativos seguidos.', 'month', 480, 6, 7, 'dias seguidos'),
+    achievement('thirty-day-streak', '30 dias de atividade', 'Mantenha trinta dias de atividade física válida seguidos.', 'month', 900, 6, 30, 'dias seguidos'),
+    achievement('first-50-km', 'Primeiros 50 km', 'Some 50 km em corridas, caminhadas ou outros esportes válidos.', 'steps', 450, 42.6, 50, 'km'),
+    achievement('hundred-km', '100 km acumulados', 'Some 100 km de atividade ao ar livre validada.', 'steps', 850, 42.6, 100, 'km'),
+    achievement('weekly-top-three', 'Top 3 semanal', 'Entre no Top 3 semanal de sequência, treinos ou quilômetros.', 'record', 750, 1, 1, 'Top 3', now),
     achievement('five-day-week', 'Semana produtiva', 'Tenha cinco dias ativos em uma semana.', 'goal', 280, 6, 5, 'dias na semana', now),
     achievement('five-personal-records', 'Colecionador de recordes', 'Registre cinco recordes pessoais de carga.', 'record', 500, 3, 5, 'recordes'),
     achievement('three-weekly-goals', 'Metas em sequência', 'Conclua três metas semanais.', 'goal', 450, 1, 3, 'metas'),
@@ -204,5 +245,5 @@ function demoSummary(): AchievementSummary {
   const xp = achievements.filter((item) => item.unlocked).reduce((total, item) => total + item.xp, 0)
   const level = Math.min(5, Math.floor(xp / 400) + 1)
   const levels = ['Começo', 'Em movimento', 'Constante', 'Inspirador', 'Imparável']
-  return { achievements, xp, level, levelName: levels[level - 1], currentLevelXp: xp - (level - 1) * 400, nextLevelXp: 400, activeDays: 21, consistency: 70, streak: 6, bestWeek: 6, evolution: 24, totals: { workouts: 18, steps: 184320, waterLiters: 62.4 } }
+  return { achievements, xp, level, levelName: levels[level - 1], currentLevelXp: xp - (level - 1) * 400, nextLevelXp: 400, activeDays: 21, consistency: 70, streak: 6, bestWeek: 6, evolution: 24, displayName: 'Jhow', totals: { workouts: 18, steps: 184320, waterLiters: 62.4, distanceKm: 42.6 } }
 }
