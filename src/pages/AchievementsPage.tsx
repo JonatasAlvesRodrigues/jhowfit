@@ -32,6 +32,7 @@ export function AchievementsPage({ userId }: { userId: string }) {
   const unlocked = summary.achievements.filter((item) => item.unlocked).sort((a, b) => String(b.unlockedAt).localeCompare(String(a.unlockedAt)))
   const next = summary.achievements.filter((item) => !item.unlocked).sort((a, b) => (b.progress / b.target) - (a.progress / a.target))[0]
   const levelPercent = Math.min(100, (summary.currentLevelXp / summary.nextLevelXp) * 100)
+  const shareable = unlocked[0] ?? null
 
   return <div className="achievements-page">
     {celebration && <aside className="achievement-unlock" role="status">
@@ -44,6 +45,12 @@ export function AchievementsPage({ userId }: { userId: string }) {
       <div className="achievement-hero__copy"><span className="page-eyebrow">CONQUISTAS E CONSISTÊNCIA</span><h1>Seu ritmo merece ser celebrado.</h1><p>Cada movimento conta. Pausas fazem parte — suas medalhas e seu progresso nunca são perdidos.</p></div>
       <div className="level-medallion"><span><Crown size={25} /></span><small>NÍVEL {summary.level}</small><strong>{summary.levelName}</strong></div>
     </header>
+
+    {shareable && <section className="achievement-quick-share">
+      <span className="achievement-quick-share__icon"><Share2 size={20} /></span>
+      <div><small>COMUNIDADE</small><strong>Compartilhe sua conquista</strong><p>{shareable.title} · seu card é criado na hora.</p></div>
+      <button onClick={() => setShareAchievement(shareable)}><span>Compartilhar</span><Send size={16} /></button>
+    </section>}
 
     <section className="achievement-overview">
       <div className="xp-card">
