@@ -84,6 +84,8 @@ export interface CommunityComment {
   profile: { name: string; avatarUrl: string | null }
 }
 
+export type CommunityReportReason = 'spam' | 'harassment' | 'inappropriate_content' | 'off_topic' | 'other'
+
 export interface CommunitySocialAchievement { id: string; title: string }
 
 export interface CommunitySocialProfile {
@@ -317,10 +319,24 @@ export const communityService = {
     if (error) throw error
   },
 
-  async reportComment(commentId: string, userId: string) {
+  async blockUser(blockedUserId: string, userId: string) {
     if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
-    const { error } = await supabase.from('reports').insert({ reporter_user_id: userId, target_type: 'comment', comment_id: commentId, reason: 'conteudo_inadequado' })
-    if (error) throw error
+    if (blockedUserId === userId) throw new Error('Você não pode bloquear seu próprio perfil.')
+    const { error } = await supabase.from('blocked_users').insert({ blocker_id: userId, blocked_id: blockedUserId })
+    if (error && error.code !== '23505') throw error
+  },
+
+  async reportPost(postId: string, userId: string, reason: CommunityReportReason, details?: string) {
+    return createCommunityReport({ userId, targetType: 'post', postId, reason, details })
+  },
+
+  async reportComment(commentId: string, userId: string, reason: CommunityReportReason, details?: string) {
+    if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+    await createCommunityReport({ userId, targetType: 'comment', commentId, reason, details })
+  },
+
+  async reportUser(targetUserId: string, userId: string, reason: CommunityReportReason, details?: string) {
+    return createCommunityReport({ userId, targetType: 'user', targetUserId, reason, details })
   },
 
   async loadSocialProfile(targetUserId: string): Promise<CommunitySocialProfile> {
@@ -526,6 +542,32 @@ async function prepareProfileAvatar(file: File): Promise<Blob> {
   const source = await loadImage(file)
   const avatar = await compress(source, 640, 180 * 1024, 450 * 1024)
   return avatar.blob
+}
+
+async function createCommunityReport(input: {
+  userId: string
+  targetType: 'post' | 'comment' | 'user'
+  reason: CommunityReportReason
+  details?: string
+  postId?: string
+  commentId?: string
+  targetUserId?: string
+}) {
+  if (!supabase) throw new Error('A conexão com a Comunidade não está disponível.')
+  const details = input.details?.trim() || null
+  const { error } = await supabase.from('reports').insert({
+    reporter_user_id: input.userId,
+    target_type: input.targetType,
+    post_id: input.postId ?? null,
+    comment_id: input.commentId ?? null,
+    target_user_id: input.targetUserId ?? null,
+    reason: input.reason,
+    details,
+  })
+  if (error) {
+    if (error.code === '23505') throw new Error('Você já enviou uma denúncia que ainda está em análise.')
+    throw error
+  }
 }
 
 async function loadProfiles(userIds: string[]) {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, Dumbbell, Ellipsis, Flame, Footprints, Heart, LoaderCircle, Medal, MessageCircle, Salad, Search, Send, Trophy, UserRound, UsersRound, X } from 'lucide-react'
-import { communityService, type CommunityComment, type CommunityData, type CommunityPost, type CommunityPostType, type CommunityProfileSearchResult, type CommunityRankingCategory, type CommunityRankingData, type CommunityRankingScope } from '../services/communityService'
+import { createPortal } from 'react-dom'
+import { ArrowRight, Ban, Dumbbell, Ellipsis, Flag, Flame, Footprints, Heart, LoaderCircle, Medal, MessageCircle, Salad, Search, Send, Trophy, UserRound, UsersRound, X } from 'lucide-react'
+import { communityService, type CommunityComment, type CommunityData, type CommunityPost, type CommunityPostType, type CommunityProfileSearchResult, type CommunityRankingCategory, type CommunityRankingData, type CommunityRankingScope, type CommunityReportReason } from '../services/communityService'
 import { CreateCommunityPostModal } from '../components/CreateCommunityPostModal'
 import { CommunityClubsPanel } from '../components/CommunityClubsPanel'
 import '../community.css'
@@ -18,6 +19,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
   const [notice, setNotice] = useState('')
   const [composerType, setComposerType] = useState<CommunityPostType | null>(null)
   const [pendingLikes, setPendingLikes] = useState<Record<string, boolean>>({})
+  const [blockRevision, setBlockRevision] = useState(0)
   const pendingLikeIds = useRef(new Set<string>())
 
   useEffect(() => {
@@ -60,6 +62,19 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
     }
   }
 
+  async function blockUser(blockedUserId: string) {
+    try {
+      await communityService.blockUser(blockedUserId, userId)
+      setData((current) => current ? { ...current, posts: current.posts.filter((post) => post.userId !== blockedUserId) } : current)
+      setSearchResults((items) => items.filter((item) => item.userId !== blockedUserId))
+      setBlockRevision((value) => value + 1)
+      setNotice('Usuário bloqueado. As publicações e interações dele não aparecem mais para você.')
+    } catch (cause) {
+      setNotice(cause instanceof Error ? cause.message : 'Não foi possível bloquear este usuário agora.')
+      throw cause
+    }
+  }
+
   function retry() { setError(''); setData(null); communityService.load(userId).then(setData).catch(() => setError('Não foi possível atualizar a comunidade agora.')) }
 
   if (error) return <section className="community-state"><UsersRound size={28} /><h1>Comunidade indisponível</h1><p>{error}</p><button onClick={retry}>Tentar novamente</button></section>
@@ -85,7 +100,7 @@ export function CommunityPage({ userId, onNavigate }: { userId: string; onNaviga
         <div className="community-content-grid">
           <div className="community-feed" aria-label="Feed da comunidade">
             <div className="community-section-heading"><div><small>FEED</small><h2>O que move a comunidade</h2></div>{query && <span>{visiblePosts.length} resultado{visiblePosts.length === 1 ? '' : 's'}</span>}</div>
-            {visiblePosts.length ? visiblePosts.map((post) => <PostCard key={post.id} post={post} viewerId={userId} liking={Boolean(pendingLikes[post.id])} onLike={() => void toggleLike(post)} onOpenProfile={() => onNavigate(`/perfil-social?user=${encodeURIComponent(post.userId)}`)} onCommentAdded={() => setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? { ...item, comments: item.comments + 1 } : item) } : current)} onCommentRemoved={() => setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? { ...item, comments: Math.max(0, item.comments - 1) } : item) } : current)} onMenu={() => setNotice('As opções da publicação serão disponibilizadas em breve.')} />) : <FeedEmpty searched={Boolean(query)} onNavigate={onNavigate} />}
+            {visiblePosts.length ? visiblePosts.map((post) => <PostCard key={`${post.id}:${blockRevision}`} post={post} viewerId={userId} liking={Boolean(pendingLikes[post.id])} onLike={() => void toggleLike(post)} onOpenProfile={() => onNavigate(`/perfil-social?user=${encodeURIComponent(post.userId)}`)} onCommentAdded={() => setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? { ...item, comments: item.comments + 1 } : item) } : current)} onCommentRemoved={() => setData((current) => current ? { ...current, posts: current.posts.map((item) => item.id === post.id ? { ...item, comments: Math.max(0, item.comments - 1) } : item) } : current)} onBlockUser={blockUser} />) : <FeedEmpty searched={Boolean(query)} onNavigate={onNavigate} />}
           </div>
           <WeeklyRanking ranking={data.ranking} onMore={() => setTab('ranking')} />
         </div>
@@ -105,7 +120,7 @@ function PublishActivity({ onOpen }: { onOpen: (type: CommunityPostType) => void
   return <section className="community-publish"><button className="community-publish__intro" onClick={() => onOpen('general_fitness')}><span><UsersRound size={18} /></span><div><small>COMPARTILHE SUA ATIVIDADE</small><h2>Seu movimento pode inspirar alguém.</h2></div></button><nav aria-label="Escolher atividade para compartilhar"><button onClick={() => onOpen('workout')}><Dumbbell size={16} />Treino</button><button onClick={() => onOpen('running')}><Footprints size={16} />Corrida</button><button onClick={() => onOpen('food')}><Salad size={16} />Refeição</button></nav></section>
 }
 
-function PostCard({ post, viewerId, liking, onLike, onOpenProfile, onCommentAdded, onCommentRemoved, onMenu }: { post: CommunityPost; viewerId: string; liking: boolean; onLike: () => void; onOpenProfile: () => void; onCommentAdded: () => void; onCommentRemoved: () => void; onMenu: () => void }) {
+function PostCard({ post, viewerId, liking, onLike, onOpenProfile, onCommentAdded, onCommentRemoved, onBlockUser }: { post: CommunityPost; viewerId: string; liking: boolean; onLike: () => void; onOpenProfile: () => void; onCommentAdded: () => void; onCommentRemoved: () => void; onBlockUser: (blockedUserId: string) => Promise<void> }) {
   const initials = post.profile.name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase()
   const Icon = postIcon(post.type)
   const [commentsOpen, setCommentsOpen] = useState(false)
@@ -116,6 +131,9 @@ function PostCard({ post, viewerId, liking, onLike, onOpenProfile, onCommentAdde
   const [commentError, setCommentError] = useState('')
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null)
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
+  const [postMenuOpen, setPostMenuOpen] = useState(false)
+  const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'comment'; id: string; name: string } | null>(null)
+  const [blockingUserId, setBlockingUserId] = useState<string | null>(null)
 
   async function openComments() {
     const nextOpen = !commentsOpen
@@ -144,23 +162,67 @@ function PostCard({ post, viewerId, liking, onLike, onOpenProfile, onCommentAdde
     finally { setDeletingCommentId(null) }
   }
 
-  async function reportComment(commentId: string) {
-    setReportingCommentId(commentId); setCommentError('')
-    try { await communityService.reportComment(commentId, viewerId); setCommentError('Denúncia enviada para análise.') }
-    catch { setCommentError('Não foi possível enviar a denúncia agora.') }
+  async function blockUser(targetUserId: string, name: string) {
+    if (!window.confirm(`Bloquear ${name}? As publicações e comentários dessa pessoa não aparecerão mais para você.`)) return
+    setBlockingUserId(targetUserId); setCommentError('')
+    try {
+      await onBlockUser(targetUserId)
+      setComments((items) => items.filter((item) => item.userId !== targetUserId))
+    } catch { setCommentError('Não foi possível bloquear este usuário agora.') }
+    finally { setBlockingUserId(null); setPostMenuOpen(false) }
+  }
+
+  async function submitReport(reason: CommunityReportReason, details: string) {
+    if (!reportTarget) return
+    const target = reportTarget
+    setReportingCommentId(target.type === 'comment' ? target.id : null); setCommentError('')
+    try {
+      if (target.type === 'post') await communityService.reportPost(target.id, viewerId, reason, details)
+      else await communityService.reportComment(target.id, viewerId, reason, details)
+      setReportTarget(null); setCommentError('Denúncia enviada para análise manual.')
+    } catch (cause) { setCommentError(cause instanceof Error ? cause.message : 'Não foi possível enviar a denúncia agora.') }
     finally { setReportingCommentId(null) }
   }
+
   return <article className="community-post">
-    <header><button className="community-post__author" onClick={onOpenProfile} aria-label={`Abrir perfil de ${post.profile.name}`}><span className="community-avatar">{post.profile.avatarUrl ? <img src={post.profile.avatarUrl} alt="" /> : initials}</span><span><strong>{post.profile.name}</strong><small><Flame size={12} fill="currentColor" /> atividade compartilhada</small></span></button><button onClick={onMenu} aria-label={`Opções da publicação de ${post.profile.name}`}><Ellipsis size={19} /></button></header>
+    <header><button className="community-post__author" onClick={onOpenProfile} aria-label={`Abrir perfil de ${post.profile.name}`}><span className="community-avatar">{post.profile.avatarUrl ? <img src={post.profile.avatarUrl} alt="" /> : initials}</span><span><strong>{post.profile.name}</strong><small><Flame size={12} fill="currentColor" /> atividade compartilhada</small></span></button>{post.userId !== viewerId && <div className="community-post__menu"><button onClick={() => setPostMenuOpen((open) => !open)} aria-label={`Opções da publicação de ${post.profile.name}`}><Ellipsis size={19} /></button>{postMenuOpen && <div role="menu"><button onClick={() => { setReportTarget({ type: 'post', id: post.id, name: post.profile.name }); setPostMenuOpen(false) }}><Flag size={14} /> Denunciar publicação</button><button className="is-danger" disabled={blockingUserId === post.userId} onClick={() => void blockUser(post.userId, post.profile.name)}><Ban size={14} /> {blockingUserId === post.userId ? 'Bloqueando…' : 'Bloquear usuário'}</button></div>}</div>}</header>
     {post.mediaUrl ? <img className="community-post__image" src={post.mediaUrl} alt="Publicação compartilhada pela comunidade" loading="lazy" /> : <div className="community-post__missing-media"><Icon size={28} /><span>{postTypeLabel(post.type)}</span></div>}
     <div className="community-post__body"><p>{post.caption || 'Atividade compartilhada na comunidade.'}</p><div className="community-post__activity"><span><Icon size={14} /></span>{activityCopy(post)}</div></div>
     <footer><button className={`${post.likedByMe ? 'is-liked' : ''} ${post.likedByMe && !liking ? 'is-like-pop' : ''}`} onClick={onLike} disabled={liking} aria-label={post.likedByMe ? 'Remover curtida' : 'Curtir publicação'}><Heart size={18} fill={post.likedByMe ? 'currentColor' : 'none'} /><b>{post.likes}</b></button><button className={commentsOpen ? 'is-commenting' : ''} onClick={() => void openComments()} aria-expanded={commentsOpen} aria-label="Ver e adicionar comentários"><MessageCircle size={18} /><b>{post.comments}</b></button><time>{relativeDate(post.createdAt)}</time></footer>
-    {commentsOpen && <section className="community-comments" aria-label="Comentários"><header><strong>Comentários</strong><button onClick={() => setCommentsOpen(false)} aria-label="Fechar comentários"><X size={15} /></button></header><div className="community-comments__list">{loadingComments ? <span className="community-comments__loading"><LoaderCircle size={14} className="is-spinning" /> Carregando comentários…</span> : comments.length ? comments.map((item) => <article key={item.id}><span className="community-comment-avatar">{item.profile.avatarUrl ? <img src={item.profile.avatarUrl} alt="" /> : item.profile.name.slice(0, 1)}</span><div><strong>{item.profile.name}</strong><p>{item.content}</p><small>{relativeDate(item.createdAt)}</small>{item.userId === viewerId ? <button className="community-comment-action" disabled={deletingCommentId === item.id} onClick={() => void deleteComment(item.id)}>{deletingCommentId === item.id ? 'Excluindo…' : 'Excluir'}</button> : <button className="community-comment-action" disabled={reportingCommentId === item.id} onClick={() => void reportComment(item.id)}>{reportingCommentId === item.id ? 'Enviando…' : 'Denunciar'}</button>}</div></article>) : <p className="community-comments__empty">Seja o primeiro a comentar.</p>}</div><div className="community-comment-form"><input value={comment} maxLength={500} disabled={sendingComment} placeholder="Adicionar comentário..." onChange={(event) => setComment(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendComment() } }} /><button onClick={() => void sendComment()} disabled={!comment.trim() || sendingComment} aria-label="Enviar comentário">{sendingComment ? <LoaderCircle size={15} className="is-spinning" /> : <Send size={15} />}</button></div>{commentError && <p className="community-comments__error">{commentError}</p>}</section>}
+    {commentsOpen && <section className="community-comments" aria-label="Comentários"><header><strong>Comentários</strong><button onClick={() => setCommentsOpen(false)} aria-label="Fechar comentários"><X size={15} /></button></header><div className="community-comments__list">{loadingComments ? <span className="community-comments__loading"><LoaderCircle size={14} className="is-spinning" /> Carregando comentários…</span> : comments.length ? comments.map((item) => <article key={item.id}><span className="community-comment-avatar">{item.profile.avatarUrl ? <img src={item.profile.avatarUrl} alt="" /> : item.profile.name.slice(0, 1)}</span><div><strong>{item.profile.name}</strong><p>{item.content}</p><small>{relativeDate(item.createdAt)}</small>{item.userId === viewerId ? <button className="community-comment-action" disabled={deletingCommentId === item.id} onClick={() => void deleteComment(item.id)}>{deletingCommentId === item.id ? 'Excluindo…' : 'Excluir'}</button> : <span className="community-comment-actions"><button className="community-comment-action" onClick={() => setReportTarget({ type: 'comment', id: item.id, name: item.profile.name })}><Flag size={12} /> Denunciar</button><button className="community-comment-action is-danger" disabled={blockingUserId === item.userId} onClick={() => void blockUser(item.userId, item.profile.name)}><Ban size={12} /> Bloquear</button></span>}</div></article>) : <p className="community-comments__empty">Seja o primeiro a comentar.</p>}</div><div className="community-comment-form"><input value={comment} maxLength={500} disabled={sendingComment} placeholder="Adicionar comentário..." onChange={(event) => setComment(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendComment() } }} /><button onClick={() => void sendComment()} disabled={!comment.trim() || sendingComment} aria-label="Enviar comentário">{sendingComment ? <LoaderCircle size={15} className="is-spinning" /> : <Send size={15} />}</button></div>{commentError && <p className="community-comments__error">{commentError}</p>}</section>}
     {!post.isPermanent && post.expiresAt && <PostExpiration expiresAt={post.expiresAt} isOwner={post.userId === viewerId} />}
+    {reportTarget && <CommunityReportModal target={reportTarget} onClose={() => setReportTarget(null)} onSubmit={submitReport} />}
   </article>
 }
 
 function WeeklyRanking({ ranking, onMore }: { ranking: CommunityData['ranking']; onMore: () => void }) { return <aside className="community-ranking-card"><header><div><small>SEQUÊNCIAS ATIVAS</small><h2>Ritmo em destaque</h2></div><Trophy size={19} /></header>{ranking.entries.length ? <ol>{ranking.entries.slice(0, 3).map((item) => <li key={item.userId}><b>{item.position}</b><span className="ranking-avatar">{item.avatarUrl ? <img src={item.avatarUrl} alt="" /> : item.name.slice(0, 1)}</span><div><strong>{item.name}</strong><small>{formatRankingMetric('streak', item.metric)}</small></div></li>)}</ol> : <p>O ranking aparece após o primeiro movimento válido na Comunidade.</p>}<button onClick={onMore}>Ver ranking <ArrowRight size={15} /></button></aside> }
+
+function CommunityReportModal({ target, onClose, onSubmit }: { target: { type: 'post' | 'comment'; id: string; name: string }; onClose: () => void; onSubmit: (reason: CommunityReportReason, details: string) => Promise<void> }) {
+  const [reason, setReason] = useState<CommunityReportReason>('inappropriate_content')
+  const [details, setDetails] = useState('')
+  const [sending, setSending] = useState(false)
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault()
+    if (sending) return
+    setSending(true)
+    try { await onSubmit(reason, details.trim()) }
+    finally { setSending(false) }
+  }
+
+  if (typeof document === 'undefined') return null
+  return createPortal(<div className="community-report-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !sending && onClose()}>
+    <form className="community-report-modal" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="community-report-title">
+      <button type="button" className="community-report-modal__close" disabled={sending} onClick={onClose} aria-label="Fechar"><X size={18} /></button>
+      <span><Flag size={20} /></span><small>DENÚNCIA</small><h2 id="community-report-title">Denunciar {target.type === 'post' ? 'publicação' : 'comentário'}</h2>
+      <p>Seu relato será revisado manualmente. A outra pessoa não recebe sua identidade.</p>
+      <label>Motivo<select value={reason} disabled={sending} onChange={(event) => setReason(event.target.value as CommunityReportReason)}><option value="spam">Spam</option><option value="harassment">Assédio</option><option value="inappropriate_content">Conteúdo inadequado</option><option value="off_topic">Fora do tema fitness</option><option value="other">Outro</option></select></label>
+      <label>Detalhes opcionais <span>{details.length}/500</span><textarea value={details} maxLength={500} disabled={sending} onChange={(event) => setDetails(event.target.value)} placeholder="Ajude a equipe a entender o contexto." /></label>
+      <button className="community-report-modal__submit" disabled={sending}>{sending ? <LoaderCircle size={16} className="is-spinning" /> : <Flag size={16} />} Enviar denúncia</button>
+      <button type="button" className="community-report-modal__cancel" disabled={sending} onClick={onClose}>Cancelar</button>
+    </form>
+  </div>, document.body)
+}
 
 function RankingPanel({ initialRanking, onOpenProfile }: { initialRanking: CommunityRankingData; onOpenProfile: (userId: string) => void }) {
   const [scope, setScope] = useState<CommunityRankingScope>('global')
