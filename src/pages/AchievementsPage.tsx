@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Award, Check, ChevronRight, Crown, Droplets, Dumbbell, Flame, Footprints, Goal, LoaderCircle, LockKeyhole, Medal, Send, Share2, Sparkles, Star, Target, Trophy, X } from 'lucide-react'
 import { achievementService, type Achievement, type AchievementIcon, type AchievementSummary } from '../services/achievementService'
 import { communityService } from '../services/communityService'
@@ -124,7 +125,8 @@ function AchievementShareModal({ userId, achievement, displayName, onClose }: { 
     }
   }
 
-  return <div className="achievement-share-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && status !== 'publishing' && onClose()}>
+  if (typeof document === 'undefined') return null
+  return createPortal(<div className="achievement-share-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && status !== 'publishing' && onClose()}>
     <section className="achievement-share-modal" role="dialog" aria-modal="true" aria-labelledby="achievement-share-title">
       <button className="achievement-share-modal__close" onClick={onClose} disabled={status === 'creating' || status === 'publishing'} aria-label="Fechar"><X size={18} /></button>
       <div className="achievement-share-modal__badge"><Trophy size={20} /></div>
@@ -135,7 +137,7 @@ function AchievementShareModal({ userId, achievement, displayName, onClose }: { 
       {status === 'success' ? <button className="achievement-share-modal__action" onClick={onClose}><Check size={17} /> Pronto</button> : <button className="achievement-share-modal__action" onClick={publish} disabled={status === 'creating' || status === 'publishing'}>{(status === 'creating' || status === 'publishing') ? <LoaderCircle size={17} /> : <Send size={17} />} Compartilhar na Comunidade</button>}
       {status !== 'success' && <button className="achievement-share-modal__cancel" onClick={onClose} disabled={status === 'creating' || status === 'publishing'}>Agora não</button>}
     </section>
-  </div>
+  </div>, document.body)
 }
 
 function formatDate(value: string | null) { return value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value)) : 'Conquistada' }
