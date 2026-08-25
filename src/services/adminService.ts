@@ -13,6 +13,7 @@ export interface AdminInternalAlert { id:string; category:string; severity:'info
 export interface AdminCancellationReason { plan_code:'PRO'|'PRO_PLUS'; reason:string; cancellations:number; percentage:number }
 export type AdminCommunityReportStatus = 'open' | 'reviewing' | 'resolved' | 'dismissed'
 export interface AdminCommunityReport { id:string; target_type:'post'|'comment'|'user'; reason:'spam'|'harassment'|'inappropriate_content'|'off_topic'|'other'; details:string|null; status:AdminCommunityReportStatus; created_at:string; reviewed_at:string|null; reporter_name:string|null; target_name:string|null }
+export interface AdminCommunityReportTarget { target_type:'post'|'comment'|'user'; author_name:string|null; caption:string|null; post_type:string|null; comment_content:string|null; created_at:string|null; media_path:string|null; media_url:string|null }
 
 function requireClient() { if (!supabase) throw new Error('Supabase não configurado.') ; return supabase }
 
@@ -59,6 +60,7 @@ export const adminService = {
   async cancellationReasons(days=90) { const {data,error}=await requireClient().rpc('admin_cancellation_reason_report',{input_days:days}); if(error)throw error; return (data??[]) as AdminCancellationReason[] },
   async communityReports(status: AdminCommunityReportStatus | 'all' = 'open') { const {data,error}=await requireClient().rpc('admin_list_community_reports',{input_status:status==='all'?null:status}); if(error)throw error; return (data??[]) as AdminCommunityReport[] },
   async updateCommunityReportStatus(reportId:string,status:Exclude<AdminCommunityReportStatus,'open'>) { const {error}=await requireClient().rpc('admin_update_community_report_status',{input_report_id:reportId,input_status:status}); if(error)throw error },
+  async communityReportTarget(reportId:string):Promise<AdminCommunityReportTarget> { const client=requireClient(); const {data,error}=await client.rpc('admin_get_community_report_target',{input_report_id:reportId}); if(error)throw error; const item=(data??{}) as Omit<AdminCommunityReportTarget,'media_url'>; let mediaUrl:string|null=null; if(item.media_path) { const signed=await client.storage.from('community-media').createSignedUrl(item.media_path,60*10); if(signed.error) throw signed.error; mediaUrl=signed.data?.signedUrl??null } return {...item,media_url:mediaUrl} },
   async updateSubscriptionPlan(planCode: 'FREE' | 'PRO' | 'PRO_PLUS', priceMonthlyCents: number) {
     const { error } = await requireClient().rpc('admin_update_subscription_plan', { input_plan_code: planCode, input_price_cents: priceMonthlyCents, input_features: null })
     if (error) throw error

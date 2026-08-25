@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import { AlertTriangle, BarChart3, Bell, Database, ShieldCheck, Users, Utensils, Dumbbell, Crown, CreditCard, Save, BadgePercent, Pause, Archive, Play, Flag } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { AlertTriangle, BarChart3, Bell, Database, ShieldCheck, Users, Utensils, Dumbbell, Crown, CreditCard, Save, BadgePercent, Pause, Archive, Play, Flag, Eye, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { adminService, type AdminAuditEvent, type AdminCancellationReason, type AdminCommunityReport, type AdminCommunityReportStatus, type AdminCoupon, type AdminCouponSummary, type AdminInternalAlert, type AdminPlanLimit, type AdminSubscription, type AdminSubscriptionSummary, type AdminSummary, type AdminUser } from '../services/adminService'
+import { adminService, type AdminAuditEvent, type AdminCancellationReason, type AdminCommunityReport, type AdminCommunityReportStatus, type AdminCommunityReportTarget, type AdminCoupon, type AdminCouponSummary, type AdminInternalAlert, type AdminPlanLimit, type AdminSubscription, type AdminSubscriptionSummary, type AdminSummary, type AdminUser } from '../services/adminService'
 import '../admin.css'
 import '../admin-coupons.css'
 import '../admin-cancellations.css'
@@ -90,15 +91,26 @@ export function AdminPage() {
 
 function AdminCommunityReports({ reports, status, onStatusChange, onUpdate }: { reports: AdminCommunityReport[]; status: AdminCommunityReportStatus | 'all'; onStatusChange: (status: AdminCommunityReportStatus | 'all') => void; onUpdate: (reportId:string,status:Exclude<AdminCommunityReportStatus,'open'>) => Promise<void> }) {
   const [busy, setBusy] = useState('')
+  const [selected, setSelected] = useState<AdminCommunityReport | null>(null)
+  const [target, setTarget] = useState<AdminCommunityReportTarget | null>(null)
+  const [targetLoading, setTargetLoading] = useState(false)
+  const [targetError, setTargetError] = useState('')
   async function act(reportId:string, nextStatus:Exclude<AdminCommunityReportStatus,'open'>) { setBusy(`${reportId}:${nextStatus}`); try { await onUpdate(reportId,nextStatus) } finally { setBusy('') } }
+  async function openTarget(item:AdminCommunityReport) { setSelected(item); setTarget(null); setTargetError(''); setTargetLoading(true); try { setTarget(await adminService.communityReportTarget(item.id)) } catch { setTargetError('Não foi possível abrir este conteúdo. Ele pode já ter sido removido.') } finally { setTargetLoading(false) } }
   return <section className="admin-panel admin-reports card">
     <div className="admin-reports__head"><div><span className="page-eyebrow">MODERAÇÃO DA COMUNIDADE</span><h2><Flag size={15} /> Denúncias</h2><p>Fila manual de publicações, comentários e perfis. Nenhuma decisão é automática.</p></div><select aria-label="Filtrar denúncias" value={status} onChange={(event)=>onStatusChange(event.target.value as AdminCommunityReportStatus|'all')}><option value="open">Em aberto</option><option value="reviewing">Em análise</option><option value="resolved">Resolvidas</option><option value="dismissed">Descartadas</option><option value="all">Todas</option></select></div>
     <div className="admin-reports__list">{reports.length ? reports.map(item=><article key={item.id}>
       <div className="admin-reports__meta"><span className={`admin-report-type is-${item.target_type}`}>{reportTargetLabel(item.target_type)}</span><span className={`admin-report-status is-${item.status}`}>{reportStatusLabel(item.status)}</span><time>{new Date(item.created_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}</time></div>
       <strong>{reportReasonLabel(item.reason)}</strong><p>Alvo: {item.target_name || 'Conteúdo removido ou perfil indisponível'}{item.reporter_name ? ` · Reportado por ${item.reporter_name}` : ''}</p>{item.details && <blockquote>{item.details}</blockquote>}
-      <div className="admin-reports__actions">{item.status==='open' && <button onClick={()=>void act(item.id,'reviewing')} disabled={Boolean(busy)}>{busy===`${item.id}:reviewing`?'Salvando...':'Analisar'}</button>}{item.status!=='resolved' && <button onClick={()=>void act(item.id,'resolved')} disabled={Boolean(busy)}>{busy===`${item.id}:resolved`?'Salvando...':'Resolver'}</button>}{item.status!=='dismissed' && <button className="danger" onClick={()=>void act(item.id,'dismissed')} disabled={Boolean(busy)}>{busy===`${item.id}:dismissed`?'Salvando...':'Descartar'}</button>}</div>
+      <div className="admin-reports__actions"><button className="view" onClick={()=>void openTarget(item)}><Eye size={13} /> Ver conteúdo</button>{item.status==='open' && <button onClick={()=>void act(item.id,'reviewing')} disabled={Boolean(busy)}>{busy===`${item.id}:reviewing`?'Salvando...':'Analisar'}</button>}{item.status!=='resolved' && <button onClick={()=>void act(item.id,'resolved')} disabled={Boolean(busy)}>{busy===`${item.id}:resolved`?'Salvando...':'Resolver'}</button>}{item.status!=='dismissed' && <button className="danger" onClick={()=>void act(item.id,'dismissed')} disabled={Boolean(busy)}>{busy===`${item.id}:dismissed`?'Salvando...':'Descartar'}</button>}</div>
     </article>) : <p className="admin-reports__empty">Não há denúncias neste filtro.</p>}</div>
+    {selected && <ReportTargetModal report={selected} target={target} loading={targetLoading} error={targetError} onClose={()=>setSelected(null)} />}
   </section>
+}
+
+function ReportTargetModal({ report, target, loading, error, onClose }: { report:AdminCommunityReport; target:AdminCommunityReportTarget|null; loading:boolean; error:string; onClose:()=>void }) {
+  const content=<div className="admin-report-modal-backdrop" role="presentation" onMouseDown={(event)=>event.target===event.currentTarget&&onClose()}><section className="admin-report-modal" role="dialog" aria-modal="true" aria-label="Conteúdo denunciado"><header><div><span className="page-eyebrow">ANÁLISE DE DENÚNCIA</span><h2>{reportTargetLabel(report.target_type)} denunciado</h2></div><button onClick={onClose} aria-label="Fechar"><X size={18} /></button></header>{loading?<p className="admin-report-modal__state">Carregando conteúdo…</p>:error?<p className="admin-report-modal__state is-error">{error}</p>:target&&<div className="admin-report-modal__body"><div className="admin-report-modal__meta"><span>{target.author_name||'Membro MOVELYA'}</span>{target.created_at&&<time>{new Date(target.created_at).toLocaleString('pt-BR')}</time>}</div>{target.comment_content&&<div className="admin-report-modal__comment"><small>Comentário denunciado</small><p>{target.comment_content}</p></div>}{target.media_url&&<img src={target.media_url} alt="Imagem da publicação denunciada" />}{target.caption&&<div className="admin-report-modal__caption"><small>{target.post_type?reportPostTypeLabel(target.post_type):'Publicação'}</small><p>{target.caption}</p></div>}<div className="admin-report-modal__reason"><strong>Motivo: {reportReasonLabel(report.reason)}</strong>{report.details&&<p>{report.details}</p>}</div></div>}</section></div>
+  return typeof document==='undefined'?content:createPortal(content,document.body)
 }
 
 const limitLabels: Record<string, string> = { chat_message: 'Mensagens IA', workout_adjustment: 'Ajustes de treino', workout_generation: 'Treinos por IA', food_photo_analysis: 'Fotos de refeição', diet_generation: 'Planos alimentares', smart_report: 'Relatórios inteligentes', full_replanning: 'Replanejamentos' }
@@ -176,6 +188,7 @@ function money(cents: number) { return (cents / 100).toLocaleString('pt-BR', { s
 function reportTargetLabel(type:AdminCommunityReport['target_type']) { return ({post:'Publicação',comment:'Comentário',user:'Usuário'} as const)[type] }
 function reportStatusLabel(status:AdminCommunityReportStatus) { return ({open:'Em aberto',reviewing:'Em análise',resolved:'Resolvida',dismissed:'Descartada'} as const)[status] }
 function reportReasonLabel(reason:AdminCommunityReport['reason']) { return ({spam:'Spam',harassment:'Assédio',inappropriate_content:'Conteúdo inadequado',off_topic:'Fora do tema',other:'Outro'} as const)[reason] }
+function reportPostTypeLabel(type:string) { return ({workout:'Treino',running:'Corrida',walking:'Caminhada',food:'Refeição',achievement:'Conquista',general_fitness:'Fitness'} as Record<string,string>)[type]||'Publicação' }
 function cancellationReasonLabel(reason: string) { return ({too_expensive:'Está caro',not_using:'Não está usando',missing_features:'Faltam recursos',technical_issue:'Problema técnico',other:'Outro motivo',not_informed:'Não informado'} as Record<string,string>)[reason] || reason }
 function downloadAudit(items: AdminAuditEvent[]) { const rows=items.map(i=>[i.created_at,i.action,i.actor_name||'',i.target_user_id||'',JSON.stringify(i.metadata)].map(x=>`"${String(x).split('"').join('""')}"`).join(',')); const csv=['Data,Ação,Administrador,Usuário alvo,Detalhes',...rows].join('\n'); const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); const a=document.createElement('a');a.href=url;a.download='historico-administrativo.csv';a.click();URL.revokeObjectURL(url) }
 
