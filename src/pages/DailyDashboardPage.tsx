@@ -56,7 +56,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
           </div>
         </div>
         <div className="daily-hero-portrait" aria-label={`${data.activeStreak} dias de sequência`}>
-          {data.profile.avatarUrl ? <img src={data.profile.avatarUrl} alt="" /> : <Dumbbell size={48} />}
+          <Sparkles size={48} aria-hidden="true" />
           <span><Flame size={13} fill="currentColor" /> {data.activeStreak}</span>
         </div>
       </header>
@@ -83,7 +83,7 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
 
       <article className="daily-focus-card">
         <div><span><Target size={20} /></span><small>FOCO DE HOJE</small><h2>{data.workout?.completed ? 'Treino concluído. Excelente!' : data.workout ? data.workout.title : 'Ainda não treinou hoje.'}</h2><p>{data.workout?.completed ? 'Mantenha a hidratação e aproveite sua recuperação.' : data.workout ? `${data.workout.duration} minutos para avançar no seu objetivo.` : 'Que tal um treino de 30 minutos para iniciar seu dia?'}</p><button onClick={() => onNavigate('/treinos')}>{data.workout?.completed ? 'Ver treinos' : 'Começar treino'} <ArrowRight size={18} /></button></div>
-        <div className="daily-focus-card__art">{data.profile.avatarUrl ? <img src={data.profile.avatarUrl} alt="" /> : <Dumbbell size={82} />}</div>
+        <div className="daily-focus-card__art" aria-hidden="true"><Dumbbell size={82} /></div>
       </article>
 
       <section className="daily-shortcuts"><small>ATALHOS RÁPIDOS</small><div>
