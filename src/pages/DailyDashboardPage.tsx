@@ -7,17 +7,12 @@ import {
   Dumbbell,
   Flame,
   Footprints,
-  Gauge,
-  Play,
   RefreshCw,
   Salad,
-  Scale,
   Sparkles,
-  Timer,
-  TrendingDown,
-  TrendingUp,
+  Target,
 } from 'lucide-react'
-import { DashboardMetricCard, DashboardProgressRing, MiniWeightChart } from '../components/DashboardCards'
+import { DashboardProgressRing } from '../components/DashboardCards'
 import { useDailyDashboard } from '../hooks/useDailyDashboard'
 
 interface DailyDashboardPageProps {
@@ -47,26 +42,22 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
     )
   }
 
-  const weightDifference = data.weight.difference
   const nextAction = getNextAction(data)
   const NextActionIcon = nextAction.icon
 
   return (
     <section className="daily-dashboard">
-      <header className="daily-welcome">
+      <header className="daily-welcome daily-welcome--reference">
         <div className="daily-user">
           <div>
             <small>{capitalize(currentDate)}</small>
             <h1>{greeting}, {data.profile.name.split(' ')[0]} <span className="daily-wave" aria-hidden="true">👋</span></h1>
-            <p>Vamos buscar seus objetivos de hoje?</p>
+            <p>Seu progresso começa com pequenas escolhas todos os dias.</p>
           </div>
         </div>
-        <div className="daily-welcome__right">
-          <div className="daily-streak" aria-label={`${data.activeStreak} dias de sequência`}>
-            <Flame size={17} fill="currentColor" />
-            <strong>{data.activeStreak}</strong>
-            <small>{data.activeStreak === 1 ? 'dia de sequência' : 'dias de sequência'}</small>
-          </div>
+        <div className="daily-hero-portrait" aria-label={`${data.activeStreak} dias de sequência`}>
+          {data.profile.avatarUrl ? <img src={data.profile.avatarUrl} alt="" /> : <Dumbbell size={48} />}
+          <span><Flame size={13} fill="currentColor" /> {data.activeStreak}</span>
         </div>
       </header>
 
@@ -80,137 +71,29 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
         <button onClick={() => onNavigate(nextAction.path)}>{nextAction.action} <ArrowRight size={16} /></button>
       </article>
 
-      {!data.hasAnyData && (
-        <div className="dashboard-empty-banner">
-          <span><Gauge size={22} /></span>
-          <div><strong>Seu dia começa aqui</strong><p>Registre água, alimentação ou atividade para acompanhar seu progresso.</p></div>
-          <button onClick={() => onNavigate('/atividades')}>Registrar <ArrowRight size={15} /></button>
-        </div>
-      )}
-
-      {data.allGoalsCompleted && (
-        <div className="dashboard-complete-banner">
-          <CircleCheck size={22} />
-          <div><strong>Todas as metas concluídas!</strong><p>Ótimo trabalho. Consistência também inclui uma boa recuperação.</p></div>
-        </div>
-      )}
-
-      <article className="today-summary">
-        <div className="today-summary__copy">
-          <small className="today-summary__eyebrow"><span><Activity size={17} /></span> RESUMO DE HOJE</small>
-          <h2>{data.allGoalsCompleted ? 'Dia completo. Mandou muito bem!' : motivation(data.completion)}</h2>
-          <p>{data.insight}</p>
-          <button className="today-summary__cta" onClick={() => onNavigate('/metas')}>
-            <Droplets size={15} />
-            <span>Metas diárias</span>
-            <ArrowRight size={14} />
-          </button>
-        </div>
-        <DashboardProgressRing value={data.completion} />
+      <article className="daily-progress-panel">
+        <header><small>PROGRESSO DO DIA</small><button onClick={() => onNavigate('/metas')}>Ver metas <ArrowRight size={14} /></button></header>
+        <div className="daily-progress-panel__body"><div className="daily-progress-panel__ring"><DashboardProgressRing value={data.completion} /><p>do seu objetivo</p></div><div className="daily-progress-panel__metrics">
+          <DashboardQuickMetric icon={Footprints} color="green" value={Math.round(data.metrics.steps.current).toLocaleString('pt-BR')} detail={`/ ${Math.round(data.metrics.steps.goal).toLocaleString('pt-BR')} passos`} />
+          <DashboardQuickMetric icon={Flame} color="orange" value={Math.round(data.metrics.calories.current).toLocaleString('pt-BR')} detail={`/ ${Math.round(data.metrics.calories.goal).toLocaleString('pt-BR')} kcal`} />
+          <DashboardQuickMetric icon={Droplets} color="blue" value={`${data.metrics.water.current.toFixed(1).replace('.', ',')} L`} detail={`/ ${data.metrics.water.goal.toFixed(1).replace('.', ',')} L água`} />
+          <DashboardQuickMetric icon={Salad} color="purple" value={String(data.metrics.meals)} detail="/ 3 refeições" />
+        </div></div>
       </article>
 
-      <div className="daily-metrics-grid">
-        <DashboardMetricCard
-          label="Passos"
-          icon={Footprints}
-          metric={data.metrics.steps}
-          currentLabel={data.metrics.steps.current.toLocaleString('pt-BR')}
-          formatCurrent={(value) => Math.round(value).toLocaleString('pt-BR')}
-          goalLabel={`Meta ${data.metrics.steps.goal.toLocaleString('pt-BR')}`}
-          color="green"
-          onClick={() => onNavigate('/atividades')}
-        />
-        <DashboardMetricCard
-          label="Calorias"
-          icon={Flame}
-          metric={data.metrics.calories}
-          currentLabel={`${Math.round(data.metrics.calories.current).toLocaleString('pt-BR')} kcal`}
-          formatCurrent={(value) => `${Math.round(value).toLocaleString('pt-BR')} kcal`}
-          goalLabel={`Meta ${Math.round(data.metrics.calories.goal).toLocaleString('pt-BR')} kcal`}
-          color="orange"
-          onClick={() => onNavigate('/dieta')}
-        />
-        <DashboardMetricCard
-          label="Dieta"
-          icon={Salad}
-          metric={{ current: data.metrics.meals, goal: 3 }}
-          currentLabel={`${data.metrics.meals}/3`}
-          formatCurrent={(value) => `${Math.round(value)}/3`}
-          goalLabel={data.metrics.meals === 1 ? 'refeição registrada' : 'refeições registradas'}
-          color="purple"
-          onClick={() => onNavigate('/dieta')}
-        />
-        <DashboardMetricCard
-          label="Água"
-          icon={Droplets}
-          metric={data.metrics.water}
-          currentLabel={`${data.metrics.water.current.toFixed(2).replace('.', ',')} L`}
-          formatCurrent={(value) => `${value.toFixed(2).replace('.', ',')} L`}
-          goalLabel={`Meta pessoal ${data.metrics.water.goal.toFixed(1).replace('.', ',')} L · ver detalhes`}
-          color="blue"
-          onClick={() => onNavigate('/agua')}
-        />
-      </div>
-
-      <div className="daily-energy"><span className="daily-energy__icon"><Flame size={17} fill="currentColor" /></span><strong>Energia</strong><b>{data.metrics.activeMinutes > 0 ? 'Boa' : 'A iniciar'}</b><span>{Math.min(100, Math.round(data.metrics.activeMinutes / 30 * 100))} / 100</span><i><em style={{ width: `${Math.min(100, Math.round(data.metrics.activeMinutes / 30 * 100))}%` }} /></i></div>
-
-      <div className="daily-details-grid">
-        <article className="daily-panel workout-today">
-          <div className="daily-panel__heading">
-            <div><small>TREINO DO DIA</small><h2>{data.workout?.title ?? 'Nenhum treino programado'}</h2></div>
-            <span className={data.workout?.completed ? 'is-complete' : ''}>{data.workout?.completed ? 'CONCLUÍDO' : 'HOJE'}</span>
-          </div>
-          {data.workout ? (
-            <>
-              <p className="workout-muscles">
-                {data.workout.muscleGroups.length ? data.workout.muscleGroups.join(' · ') : data.workout.focus || 'Treino personalizado'}
-              </p>
-              <div className="workout-facts">
-                <span><Timer size={17} /><b>{data.workout.duration} min</b><small>Duração</small></span>
-                <span><Activity size={17} /><b>{data.workout.level}</b><small>Nível</small></span>
-                <span><Dumbbell size={17} /><b>{data.workout.exerciseCount}</b><small>Exercícios</small></span>
-              </div>
-              <button className="start-workout-button" onClick={() => onNavigate('/treinos')} disabled={data.workout.completed}>
-                {data.workout.completed ? <CircleCheck size={18} /> : <Play size={18} fill="currentColor" />}
-                {data.workout.completed ? 'Treino concluído' : 'Iniciar treino'}
-              </button>
-            </>
-          ) : (
-            <div className="no-workout">
-              <span><Dumbbell size={25} /></span>
-              <p>Seu dia está livre. Você pode descansar ou escolher um treino para manter a rotina.</p>
-              <button onClick={() => onNavigate('/treinos')}>Escolher treino <ArrowRight size={15} /></button>
-            </div>
-          )}
-        </article>
-
-        <article className="daily-panel weight-evolution">
-          <div className="daily-panel__heading">
-            <div><small>EVOLUÇÃO</small><h2>Peso corporal</h2></div>
-            <button onClick={() => onNavigate('/evolucao')}>Ver evolução <ArrowRight size={14} /></button>
-          </div>
-          <div className="weight-current">
-            <div>
-              <span><Scale size={20} /></span>
-              <strong>{data.weight.current !== null ? `${data.weight.current.toFixed(1).replace('.', ',')} kg` : 'Sem registro'}</strong>
-              {weightDifference !== null && (
-                <small className={weightDifference <= 0 ? 'is-positive' : 'is-warning'}>
-                  {weightDifference <= 0 ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
-                  {weightDifference > 0 ? '+' : ''}{weightDifference.toFixed(1).replace('.', ',')} kg desde o anterior
-                </small>
-              )}
-            </div>
-            <MiniWeightChart points={data.weight.history} />
-          </div>
-          {data.weight.current === null && <p className="weight-hint">Adicione seu primeiro registro para visualizar sua evolução.</p>}
-        </article>
-      </div>
-
-      <article className="daily-insight">
-        <span className="daily-insight__icon"><Sparkles size={23} /></span>
-        <div><small>INSIGHT MOVELYA IA</small><h2>{data.insight}</h2><p>Baseado nos registros e metas do seu dia.</p></div>
-        <button onClick={() => onNavigate('/relatorios')}>Ver detalhes <ArrowRight size={15} /></button>
+      <article className="daily-focus-card">
+        <div><span><Target size={20} /></span><small>FOCO DE HOJE</small><h2>{data.workout?.completed ? 'Treino concluído. Excelente!' : data.workout ? data.workout.title : 'Ainda não treinou hoje.'}</h2><p>{data.workout?.completed ? 'Mantenha a hidratação e aproveite sua recuperação.' : data.workout ? `${data.workout.duration} minutos para avançar no seu objetivo.` : 'Que tal um treino de 30 minutos para iniciar seu dia?'}</p><button onClick={() => onNavigate('/treinos')}>{data.workout?.completed ? 'Ver treinos' : 'Começar treino'} <ArrowRight size={18} /></button></div>
+        <div className="daily-focus-card__art">{data.profile.avatarUrl ? <img src={data.profile.avatarUrl} alt="" /> : <Dumbbell size={82} />}</div>
       </article>
+
+      <section className="daily-shortcuts"><small>ATALHOS RÁPIDOS</small><div>
+        <DashboardShortcut icon={Droplets} color="blue" label="Água" detail="Registrar" onClick={() => onNavigate('/agua')} />
+        <DashboardShortcut icon={Salad} color="purple" label="Refeição" detail="Registrar" onClick={() => onNavigate('/dieta')} />
+        <DashboardShortcut icon={Footprints} color="green" label="Passos" detail="Ver detalhes" onClick={() => onNavigate('/atividades')} />
+        <DashboardShortcut icon={Dumbbell} color="orange" label="Treino" detail="Iniciar agora" onClick={() => onNavigate('/treinos')} />
+      </div></section>
+
+      <article className="daily-insight daily-insight--compact"><span className="daily-insight__icon"><Sparkles size={21} /></span><div><small>INSIGHT MOVELYA IA</small><h2>{data.insight}</h2></div><button onClick={() => onNavigate('/relatorios')}>Ver detalhes <ArrowRight size={15} /></button></article>
     </section>
   )
 }
@@ -242,6 +125,9 @@ function motivation(completion: number) {
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
+
+function DashboardQuickMetric({ icon:Icon, color, value, detail }: { icon:typeof Footprints; color:'green'|'orange'|'blue'|'purple'; value:string; detail:string }) { return <div className={`daily-quick-metric is-${color}`}><span><Icon size={21} /></span><div><strong>{value}</strong><small>{detail}</small></div></div> }
+function DashboardShortcut({ icon:Icon, color, label, detail, onClick }: { icon:typeof Footprints; color:'green'|'orange'|'blue'|'purple'; label:string; detail:string; onClick:()=>void }) { return <button className={`daily-shortcut is-${color}`} onClick={onClick}><span><Icon size={25} /></span><strong>{label}</strong><small>{detail}</small></button> }
 
 function getNextAction(data: import('../types/dashboard').DailyDashboardData) {
   if (data.allGoalsCompleted) return {
