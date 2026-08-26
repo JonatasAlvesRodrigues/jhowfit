@@ -191,15 +191,6 @@
 :root[data-theme="light"] :is(.daily-metric__goal, .muted, .weight-hint, .notification-feed__main p, .notification-feed__main time) { color: #6c7b72 !important; }
 :root[data-theme="light"] :is(.daily-metric__top small, .section-heading small, .daily-panel__heading small) { color: #5d6f65 !important; }
 
-/* Route surfaces with their own dark canvases. */
-:root[data-theme="light"] .nutrition-hero {
-  color: #18271f;
-  background: radial-gradient(circle at 86% 0%, rgba(57, 201, 142, .22), transparent 36%), linear-gradient(135deg, #fafffc, #e8f6ed) !important;
-}
-:root[data-theme="light"] .nutrition-hero :is(h1, h2, p) { color: #18271f !important; }
-:root[data-theme="light"] .nutrition-hero p { color: #63756a !important; }
-:root[data-theme="light"] .nutrition-summary-card--progress { background: linear-gradient(145deg, #ffffff, #eef9f2) !important; border-color: rgba(24,151,99,.27) !important; }
-
 /* Activities: the tracker and its dialogs must follow the selected light theme. */
 :root[data-theme="light"] .modal__header { color: #18271f; background: var(--reference-surface) !important; }
 :root[data-theme="light"] .activity-type-grid > button,

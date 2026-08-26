@@ -443,7 +443,6 @@ textarea:focus-visible {
 
 /* Legacy feature interiors that previously carried isolated dark fills. */
 :root[data-theme="light"] .vita-route-stage :is(
-  [class*="-hero"],
   [class*="-view"],
   [class*="-toolbar"],
   [class*="-settings"],
@@ -463,7 +462,6 @@ textarea:focus-visible {
   box-shadow: var(--product-shadow) !important;
 }
 :root[data-theme="light"] .vita-route-stage :is(
-  [class*="-hero"] p,
   [class*="-empty"] p,
   [class*="-list"] p,
   [class*="-list"] small,
@@ -2937,3 +2935,59 @@ textarea:focus-visible {
   .photo-security { align-items: flex-start !important; }
   .photo-security > svg:last-child { display: none; }
 }
+
+/* Light-mode contrast guard: rollout surfaces must never inherit the retired
+   pale-hero rules that made their copy and indicators hard to read. */
+:root[data-theme="light"] .vita-route-stage :is(
+  .nutrition-page .nutrition-hero,
+  .steps-hero,
+  .goals-hero,
+  .body-hero,
+  .training-hub-heading
+) {
+  color: #fff !important;
+  border-color: #0d6343 !important;
+  background:
+    radial-gradient(circle at 88% 25%, rgba(102, 233, 164, .28), transparent 16%),
+    radial-gradient(circle at 96% 116%, rgba(37, 169, 101, .24), transparent 32%),
+    linear-gradient(112deg, #06412d, #032c20 59%, #022017) !important;
+}
+:root[data-theme="light"] .vita-route-stage :is(
+  .nutrition-page .nutrition-hero,
+  .steps-hero,
+  .goals-hero,
+  .body-hero,
+  .training-hub-heading
+) :is(h1, h2) { color: #fff !important; }
+:root[data-theme="light"] .vita-route-stage :is(
+  .nutrition-page .nutrition-hero,
+  .steps-hero,
+  .goals-hero,
+  .body-hero,
+  .training-hub-heading
+) > div > p { color: #7beab1 !important; }
+:root[data-theme="light"] .vita-route-stage :is(
+  .nutrition-page .nutrition-hero,
+  .steps-hero,
+  .goals-hero,
+  .body-hero,
+  .training-hub-heading
+) > div > span { color: rgba(234, 255, 243, .80) !important; }
+
+:root[data-theme="light"] .vita-route-stage .nutrition-page .nutrition-ring {
+  background: conic-gradient(var(--product-primary) calc(var(--completion, 0) * 1%), #dbe9e1 0) !important;
+}
+:root[data-theme="light"] .vita-route-stage .nutrition-page .nutrition-ring::before {
+  background: var(--product-surface) !important;
+}
+:root[data-theme="light"] .vita-route-stage .nutrition-page .nutrition-ring strong { color: var(--product-text) !important; }
+:root[data-theme="light"] .vita-route-stage .nutrition-page .nutrition-ring small { color: var(--product-primary) !important; }
+:root[data-theme="light"] .vita-route-stage :is(.nutrition-day-guide, .activity-launch-card, .steps-detail-strip) {
+  color: #fff !important;
+  border-color: #0e6444 !important;
+  background: linear-gradient(112deg, #075036, #053a2a 65%, #032e22) !important;
+}
+:root[data-theme="light"] .vita-route-stage :is(.nutrition-day-guide, .activity-launch-card, .steps-detail-strip) :is(h2, strong) { color: #fff !important; }
+:root[data-theme="light"] .vita-route-stage .nutrition-day-guide :is(p, small),
+:root[data-theme="light"] .vita-route-stage .activity-launch-card p,
+:root[data-theme="light"] .vita-route-stage .steps-detail-strip small { color: rgba(234, 255, 243, .75) !important; }
