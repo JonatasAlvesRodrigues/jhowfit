@@ -2991,3 +2991,35 @@ textarea:focus-visible {
 :root[data-theme="light"] .vita-route-stage .nutrition-day-guide :is(p, small),
 :root[data-theme="light"] .vita-route-stage .activity-launch-card p,
 :root[data-theme="light"] .vita-route-stage .steps-detail-strip small { color: rgba(234, 255, 243, .75) !important; }
+
+@media (max-width: 720px) {
+  /* The nutrition shortcuts stay reachable without becoming a floating tile block. */
+  .nutrition-page .nutrition-hero { min-height: 278px !important; }
+  .nutrition-page .nutrition-hero__actions {
+    right: 18px !important;
+    bottom: 17px !important;
+    left: 18px !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    padding: 6px !important;
+    border: 1px solid rgba(223, 255, 237, .16) !important;
+    border-radius: 16px !important;
+    background: rgba(2, 42, 29, .45) !important;
+    backdrop-filter: blur(12px);
+  }
+  .nutrition-page .nutrition-hero__actions .button {
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 0 !important;
+    border-color: rgba(232, 255, 242, .20) !important;
+    border-radius: 11px !important;
+    color: #eafff2 !important;
+    background: rgba(237, 255, 245, .12) !important;
+  }
+  .nutrition-page .nutrition-hero__actions .button:last-child {
+    color: #063323 !important;
+    border-color: #35d995 !important;
+    background: #35d995 !important;
+  }
+}
