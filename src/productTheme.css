@@ -2444,3 +2444,178 @@ textarea:focus-visible {
   .nutrition-page .nutrition-section-card,
   .nutrition-page .nutrition-panel { padding: 16px !important; border-radius: 19px !important; }
 }
+
+/* Design rollout — part 3: activity and steps use one clear movement dashboard. */
+.steps-page {
+  max-width: 1120px;
+  margin-inline: auto;
+  gap: 20px !important;
+}
+.steps-hero {
+  position: relative;
+  min-height: 215px !important;
+  padding: 31px 32px !important;
+  overflow: hidden;
+  border: 1px solid #0d6343 !important;
+  border-radius: 26px !important;
+  background:
+    radial-gradient(circle at 88% 26%, rgba(85, 227, 158, .25), transparent 16%),
+    radial-gradient(circle at 98% 115%, rgba(31, 165, 99, .24), transparent 31%),
+    linear-gradient(112deg, #06412d, #032c20 59%, #022017) !important;
+  box-shadow: 0 20px 42px rgba(9, 75, 49, .16) !important;
+}
+.steps-hero::before {
+  z-index: 0 !important;
+  top: 30px !important;
+  right: 36px !important;
+  width: 146px !important;
+  height: 146px !important;
+  opacity: 1 !important;
+  border: 23px solid rgba(160, 251, 203, .12) !important;
+  border-radius: 45% 45% 31% 31% !important;
+  background: none !important;
+  transform: rotate(-21deg);
+}
+.steps-hero > div { position: relative; z-index: 1; }
+.steps-hero > div:first-child { max-width: 530px; }
+.steps-hero p { color: #7beab1 !important; font-size: 10px !important; letter-spacing: 1.5px !important; }
+.steps-hero h1 { max-width: 490px; margin-top: 8px !important; color: #fff !important; font-size: clamp(31px, 4vw, 45px) !important; line-height: 1 !important; letter-spacing: -1.8px !important; }
+.steps-hero > div:first-child > span { max-width: 465px; margin-top: 10px !important; color: rgba(234, 255, 243, .76) !important; font-size: 13px !important; line-height: 1.5 !important; }
+.steps-hero-actions { position: absolute; z-index: 2; right: 28px; bottom: 25px; width: 410px !important; }
+.steps-hero-actions .button { color: #eafff2 !important; border-color: rgba(237, 255, 244, .18) !important; background: rgba(5, 48, 32, .35) !important; backdrop-filter: blur(8px); }
+.steps-hero-actions .button:last-child { color: #063323 !important; border-color: #fff !important; background: #fff !important; }
+
+.activity-launch-card {
+  min-height: 108px !important;
+  padding: 20px !important;
+  border: 1px solid #0d6343 !important;
+  border-radius: 22px !important;
+  color: #fff !important;
+  background: linear-gradient(112deg, #075036, #053a2a 65%, #032e22) !important;
+  box-shadow: 0 16px 34px rgba(9, 75, 49, .12) !important;
+}
+.activity-launch-card > div > span { color: #eafff2 !important; background: rgba(73, 224, 147, .22) !important; }
+.activity-launch-card small { color: #82efb7 !important; font-size: 9px !important; }
+.activity-launch-card h2 { color: #fff !important; font-size: 19px !important; }
+.activity-launch-card p { color: rgba(234, 255, 243, .74) !important; font-size: 10px !important; }
+.activity-launch-card > .button { min-height: 45px; border-radius: 999px; color: #063323 !important; background: #fff !important; }
+
+.steps-summary-grid { gap: 13px !important; }
+.steps-progress-card {
+  min-height: 206px !important;
+  padding: 23px !important;
+  gap: 24px !important;
+  border-color: var(--product-line) !important;
+  border-radius: 24px !important;
+  color: var(--product-text) !important;
+  background: var(--product-surface) !important;
+  box-shadow: var(--product-shadow) !important;
+}
+.steps-progress-ring {
+  flex: 0 0 145px !important;
+  width: 145px !important;
+  height: 145px !important;
+  padding: 10px !important;
+  color: var(--product-primary) !important;
+  background: conic-gradient(var(--product-primary) var(--steps-progress), var(--product-line) 0) !important;
+}
+.steps-progress-ring > div { color: var(--product-primary) !important; background: var(--product-surface) !important; }
+.steps-progress-ring strong { color: var(--product-text) !important; font-size: 28px !important; }
+.steps-progress-ring small { color: var(--product-primary) !important; }
+.steps-progress-copy > small,
+.steps-stat > small,
+.steps-panel-heading small { color: var(--product-primary) !important; font-size: 9px !important; letter-spacing: 1.2px !important; }
+.steps-progress-copy h2 { color: var(--product-text) !important; font-size: 29px !important; letter-spacing: -1px; }
+.steps-progress-copy h2 span { color: var(--product-muted) !important; font-size: 12px !important; }
+.steps-progress-copy p { color: var(--product-muted) !important; font-size: 11px !important; }
+.steps-stat {
+  min-height: 206px !important;
+  padding: 19px !important;
+  border-color: var(--product-line) !important;
+  border-radius: 20px !important;
+  color: var(--product-text) !important;
+  background: var(--product-surface) !important;
+  box-shadow: var(--product-shadow) !important;
+}
+.steps-stat > span { color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+.steps-stat > strong { color: var(--product-text) !important; font-size: 23px !important; }
+.steps-stat > p { color: var(--product-muted) !important; font-size: 9px !important; }
+
+.steps-detail-strip {
+  min-height: 82px !important;
+  padding: 14px 20px !important;
+  border-color: #0e6444 !important;
+  border-radius: 22px !important;
+  background: linear-gradient(112deg, #075036, #053a2a 65%, #032e22) !important;
+  box-shadow: 0 16px 34px rgba(9, 75, 49, .1) !important;
+}
+.steps-detail-strip > span { color: #82efb7 !important; border-color: rgba(235, 255, 245, .14) !important; }
+.steps-detail-strip small { color: rgba(234, 255, 243, .62) !important; }
+.steps-detail-strip strong { color: #fff !important; font-size: 13px !important; }
+
+.steps-layout { gap: 16px !important; }
+.steps-weekly,
+.steps-history {
+  padding: 21px !important;
+  border-color: var(--product-line) !important;
+  border-radius: 23px !important;
+  color: var(--product-text) !important;
+  background: var(--product-surface) !important;
+  box-shadow: var(--product-shadow) !important;
+}
+.steps-panel-heading h2 { color: var(--product-text) !important; font-size: 18px !important; }
+.steps-panel-heading > span { color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+.steps-chart { border-color: var(--product-line) !important; }
+.steps-chart > div > b { color: var(--product-muted) !important; }
+.steps-chart > div > span i { background: linear-gradient(180deg, #efb36d, #d67a29) !important; }
+.steps-chart > div > span i.hit-goal { background: linear-gradient(180deg, #2bb978, #118659) !important; box-shadow: none !important; }
+.steps-chart > div > small,
+.steps-chart-legend { color: var(--product-muted) !important; }
+.steps-chart > div.is-today small { color: var(--product-primary) !important; }
+.steps-chart-legend > i { background: var(--product-primary) !important; }
+.steps-record-list article {
+  min-height: 67px !important;
+  border-color: var(--product-line) !important;
+  border-radius: 13px !important;
+  color: var(--product-text) !important;
+  background: var(--product-surface-soft) !important;
+}
+.steps-record-list article > span { color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+.steps-record-list article small { color: var(--product-muted) !important; }
+.steps-record-list article > b { color: var(--product-orange) !important; background: var(--product-orange-soft) !important; }
+.steps-record-list article > button { border-color: var(--product-line) !important; color: var(--product-muted) !important; background: var(--product-surface) !important; }
+.steps-integration-note { border-color: color-mix(in srgb, var(--product-blue) 22%, var(--product-line)) !important; border-radius: 18px !important; color: var(--product-blue) !important; background: var(--product-blue-soft) !important; }
+.steps-integration-note > span { color: var(--product-blue) !important; background: color-mix(in srgb, var(--product-blue) 10%, var(--product-surface)) !important; }
+.steps-integration-note strong { color: var(--product-text) !important; }
+.steps-integration-note p { color: var(--product-muted) !important; }
+
+.activity-recent-card,
+.activity-type-grid > button { border-color: var(--product-line) !important; border-radius: 19px !important; color: var(--product-text) !important; background: var(--product-surface) !important; box-shadow: var(--product-shadow) !important; }
+.activity-type-grid > button:hover { border-color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+.activity-type-grid > button > span,
+.activity-recent-list > button > span { color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+
+@media (max-width: 920px) {
+  .steps-hero-actions { position: relative; right: auto; bottom: auto; margin-top: 22px; }
+}
+@media (max-width: 720px) {
+  .steps-page { gap: 15px !important; }
+  .steps-hero { min-height: 260px !important; padding: 24px !important; border-radius: 22px !important; }
+  .steps-hero h1 { max-width: 265px; font-size: 31px !important; }
+  .steps-hero > div:first-child > span { max-width: 258px; font-size: 11px !important; }
+  .steps-hero::before { top: 17px !important; right: -39px !important; width: 120px !important; height: 120px !important; }
+  .steps-hero-actions { position: absolute; right: 18px; bottom: 18px; left: 18px; width: auto !important; margin: 0 !important; }
+  .steps-hero-actions .button { min-height: 41px !important; font-size: 0 !important; }
+  .steps-hero-actions .button svg { width: 17px; height: 17px; }
+  .activity-launch-card { padding: 18px !important; border-radius: 20px !important; }
+  .steps-progress-card { min-height: 174px !important; padding: 18px !important; gap: 14px !important; border-radius: 20px !important; }
+  .steps-progress-ring { flex-basis: 112px !important; width: 112px !important; height: 112px !important; }
+  .steps-progress-ring strong { font-size: 22px !important; }
+  .steps-progress-copy h2 { font-size: 23px !important; }
+  .steps-progress-copy p { font-size: 9px !important; }
+  .steps-stat { min-height: 142px !important; padding: 15px !important; border-radius: 18px !important; }
+  .steps-stat > strong { font-size: 20px !important; }
+  .steps-detail-strip { min-height: 0 !important; padding: 13px 17px !important; border-radius: 20px !important; }
+  .steps-weekly,
+  .steps-history { padding: 17px !important; border-radius: 20px !important; }
+}
