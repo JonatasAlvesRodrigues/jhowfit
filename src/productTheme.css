@@ -3951,3 +3951,45 @@ textarea:focus-visible {
 :root[data-theme] .vita-route-stage .daily-focus-card small { color: #73e9a9 !important; }
 :root[data-theme] .vita-route-stage .daily-focus-card > div:first-child > span { color: #e6ffef !important; background: rgba(36, 209, 132, .24) !important; }
 :root[data-theme] .vita-route-stage .daily-focus-card button { color: #fff !important; background: #169d61 !important; }
+
+/* On narrow screens, activity shortcuts sit in a dedicated footer so they never cover the hero copy. */
+@media (max-width: 720px) {
+  :root[data-theme] .vita-route-stage .steps-hero {
+    min-height: 334px !important;
+    padding: 24px !important;
+    padding-bottom: 126px !important;
+  }
+  :root[data-theme] .vita-route-stage .steps-hero > div:first-child > span {
+    max-width: 270px !important;
+  }
+  :root[data-theme] .vita-route-stage .steps-hero-actions {
+    right: 18px !important;
+    bottom: 18px !important;
+    left: 18px !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 6px !important;
+    border: 1px solid rgba(225, 255, 239, .17) !important;
+    border-radius: 16px !important;
+    background: rgba(2, 42, 29, .48) !important;
+    backdrop-filter: blur(12px);
+  }
+  :root[data-theme] .vita-route-stage .steps-hero-actions .button {
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 0 !important;
+    border-color: rgba(232, 255, 242, .2) !important;
+    border-radius: 11px !important;
+    color: #eafff2 !important;
+    background: rgba(237, 255, 245, .12) !important;
+  }
+  :root[data-theme] .vita-route-stage .steps-hero-actions .button:last-child {
+    grid-column: 1 / -1 !important;
+    color: #063323 !important;
+    border-color: #35d995 !important;
+    background: #35d995 !important;
+  }
+}
