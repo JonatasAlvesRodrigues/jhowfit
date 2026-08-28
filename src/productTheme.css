@@ -3939,3 +3939,15 @@ textarea:focus-visible {
   .onboarding-fields { padding: 18px !important; border-radius: 20px !important; }
   .onboarding-actions { border-color: var(--product-line) !important; background: color-mix(in srgb, var(--product-surface) 96%, transparent) !important; }
 }
+
+/* The daily focus is an action card, so its contrast must never inherit a light surface. */
+:root[data-theme] .vita-route-stage .daily-focus-card {
+  border-color: #0a5639 !important;
+  color: #fff !important;
+  background: radial-gradient(circle at 92% 40%, rgba(30, 180, 105, .28), transparent 25%), linear-gradient(110deg, #063827, #03291e 62%, #021d15) !important;
+}
+:root[data-theme] .vita-route-stage .daily-focus-card h2 { color: #fff !important; }
+:root[data-theme] .vita-route-stage .daily-focus-card p { color: rgba(235, 255, 244, .82) !important; }
+:root[data-theme] .vita-route-stage .daily-focus-card small { color: #73e9a9 !important; }
+:root[data-theme] .vita-route-stage .daily-focus-card > div:first-child > span { color: #e6ffef !important; background: rgba(36, 209, 132, .24) !important; }
+:root[data-theme] .vita-route-stage .daily-focus-card button { color: #fff !important; background: #169d61 !important; }
