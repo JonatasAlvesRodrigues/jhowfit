@@ -4043,3 +4043,18 @@ textarea:focus-visible {
   :root[data-theme] .activity-live > footer { min-height: 78px !important; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)) !important; }
   :root[data-theme] .activity-live > footer .button { min-height: 48px !important; }
 }
+
+/* Paid-plan profile card remains a dark premium surface in either color mode. */
+:root[data-theme] .vita-route-stage .profile-plan-card {
+  color: #fff !important;
+  border-color: #0d6343 !important;
+  background: radial-gradient(circle at 88% 28%, rgba(96, 235, 161, .24), transparent 27%), linear-gradient(120deg, #074832, #053625 64%, #022418) !important;
+}
+:root[data-theme] .vita-route-stage .profile-plan-card__loaded:not(.is-free) { background: transparent !important; }
+:root[data-theme] .vita-route-stage .profile-plan-card :is(h2, p, .profile-plan-card__footer) { color: #fff !important; }
+:root[data-theme] .vita-route-stage .profile-plan-card p,
+:root[data-theme] .vita-route-stage .profile-plan-card__footer { color: rgba(234, 255, 243, .77) !important; }
+:root[data-theme] .vita-route-stage .profile-plan-card__top,
+:root[data-theme] .vita-route-stage .profile-plan-card__footer span { color: #8cefb9 !important; }
+:root[data-theme] .vita-route-stage .profile-plan-card__symbol { color: #ffce7f !important; background: rgba(255, 191, 90, .14) !important; }
+:root[data-theme] .vita-route-stage .profile-plan-card__button { color: #063323 !important; background: #fff !important; }
