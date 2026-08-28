@@ -152,3 +152,17 @@
   .vita-route-stage .privacy-page .privacy-permission,
   .vita-route-stage .privacy-page .community-privacy-settings > label { min-height: 76px; }
 }
+
+/* Physical hero layer: protects the security banner from late legacy surface rules. */
+.vita-route-stage .privacy-page .privacy-hero { opacity: 1 !important; filter: none !important; background: #03482f !important; }
+.vita-route-stage .privacy-page .privacy-hero::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  content: '';
+  background: radial-gradient(circle at 88% 18%, rgba(112, 240, 176, .30), transparent 25%), radial-gradient(circle at 76% 105%, rgba(25, 170, 105, .35), transparent 31%), linear-gradient(132deg, #003526 0%, #00563a 58%, #08764d 100%) !important;
+}
+.vita-route-stage .privacy-page .privacy-hero::after { z-index: 0 !important; }
+.vita-route-stage .privacy-page .privacy-hero > div { z-index: 1 !important; }
