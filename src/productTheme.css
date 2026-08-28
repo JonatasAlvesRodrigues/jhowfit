@@ -3963,6 +3963,7 @@ textarea:focus-visible {
     max-width: 270px !important;
   }
   :root[data-theme] .vita-route-stage .steps-hero-actions {
+    position: absolute !important;
     right: 18px !important;
     bottom: 18px !important;
     left: 18px !important;
