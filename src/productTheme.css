@@ -4058,3 +4058,66 @@ textarea:focus-visible {
 :root[data-theme] .vita-route-stage .profile-plan-card__footer span { color: #8cefb9 !important; }
 :root[data-theme] .vita-route-stage .profile-plan-card__symbol { color: #ffce7f !important; background: rgba(255, 191, 90, .14) !important; }
 :root[data-theme] .vita-route-stage .profile-plan-card__button { color: #063323 !important; background: #fff !important; }
+
+/* Privacy needs explicit light-mode interiors: legacy dark rows otherwise inherit dark fills with dark text. */
+:root:not([data-theme="dark"]) .vita-route-stage .privacy-hero {
+  position: relative;
+  overflow: hidden;
+  border-color: #075c3d !important;
+  background: radial-gradient(circle at 88% 18%, rgba(108, 239, 172, .24), transparent 28%), linear-gradient(132deg, #003f2d 0%, #00603e 58%, #0b8054 100%) !important;
+}
+:root:not([data-theme="dark"]) .vita-route-stage .privacy-hero :is(h1, p, .page-eyebrow) { color: #fff !important; }
+:root:not([data-theme="dark"]) .vita-route-stage .privacy-hero p { color: rgba(242, 255, 248, .82) !important; }
+:root:not([data-theme="dark"]) .vita-route-stage .privacy-hero .page-eyebrow { color: #9cf7c5 !important; }
+:root:not([data-theme="dark"]) .vita-route-stage .privacy-hero__badge {
+  border-color: rgba(231, 255, 241, .19) !important;
+  color: #91f3bc !important;
+  background: rgba(2, 51, 34, .42) !important;
+  backdrop-filter: blur(12px);
+}
+:root:not([data-theme="dark"]) .vita-route-stage .privacy-hero__badge :is(strong, small) { color: #fff !important; }
+:root:not([data-theme="dark"]) .vita-route-stage .privacy-hero__badge small { color: rgba(231, 255, 240, .76) !important; }
+
+:root:not([data-theme="dark"]) .vita-route-stage .community-privacy-card {
+  border-color: #cfe0d6 !important;
+  background: linear-gradient(145deg, #fff, #f5fbf7) !important;
+}
+:root:not([data-theme="dark"]) .vita-route-stage .community-privacy-settings > label {
+  border-color: #d7e5dc !important;
+  background: #f7fbf8 !important;
+}
+:root:not([data-theme="dark"]) .vita-route-stage .community-privacy-settings strong { color: #173527 !important; }
+:root:not([data-theme="dark"]) .vita-route-stage .community-privacy-settings small { color: #62776a !important; }
+:root:not([data-theme="dark"]) .vita-route-stage .community-privacy-settings select {
+  border-color: #cfe0d6 !important;
+  color: #173527 !important;
+  background: #fff !important;
+}
+:root:not([data-theme="dark"]) .vita-route-stage .community-privacy-toggle b { background: #cad8d0 !important; }
+:root:not([data-theme="dark"]) .vita-route-stage .community-privacy-toggle input:checked + b { background: var(--product-primary) !important; }
+:root:not([data-theme="dark"]) .vita-route-stage .community-privacy-toggle b::after { background: #fff !important; }
+
+@media (max-width: 720px) {
+  :root:not([data-theme="dark"]) .vita-route-stage .privacy-hero {
+    display: block !important;
+    min-height: 326px !important;
+    padding: 25px 24px 96px !important;
+  }
+  :root:not([data-theme="dark"]) .vita-route-stage .privacy-hero h1 { max-width: 300px; }
+  :root:not([data-theme="dark"]) .vita-route-stage .privacy-hero p { max-width: 315px; }
+  :root:not([data-theme="dark"]) .vita-route-stage .privacy-hero__badge {
+    position: absolute !important;
+    right: 18px !important;
+    bottom: 18px !important;
+    left: 18px !important;
+    width: auto !important;
+    min-height: 58px;
+    padding: 10px 12px !important;
+    display: grid !important;
+    grid-template-columns: 27px 1fr;
+    column-gap: 9px;
+    align-items: center;
+  }
+  :root:not([data-theme="dark"]) .vita-route-stage .privacy-hero__badge > svg { grid-row: 1 / span 2; }
+  :root:not([data-theme="dark"]) .vita-route-stage .privacy-hero__badge small { margin-top: 2px; }
+}
