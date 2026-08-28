@@ -12,3 +12,143 @@
 @media (max-width: 850px) { .privacy-two-col { grid-template-columns: 1fr; }.privacy-hero { align-items: flex-start; flex-direction: column; }.privacy-hero__badge { width: 100%; }.privacy-summary { grid-template-columns: 1fr; }.privacy-action-grid { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .privacy-permission-grid { grid-template-columns: 1fr; }.privacy-card { padding: 15px; }.privacy-modal-backdrop { padding: 10px; align-items: end; }.privacy-modal { max-height: 88vh; border-radius: 17px 17px 0 0; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }.privacy-session { align-items: flex-start; }.privacy-session i { margin-left: auto; } }
 .community-privacy-settings { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }.community-privacy-settings > label { min-height: 82px; padding: 11px; display: flex; align-items: center; gap: 10px; border: 1px solid #243229; border-radius: 12px; background: #0b110d; }.community-privacy-settings > label > span { min-width: 0; flex: 1; }.community-privacy-settings strong, .community-privacy-settings small { display: block; }.community-privacy-settings strong { font-size: 9px; }.community-privacy-settings small { margin-top: 4px; color: #78857d; font-size: 7px; line-height: 1.4; }.community-privacy-settings select { min-width: 76px; height: 31px; padding: 0 7px; border: 1px solid #2d4035; border-radius: 8px; outline: none; color: var(--vita-text); background: #142019; font: inherit; font-size: 8px; font-weight: 750; cursor: pointer; }.community-privacy-settings select:focus { border-color: var(--vita-green); }.community-privacy-settings select:disabled, .community-privacy-toggle input:disabled + b { opacity: .55; cursor: wait; }.community-privacy-toggle input { position: absolute; opacity: 0; }.community-privacy-toggle b { width: 32px; height: 18px; position: relative; flex: 0 0 auto; border-radius: 20px; background: #27342c; transition: background .2s; }.community-privacy-toggle b::after { position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: #87938b; content: ''; transition: transform .2s, background .2s; }.community-privacy-toggle input:checked + b { background: var(--vita-green); }.community-privacy-toggle input:checked + b::after { transform: translateX(14px); background: #06271a; }@media (max-width: 700px) { .community-privacy-settings { grid-template-columns: 1fr; }.community-privacy-settings > label { min-height: 68px; } }
+
+/* Privacy remaster: a dedicated, calm security surface instead of inherited legacy cards. */
+.vita-route-stage .privacy-page { display: grid; gap: 18px; padding-bottom: 20px; }
+.vita-route-stage .privacy-page .privacy-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 282px;
+  margin: 0;
+  padding: 34px 260px 34px 34px;
+  overflow: hidden;
+  border: 1px solid #07543a !important;
+  border-radius: 28px !important;
+  color: #fff !important;
+  background-color: #03482f !important;
+  background-image: radial-gradient(circle at 88% 18%, rgba(112, 240, 176, .30), transparent 25%), radial-gradient(circle at 76% 105%, rgba(25, 170, 105, .35), transparent 31%), linear-gradient(132deg, #003526 0%, #00563a 58%, #08764d 100%) !important;
+  box-shadow: 0 19px 42px rgba(4, 77, 48, .18) !important;
+}
+.vita-route-stage .privacy-page .privacy-hero::after { z-index: -1; right: -38px; bottom: -76px; width: 245px; height: 245px; border-color: rgba(212, 255, 229, .12); }
+.vita-route-stage .privacy-page .privacy-hero > div:first-child { max-width: 560px; }
+.vita-route-stage .privacy-page .privacy-hero .page-eyebrow {
+  display: block;
+  margin: 0 0 13px;
+  color: #8ef0b9 !important;
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .15em;
+}
+.vita-route-stage .privacy-page .privacy-hero h1 { margin: 0; color: #fff !important; font-size: clamp(2.2rem, 4vw, 3.35rem); line-height: 1.03; letter-spacing: -.058em !important; }
+.vita-route-stage .privacy-page .privacy-hero p {
+  max-width: 505px;
+  margin: 15px 0 0;
+  color: rgba(239, 255, 246, .84) !important;
+  font-size: .96rem;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.vita-route-stage .privacy-page .privacy-hero__badge {
+  position: absolute !important;
+  right: 28px;
+  bottom: 28px;
+  display: grid !important;
+  grid-template-columns: 30px minmax(0, 1fr);
+  column-gap: 10px;
+  min-width: 202px;
+  padding: 13px 15px !important;
+  border: 1px solid rgba(234, 255, 243, .22) !important;
+  border-radius: 17px !important;
+  color: #94f3bf !important;
+  background: rgba(0, 42, 28, .34) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(14px);
+}
+.vita-route-stage .privacy-page .privacy-hero__badge svg { grid-row: 1 / span 2; align-self: center; color: #93f2bd !important; }
+.vita-route-stage .privacy-page .privacy-hero__badge strong { align-self: end; margin: 0; color: #fff !important; font-size: .86rem; }
+.vita-route-stage .privacy-page .privacy-hero__badge small { align-self: start; margin-top: 2px; color: rgba(230, 255, 240, .72) !important; font-size: .64rem; font-weight: 750; letter-spacing: .08em; }
+
+.vita-route-stage .privacy-page .privacy-summary { margin: 0; gap: 11px; }
+.vita-route-stage .privacy-page .privacy-summary article,
+.vita-route-stage .privacy-page .privacy-card {
+  margin: 0;
+  border: 1px solid var(--product-line) !important;
+  border-radius: 22px !important;
+  color: var(--product-text) !important;
+  background: var(--product-surface) !important;
+  box-shadow: 0 10px 25px rgba(23, 62, 41, .055) !important;
+}
+.vita-route-stage .privacy-page .privacy-summary article { min-height: 92px; padding: 16px 17px; }
+.vita-route-stage .privacy-page .privacy-summary article > svg { width: 21px; height: 21px; color: var(--product-primary) !important; }
+.vita-route-stage .privacy-page .privacy-summary strong { color: var(--product-text) !important; font-size: .85rem; }
+.vita-route-stage .privacy-page .privacy-summary small { color: var(--product-muted) !important; font-size: .72rem; }
+.vita-route-stage .privacy-page .privacy-card { padding: 23px; }
+.vita-route-stage .privacy-page .privacy-card-heading { align-items: flex-start; }
+.vita-route-stage .privacy-page .privacy-card-heading small { color: var(--product-primary) !important; font-size: .68rem; letter-spacing: .13em; }
+.vita-route-stage .privacy-page .privacy-card-heading h2 { color: var(--product-text) !important; font-size: 1.35rem; letter-spacing: -.035em; }
+.vita-route-stage .privacy-page .privacy-card-heading p { max-width: 630px; color: var(--product-muted) !important; font-size: .84rem; line-height: 1.55; }
+
+.vita-route-stage .privacy-page .privacy-permission-grid { gap: 10px; }
+.vita-route-stage .privacy-page .privacy-permission,
+.vita-route-stage .privacy-page .community-privacy-settings > label,
+.vita-route-stage .privacy-page .privacy-document-actions button,
+.vita-route-stage .privacy-page .privacy-action-grid button,
+.vita-route-stage .privacy-page .privacy-session,
+.vita-route-stage .privacy-page .privacy-secondary-action {
+  border-color: var(--product-line) !important;
+  background: var(--product-surface-soft) !important;
+  box-shadow: none !important;
+}
+.vita-route-stage .privacy-page .privacy-permission,
+.vita-route-stage .privacy-page .community-privacy-settings > label { border-radius: 15px !important; }
+.vita-route-stage .privacy-page :is(.privacy-permission, .community-privacy-settings) strong { color: var(--product-text) !important; }
+.vita-route-stage .privacy-page :is(.privacy-permission, .community-privacy-settings) small { color: var(--product-muted) !important; }
+.vita-route-stage .privacy-page .privacy-permission > span { color: var(--product-primary) !important; background: var(--product-primary-soft) !important; }
+.vita-route-stage .privacy-page .privacy-permission b,
+.vita-route-stage .privacy-page .community-privacy-toggle b,
+.vita-route-stage .privacy-page .privacy-consent-list b { background: var(--product-line-strong) !important; }
+.vita-route-stage .privacy-page .privacy-permission input:checked + b,
+.vita-route-stage .privacy-page .community-privacy-toggle input:checked + b,
+.vita-route-stage .privacy-page .privacy-consent-list input:checked + b { background: var(--product-primary) !important; }
+.vita-route-stage .privacy-page .privacy-permission b::after,
+.vita-route-stage .privacy-page .community-privacy-toggle b::after,
+.vita-route-stage .privacy-page .privacy-consent-list b::after { background: #fff !important; }
+.vita-route-stage .privacy-page .community-privacy-settings { margin-top: 17px; gap: 10px; background: transparent !important; box-shadow: none !important; }
+.vita-route-stage .privacy-page .community-privacy-settings > label { min-height: 92px; padding: 14px; }
+.vita-route-stage .privacy-page .community-privacy-settings select { border-color: var(--product-line) !important; border-radius: 11px !important; color: var(--product-text) !important; background: var(--product-surface) !important; }
+.vita-route-stage .privacy-page .privacy-photo-notice { border-radius: 14px; color: var(--product-muted); background: var(--product-primary-soft); }
+
+.vita-route-stage .privacy-page .privacy-document-actions button,
+.vita-route-stage .privacy-page .privacy-action-grid button { padding: 13px; border-radius: 14px !important; }
+.vita-route-stage .privacy-page .privacy-document-actions strong,
+.vita-route-stage .privacy-page .privacy-action-grid strong,
+.vita-route-stage .privacy-page .privacy-session strong { color: var(--product-text) !important; }
+.vita-route-stage .privacy-page .privacy-document-actions small,
+.vita-route-stage .privacy-page .privacy-action-grid small,
+.vita-route-stage .privacy-page .privacy-session small,
+.vita-route-stage .privacy-page .privacy-consent-list small,
+.vita-route-stage .privacy-page .privacy-audit-list small { color: var(--product-muted) !important; }
+.vita-route-stage .privacy-page .privacy-consent-list { border-color: var(--product-line); }
+.vita-route-stage .privacy-page .privacy-consent-list label,
+.vita-route-stage .privacy-page .privacy-audit-list article { border-color: var(--product-line); }
+.vita-route-stage .privacy-page .privacy-danger-card { border-color: #f0cccc !important; background: linear-gradient(145deg, #fff9f9, #fff1f1) !important; }
+.vita-route-stage .privacy-page .privacy-danger-card :is(h2, strong) { color: #983d3d !important; }
+.vita-route-stage .privacy-page .privacy-danger-card :is(p, span) { color: #795d5d !important; }
+
+@media (max-width: 720px) {
+  .vita-route-stage .privacy-page { gap: 14px; padding-bottom: 8px; }
+  .vita-route-stage .privacy-page .privacy-hero { min-height: 328px; padding: 25px 23px 96px; border-radius: 25px !important; }
+  .vita-route-stage .privacy-page .privacy-hero h1 { max-width: 290px; font-size: 2.05rem; }
+  .vita-route-stage .privacy-page .privacy-hero p { max-width: 310px; margin-top: 13px; font-size: .84rem; }
+  .vita-route-stage .privacy-page .privacy-hero__badge { right: 17px; bottom: 17px; left: 17px; min-width: 0; padding: 11px 12px !important; }
+  .vita-route-stage .privacy-page .privacy-summary { grid-template-columns: 1fr; gap: 9px; }
+  .vita-route-stage .privacy-page .privacy-summary article { min-height: 72px; padding: 13px 14px; border-radius: 18px !important; }
+  .vita-route-stage .privacy-page .privacy-card { padding: 18px; border-radius: 20px !important; }
+  .vita-route-stage .privacy-page .privacy-card-heading h2 { font-size: 1.18rem; }
+  .vita-route-stage .privacy-page .privacy-card-heading p { font-size: .78rem; }
+  .vita-route-stage .privacy-page .privacy-permission-grid { grid-template-columns: 1fr; }
+  .vita-route-stage .privacy-page .privacy-permission,
+  .vita-route-stage .privacy-page .community-privacy-settings > label { min-height: 76px; }
+}
