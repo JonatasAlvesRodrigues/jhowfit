@@ -3994,3 +3994,52 @@ textarea:focus-visible {
     background: #35d995 !important;
   }
 }
+
+/* A live activity is glanceable on a phone: metrics and controls come before the map. */
+@media (max-width: 720px) {
+  :root[data-theme] .activity-live {
+    display: grid !important;
+    grid-template-rows: 64px minmax(0, 1fr) auto !important;
+    overflow: hidden !important;
+  }
+  :root[data-theme] .activity-live > header {
+    min-height: 64px !important;
+    padding: 0 14px !important;
+  }
+  :root[data-theme] .activity-live > header h1 { font-size: 16px !important; }
+  :root[data-theme] .activity-live > main {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 11px 12px 8px !important;
+    display: grid !important;
+    align-content: start !important;
+    gap: 9px !important;
+    overflow-y: auto !important;
+  }
+  :root[data-theme] .activity-live-warning { padding: 9px 10px !important; }
+  :root[data-theme] .activity-live-time {
+    padding: 0 !important;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 10px;
+    text-align: left !important;
+  }
+  :root[data-theme] .activity-live-time small { grid-column: 1; grid-row: 1; font-size: 7px !important; }
+  :root[data-theme] .activity-live-time strong { grid-column: 1; grid-row: 2; margin: 2px 0 0 !important; font-size: 38px !important; letter-spacing: -2px !important; }
+  :root[data-theme] .activity-live-time span { grid-column: 2; grid-row: 2; align-self: end; font-size: 8px !important; }
+  :root[data-theme] .activity-live-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 6px !important; }
+  :root[data-theme] .activity-live-metrics > div { min-height: 70px !important; padding: 8px 6px !important; border-radius: 12px !important; }
+  :root[data-theme] .activity-live-metrics > div > span { display: none; }
+  :root[data-theme] .activity-live-metrics small { margin-top: 0 !important; font-size: 6px !important; letter-spacing: .55px !important; }
+  :root[data-theme] .activity-live-metrics strong,
+  :root[data-theme] .activity-live-metrics > div:first-child strong,
+  :root[data-theme] .activity-live-metrics > div:nth-child(2) strong { margin-top: 5px !important; font-size: 12px !important; letter-spacing: -.3px; }
+  :root[data-theme] .activity-live-steps { padding: 8px 10px !important; }
+  :root[data-theme] .activity-distance-adjust { justify-content: flex-start !important; }
+  :root[data-theme] .activity-live .activity-map { height: 112px !important; min-height: 112px !important; border-radius: 14px !important; }
+  :root[data-theme] .activity-map-empty { padding: 10px; }
+  :root[data-theme] .activity-map-empty p { display: none; }
+  :root[data-theme] .activity-live > footer { min-height: 78px !important; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)) !important; }
+  :root[data-theme] .activity-live > footer .button { min-height: 48px !important; }
+}
