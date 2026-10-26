@@ -84,7 +84,7 @@ Deno.serve(async (request) => {
     if (!historyResult.ok) return json({ error: 'Não foi possível recuperar esta conversa.' }, 502)
     const history = (historyResult.data ?? []).reverse().map((item: Record<string, unknown>) => ({ role: item.role, content: String(item.content) }))
 
-    const model = geminiKey ? (Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash') : (Deno.env.get('OPENAI_MODEL') || 'gpt-5.6')
+    const model = geminiKey ? (Deno.env.get('GEMINI_MODEL') || 'gemini-3.8-flash') : (Deno.env.get('OPENAI_MODEL') || 'gpt-5.6')
     const usageId = await reserveAIUsage(supabaseUrl, anonKey, authorization, 'chat_message', model, { source: 'fitness-chat', conversation_id: conversationId })
     usage = { id: usageId, url: supabaseUrl, key: anonKey, authorization }
     const outputText = geminiKey
@@ -155,7 +155,7 @@ async function generateWithOpenAI(key:string,instructions:string,history:Array<R
 
 async function generateWithGemini(key:string,instructions:string,history:Array<Record<string,unknown>>,message:string) {
   const transcript=history.map((item)=>`${item.role==='assistant'?'ASSISTENTE':'USUÁRIO'}: ${item.content}`).join('\n')
-  const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash'
+  const model = Deno.env.get('GEMINI_MODEL') || 'gemini-3.8-flash'
   const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({systemInstruction:{parts:[{text:instructions}]},contents:[{parts:[{text:`HISTÓRICO:\n${transcript}\n\nUSUÁRIO: ${message}\n\nResponda somente com JSON válido no formato: ${JSON.stringify(responseSchema)}`}]}],generationConfig:{responseMimeType:'application/json',temperature:.25,maxOutputTokens:2200}})})
   if(!response.ok){console.error('Gemini error',model,response.status,(await response.text()).slice(0,600));throw new AIProviderError('gemini',response.status)}
   const data=await response.json();return data?.candidates?.[0]?.content?.parts?.map((part:any)=>part.text??'').join('')??''
