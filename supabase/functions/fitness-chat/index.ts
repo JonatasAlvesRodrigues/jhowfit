@@ -2,6 +2,10 @@ class AIUsageError extends Error {
   constructor(public code: string, public status: number) { super(code) }
 }
 
+class AIProviderError extends Error {
+  constructor(public provider: 'gemini' | 'openai', public status: number) { super(`${provider}_${status}`) }
+}
+
 async function reserveAIUsage(base: string, key: string, authorization: string, action: string, model: string, metadata: Record<string, unknown> = {}) {
   const response = await fetch(`${base}/rest/v1/rpc/reserve_ai_usage`, { method: 'POST', headers: { apikey: key, Authorization: authorization, 'Content-Type': 'application/json' }, body: JSON.stringify({ requested_action: action, requested_model: model, request_metadata: metadata, requested_id: crypto.randomUUID() }) })
   const body = await response.json().catch(() => ({}))
@@ -80,7 +84,7 @@ Deno.serve(async (request) => {
     if (!historyResult.ok) return json({ error: 'Não foi possível recuperar esta conversa.' }, 502)
     const history = (historyResult.data ?? []).reverse().map((item: Record<string, unknown>) => ({ role: item.role, content: String(item.content) }))
 
-    const model = geminiKey ? (Deno.env.get('GEMINI_MODEL') || 'gemini-flash-auto') : (Deno.env.get('OPENAI_MODEL') || 'gpt-5.6')
+    const model = geminiKey ? (Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash') : (Deno.env.get('OPENAI_MODEL') || 'gpt-5.6')
     const usageId = await reserveAIUsage(supabaseUrl, anonKey, authorization, 'chat_message', model, { source: 'fitness-chat', conversation_id: conversationId })
     usage = { id: usageId, url: supabaseUrl, key: anonKey, authorization }
     const outputText = geminiKey
@@ -104,6 +108,7 @@ Deno.serve(async (request) => {
     if (usage) await finalizeAIUsage(usage.url, usage.key, usage.authorization, usage.id, false)
     const limited = usageErrorResponse(error)
     if (limited) return json(limited.payload, limited.status)
+    if (error instanceof AIProviderError) return json(providerErrorResponse(error), 502)
     console.error(error); return json({ error: 'Não foi possível responder agora. Tente novamente.' }, 500)
   }
 })
@@ -144,15 +149,15 @@ function systemPrompt(permissions: Record<string,boolean>, context: Record<strin
 
 async function generateWithOpenAI(key:string,instructions:string,history:Array<Record<string,unknown>>,message:string) {
   const response = await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({model:Deno.env.get('OPENAI_MODEL')||'gpt-5.6',store:false,reasoning:{effort:'low'},text:{verbosity:'low',format:{type:'json_schema',name:'fitness_assistant_response',strict:true,schema:responseSchema}},instructions,input:[...history,{role:'user',content:message}],max_output_tokens:1800})})
-  if(!response.ok){console.error('OpenAI error',response.status,(await response.text()).slice(0,600));throw new Error(providerError(response.status))}
+  if(!response.ok){console.error('OpenAI error',response.status,(await response.text()).slice(0,600));throw new AIProviderError('openai',response.status)}
   const data=await response.json();return data.output?.flatMap((item:any)=>item.content??[]).find((item:any)=>item.type==='output_text')?.text??''
 }
 
 async function generateWithGemini(key:string,instructions:string,history:Array<Record<string,unknown>>,message:string) {
   const transcript=history.map((item)=>`${item.role==='assistant'?'ASSISTENTE':'USUÁRIO'}: ${item.content}`).join('\n')
-  const model = Deno.env.get('GEMINI_MODEL') || 'gemini-3.6-flash'
+  const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash'
   const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({systemInstruction:{parts:[{text:instructions}]},contents:[{parts:[{text:`HISTÓRICO:\n${transcript}\n\nUSUÁRIO: ${message}\n\nResponda somente com JSON válido no formato: ${JSON.stringify(responseSchema)}`}]}],generationConfig:{responseMimeType:'application/json',temperature:.25,maxOutputTokens:2200}})})
-  if(!response.ok){console.error('Gemini error',response.status,(await response.text()).slice(0,600));throw new Error(providerError(response.status))}
+  if(!response.ok){console.error('Gemini error',model,response.status,(await response.text()).slice(0,600));throw new AIProviderError('gemini',response.status)}
   const data=await response.json();return data?.candidates?.[0]?.content?.parts?.map((part:any)=>part.text??'').join('')??''
 }
 
@@ -191,4 +196,11 @@ async function restWrite(base:string,headers:Record<string,string>,table:string,
 function cleanText(value:unknown,limit=500){ return typeof value === 'string' ? value.trim().slice(0,limit) : '' }
 function localDate(date:Date){ const offset=date.getTimezoneOffset()*60000; return new Date(date.getTime()-offset).toISOString().slice(0,10) }
 function providerError(status:number){ if(status===401||status===403)return 'A credencial da IA não foi aceita.'; if(status===429)return 'O limite temporário da IA foi atingido. Tente novamente em instantes.'; return 'O serviço de IA está indisponível no momento.' }
+function providerErrorResponse(error: AIProviderError) {
+  if (error.status === 401 || error.status === 403) return { error: `A credencial do ${error.provider === 'gemini' ? 'Gemini' : 'OpenAI'} não foi aceita.`, code: `${error.provider}_key_denied` }
+  if (error.status === 404) return { error: `O modelo configurado do ${error.provider === 'gemini' ? 'Gemini' : 'OpenAI'} não está disponível para esta chave.`, code: `${error.provider}_model_unavailable` }
+  if (error.status === 429) return { error: 'O limite temporário da IA foi atingido. Tente novamente em instantes.', code: `${error.provider}_quota_exceeded` }
+  if (error.status === 400) return { error: 'A configuração enviada para a IA foi recusada. Revise o modelo configurado.', code: `${error.provider}_invalid_request` }
+  return { error: 'O serviço de IA está indisponível no momento. Tente novamente.', code: `${error.provider}_provider_error` }
+}
 function json(payload:unknown,status=200){ return new Response(JSON.stringify(payload),{status,headers:{...corsHeaders,'Content-Type':'application/json; charset=utf-8'}}) }
