@@ -1967,6 +1967,8 @@ textarea:focus-visible {
   transform: rotate(-7deg);
 }
 .daily-hero-portrait > svg { opacity: .7; transform: rotate(7deg); }
+.daily-hero-portrait > img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; transform: rotate(7deg); }
+.avatar-studio { margin-top: 12px; padding: 13px; border: 1px solid var(--product-line); border-radius: 13px; background: var(--product-surface-soft); }.avatar-studio header { display: flex; gap: 9px; }.avatar-studio header > span { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; color: var(--product-primary); background: var(--product-primary-soft); }.avatar-studio small { color: var(--product-primary); font-size: 8px; font-weight: 850; letter-spacing: .8px; }.avatar-studio h3 { margin-top: 2px; font-size: 12px; }.avatar-studio p { margin-top: 2px; color: var(--product-muted); font-size: 8px; }.avatar-studio__choices { margin-top: 11px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; }.avatar-studio__choices button { position: relative; aspect-ratio: 1; padding: 3px; border: 2px solid transparent; border-radius: 13px; background: transparent; cursor: pointer; }.avatar-studio__choices button.is-active { border-color: var(--product-primary); }.avatar-studio__choices img { width: 100%; height: 100%; border-radius: 9px; }.avatar-studio__choices i { position: absolute; right: -4px; bottom: -4px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--product-primary); }
 .daily-hero-portrait span {
   position: absolute;
   right: 22px;

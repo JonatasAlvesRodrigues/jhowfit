@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Award, Camera, Dumbbell, Flame, Heart, LoaderCircle, LockKeyhole, MapPin, MessageCircle, Pencil, UserRound, UsersRound } from 'lucide-react'
 import { communityService, type CommunityPost, type CommunityProfileEditor, type CommunitySocialProfile } from '../services/communityService'
+import { AvatarStudio } from '../components/AvatarStudio'
+import { supabase } from '../integrations/supabase'
 import '../community.css'
 
 type ProfileTab = 'posts' | 'achievements'
@@ -14,6 +16,7 @@ export function CommunityProfilePage({ viewerId, targetUserId, onNavigate }: { v
   const [editing, setEditing] = useState(false)
   const [editor, setEditor] = useState<CommunityProfileEditor | null>(null)
   const [savingEditor, setSavingEditor] = useState(false)
+  const [avatarStudioOpen, setAvatarStudioOpen] = useState(false)
   const avatarInput = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -71,6 +74,19 @@ export function CommunityProfilePage({ viewerId, targetUserId, onNavigate }: { v
     finally { setSavingEditor(false) }
   }
 
+  async function chooseSystemAvatar(avatarUrl: string) {
+    if (!editor || savingEditor || !supabase) return
+    setSavingEditor(true); setError('')
+    try {
+      const next = { ...editor, avatarUrl, avatarSource: 'system' as const, avatarKey: null }
+      const { error: profileError } = await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('id', viewerId)
+      if (profileError) throw profileError
+      await communityService.saveMyProfileEditor(viewerId, next)
+      setEditor(next); setProfile((current) => current ? { ...current, avatarUrl } : current); setAvatarStudioOpen(false)
+    } catch (saveError) { setError(saveError instanceof Error ? saveError.message : 'Não foi possível salvar seu avatar agora.') }
+    finally { setSavingEditor(false) }
+  }
+
   async function followPrivateProfile() {
     if (following) return
     setFollowing(true); setError('')
@@ -98,7 +114,7 @@ export function CommunityProfilePage({ viewerId, targetUserId, onNavigate }: { v
     </header>
 
     {isOwn && !profile.username && !editing && <button className="community-profile-setup" onClick={() => void openEditor()}><span>@</span><div><strong>Escolha seu @ único</strong><small>Ele permite que outras pessoas encontrem você na Comunidade.</small></div><Pencil size={15} /></button>}
-    {editing && editor && <section className="community-profile-editor"><div className="community-profile-editor__heading"><div><small>SEU PERFIL SOCIAL</small><h2>Como você aparece na Comunidade</h2></div><button onClick={() => setEditing(false)} disabled={savingEditor}>Cancelar</button></div><div className="community-profile-editor__avatar"><span>{editor.avatarUrl ? <img src={editor.avatarUrl} alt="" /> : initials}</span><div><strong>Foto de perfil</strong><small>JPG, PNG ou WebP de até 5 MB. A imagem é recortada para o perfil.</small><div><button onClick={() => avatarInput.current?.click()} disabled={savingEditor}><Camera size={14} /> Alterar foto</button><button disabled title="Avatares do MOVELYA serão adicionados em breve">Avatares em breve</button></div></div><input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void chooseAvatar(event.target.files?.[0] ?? null)} /></div><div className="community-profile-editor__fields"><label><span>@ único</span><input value={editor.username} maxLength={30} placeholder="ex.: jhowfit" onChange={(event) => setEditor({ ...editor, username: event.target.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase() })} /><small>3 a 30 caracteres: letras, números e _.</small></label><label><span>Bio fitness</span><textarea value={editor.bio} maxLength={200} placeholder="Ex.: Corrida, força e constância." onChange={(event) => setEditor({ ...editor, bio: event.target.value })} /><small>{editor.bio.length}/200</small></label></div><div className="community-profile-editor__footer"><span>Seus dados de saúde não aparecem aqui.</span><button onClick={() => void saveEditor()} disabled={savingEditor || editor.username.trim().length > 0 && editor.username.trim().length < 3}>{savingEditor ? <LoaderCircle size={15} className="is-spinning" /> : <Pencil size={15} />}Salvar perfil</button></div></section>}
+    {editing && editor && <section className="community-profile-editor"><div className="community-profile-editor__heading"><div><small>SEU PERFIL SOCIAL</small><h2>Como você aparece na Comunidade</h2></div><button onClick={() => setEditing(false)} disabled={savingEditor}>Cancelar</button></div><div className="community-profile-editor__avatar"><span>{editor.avatarUrl ? <img src={editor.avatarUrl} alt="" /> : initials}</span><div><strong>Foto de perfil</strong><small>JPG, PNG ou WebP de até 5 MB. A imagem é recortada para o perfil.</small><div><button onClick={() => avatarInput.current?.click()} disabled={savingEditor}><Camera size={14} /> Alterar foto</button><button onClick={() => setAvatarStudioOpen((open) => !open)} disabled={savingEditor}>Criar avatar</button></div></div><input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void chooseAvatar(event.target.files?.[0] ?? null)} /></div>{avatarStudioOpen && <AvatarStudio initials={initials} selected={editor.avatarSource === 'system' ? editor.avatarUrl : null} onSelect={(avatarUrl) => void chooseSystemAvatar(avatarUrl)} />}<div className="community-profile-editor__fields"><label><span>@ único</span><input value={editor.username} maxLength={30} placeholder="ex.: jhowfit" onChange={(event) => setEditor({ ...editor, username: event.target.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase() })} /><small>3 a 30 caracteres: letras, números e _.</small></label><label><span>Bio fitness</span><textarea value={editor.bio} maxLength={200} placeholder="Ex.: Corrida, força e constância." onChange={(event) => setEditor({ ...editor, bio: event.target.value })} /><small>{editor.bio.length}/200</small></label></div><div className="community-profile-editor__footer"><span>Seus dados de saúde não aparecem aqui.</span><button onClick={() => void saveEditor()} disabled={savingEditor || editor.username.trim().length > 0 && editor.username.trim().length < 3}>{savingEditor ? <LoaderCircle size={15} className="is-spinning" /> : <Pencil size={15} />}Salvar perfil</button></div></section>}
 
     <section className="community-profile-counts" aria-label="Conexões na comunidade"><div><strong>{formatCount(profile.followersCount ?? 0)}</strong><span>seguidores</span></div><div><strong>{formatCount(profile.followingCount ?? 0)}</strong><span>seguindo</span></div><div><strong>{profile.achievements?.length ?? 0}</strong><span>conquistas</span></div></section>
     <section className="community-profile-metrics" aria-label="Resumo compartilhado">

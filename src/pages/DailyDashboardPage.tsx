@@ -55,8 +55,8 @@ export function DailyDashboardPage({ userId, onNavigate }: DailyDashboardPagePro
             <p>Seu progresso começa com pequenas escolhas todos os dias.</p>
           </div>
         </div>
-        <div className="daily-hero-portrait" aria-label={`${data.activeStreak} dias de sequência`}>
-          <Sparkles size={48} aria-hidden="true" />
+        <div className="daily-hero-portrait" aria-label={data.profile.avatarUrl ? 'Seu avatar MOVELYA' : `${data.activeStreak} dias de sequência`}>
+          {data.profile.avatarUrl ? <img src={data.profile.avatarUrl} alt="Seu avatar" /> : <Sparkles size={48} aria-hidden="true" />}
           <span><Flame size={13} fill="currentColor" /> {data.activeStreak}</span>
         </div>
       </header>

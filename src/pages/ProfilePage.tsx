@@ -73,7 +73,7 @@ export function ProfilePage({ userId, onLogout, onNavigate }: { userId: string; 
     <section className="profile-page profile-hub">
       <header className="profile-hub__hero">
         <div className="profile-hub__identity">
-          <div className="profile-account-avatar">{initials}</div>
+          <button className="profile-account-avatar" onClick={() => onNavigate(`/perfil-social?user=${encodeURIComponent(userId)}`)} title="Criar ou alterar avatar">{initials}</button>
           <div><span className="page-eyebrow">SUA CONTA</span><h1>{name}</h1><p><Mail size={14} /> {user?.email || 'email@movelya.com'}</p></div>
         </div>
         <span className="profile-confirmed"><ShieldCheck size={15} /> Conta verificada</span>
@@ -96,6 +96,7 @@ export function ProfilePage({ userId, onLogout, onNavigate }: { userId: string; 
           <section className="profile-section">
             <div className="profile-section__heading"><div><span className="page-eyebrow">PREFERÊNCIAS</span><h2>Sua experiência</h2></div><Settings2 size={19} /></div>
             <div className="profile-action-list">
+              <button className="profile-action" onClick={() => onNavigate(`/perfil-social?user=${encodeURIComponent(userId)}`)}><span className="profile-action__icon"><Sparkles size={18} /></span><span><strong>Seu avatar</strong><small>Crie o personagem que aparece no seu painel</small></span><ChevronRight size={18} /></button>
               {accountActions.map(({ icon: Icon, title, description }, index) => (
                 <button key={title} className="profile-action" onClick={() => index === 0 ? setEditing(true) : onNavigate(index === 1 ? '/metas' : index === 2 ? '/notificacoes' : '/privacidade')}>
                   <span className="profile-action__icon"><Icon size={18} /></span><span><strong>{title}</strong><small>{description}</small></span><ChevronRight size={18} />
