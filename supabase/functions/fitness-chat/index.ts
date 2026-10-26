@@ -155,10 +155,22 @@ async function generateWithOpenAI(key:string,instructions:string,history:Array<R
 
 async function generateWithGemini(key:string,instructions:string,history:Array<Record<string,unknown>>,message:string) {
   const transcript=history.map((item)=>`${item.role==='assistant'?'ASSISTENTE':'USUÁRIO'}: ${item.content}`).join('\n')
-  const model = Deno.env.get('GEMINI_MODEL') || 'gemini-3.8-flash'
-  const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({systemInstruction:{parts:[{text:instructions}]},contents:[{parts:[{text:`HISTÓRICO:\n${transcript}\n\nUSUÁRIO: ${message}\n\nResponda somente com JSON válido no formato: ${JSON.stringify(responseSchema)}`}]}],generationConfig:{responseMimeType:'application/json',temperature:.25,maxOutputTokens:2200}})})
-  if(!response.ok){console.error('Gemini error',model,response.status,(await response.text()).slice(0,600));throw new AIProviderError('gemini',response.status)}
-  const data=await response.json();return data?.candidates?.[0]?.content?.parts?.map((part:any)=>part.text??'').join('')??''
+  const configuredModel = Deno.env.get('GEMINI_MODEL')
+  const models = [...new Set([configuredModel, 'gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash'].filter(Boolean))] as string[]
+  let lastStatus = 503
+  for (const model of models) {
+    try {
+      const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({systemInstruction:{parts:[{text:instructions}]},contents:[{parts:[{text:`HISTÓRICO:\n${transcript}\n\nUSUÁRIO: ${message}\n\nResponda somente com JSON válido no formato: ${JSON.stringify(responseSchema)}`}]}],generationConfig:{responseMimeType:'application/json',temperature:.25,maxOutputTokens:2200}})})
+      if(!response.ok){lastStatus=response.status;console.error('Gemini error',model,response.status,(await response.text()).slice(0,600));if([400,401,403,429].includes(response.status))throw new AIProviderError('gemini',response.status);continue}
+      const data=await response.json();const output=data?.candidates?.[0]?.content?.parts?.map((part:any)=>part.text??'').join('')??''
+      if(output) return output
+      console.error('Gemini empty response',model)
+    } catch (error) {
+      if(error instanceof AIProviderError) throw error
+      console.error('Gemini network error',model,error)
+    }
+  }
+  throw new AIProviderError('gemini',lastStatus)
 }
 
 function validateAssistant(value: any, permissions: Record<string,boolean>) {
